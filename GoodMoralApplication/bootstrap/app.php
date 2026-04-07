@@ -19,6 +19,26 @@ return Application::configure(basePath: dirname(__DIR__))
             'secure.file' => \App\Http\Middleware\SecureFileAccess::class,
         ]);
 
+        // Redirect authenticated users based on role (guest middleware)
+        $middleware->redirectGuestsTo('/login');
+        $middleware->redirectUsersTo(function (\Illuminate\Http\Request $request) {
+            $user = $request->user();
+            if (!$user) {
+                return '/dashboard';
+            }
+
+            return match ($user->account_type) {
+                'admin' => '/admin/dashboard',
+                'dean' => '/dean/dashboard',
+                'head_osa' => '/head_osa/dashboard',
+                'sec_osa' => '/sec_osa/dashboard',
+                'psg_officer' => '/PsgOfficer/dashboard',
+                'registrar' => '/registrar/goodMoralApplication',
+                'prog_coor' => '/prog_coor/major',
+                default => '/dashboard',
+            };
+        });
+
         // Add security headers middleware
         $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
     })

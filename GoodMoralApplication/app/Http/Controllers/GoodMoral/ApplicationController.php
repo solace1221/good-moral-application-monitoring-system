@@ -34,9 +34,20 @@ class ApplicationController extends Controller
 
   public function dashboard()
   {
-    // Check if user is student or alumni
-    if (!in_array(auth()->user()->account_type, ['student', 'alumni'])) {
-      abort(403, 'Unauthorized access.');
+    $accountType = auth()->user()->account_type;
+
+    // Redirect non-student/alumni users to their correct dashboard
+    if (!in_array($accountType, ['student', 'alumni'])) {
+      return redirect(match ($accountType) {
+        'admin' => route('admin.dashboard'),
+        'dean' => route('dean.dashboard'),
+        'head_osa' => route('head_osa.dashboard'),
+        'sec_osa' => route('sec_osa.dashboard'),
+        'psg_officer' => route('PsgOfficer.dashboard'),
+        'registrar' => route('registrar.goodMoralApplication'),
+        'prog_coor' => route('prog_coor.major'),
+        default => route('login'),
+      });
     }
 
     $user = Auth::user();
