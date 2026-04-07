@@ -683,8 +683,6 @@ class ApplicationController extends Controller
       $oldEmail = $user->email;
       $user->update($updateData);
       
-      // Sync profile update to Clearance System (students/alumni)
-      
       $successMessage = 'Profile updated successfully! Note: Name changes require formal request to Registrar/OSA. Academic information is managed by the Registrar.';
       
     } else if ($user->account_type === 'psg_officer') {

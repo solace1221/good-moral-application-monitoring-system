@@ -13,7 +13,6 @@ class NfcTap extends Model
 
     protected $fillable = [
         'student_id',
-        'clearance_id',
         'tapped_by',
         'uid',
         'tapped_at',

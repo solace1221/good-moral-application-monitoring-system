@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\StudentRegistration;
 use App\Models\RoleAccount;
-use App\Services\ClearanceSyncService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -19,13 +18,6 @@ use Illuminate\View\View;
 
 class RegisteredAccountController extends Controller
 {
-  protected $clearanceSyncService;
-
-  public function __construct(ClearanceSyncService $clearanceSyncService)
-  {
-    $this->clearanceSyncService = $clearanceSyncService;
-  }
-
   public function create(): View
   {
     return view('auth.admin.AdminAccount')->with('success', 'Account successfully created!');
@@ -81,36 +73,6 @@ class RegisteredAccountController extends Controller
         'role' => 'student',
         'status' => 'active',
       ]);
-
-      // Sync to Clearance Management System
-      try {
-        $this->clearanceSyncService->syncUser([
-          'fname' => $nameParts['firstname'],
-          'lname' => $nameParts['lastname'],
-          'mname' => $nameParts['middlename'],
-          'extension' => $nameParts['extension'],
-          'email' => $request->email,
-          'password' => $hashedPassword,
-          'student_id' => $request->student_id,
-          'department' => $request->department,
-          'course' => $request->course,
-          'year_level' => $request->year_level,
-          'account_type' => $request->account_type,
-          'status' => '1',
-        ]);
-
-        Log::info('Account synced to Clearance System', [
-          'email' => $request->email,
-          'student_id' => $request->student_id,
-          'account_type' => $request->account_type
-        ]);
-      } catch (\Exception $e) {
-        Log::error('Failed to sync account to Clearance System', [
-          'email' => $request->email,
-          'error' => $e->getMessage()
-        ]);
-        // Don't fail the account creation, just log the error
-      }
     }
 
     return redirect()->route('admin.AddAccount')->with('success', 'Account successfully created!');
