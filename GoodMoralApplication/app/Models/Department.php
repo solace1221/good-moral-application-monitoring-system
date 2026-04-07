@@ -26,10 +26,26 @@ class Department extends Model
     }
 
     /**
-     * Get students in this department
+     * Get role accounts in this department
      */
-    public function students()
+    public function roleAccounts()
     {
-        return $this->hasMany(Student::class, 'department_id', 'id');
+        return $this->hasMany(RoleAccount::class, 'department_id');
+    }
+
+    /**
+     * Get designations in this department
+     */
+    public function designations()
+    {
+        return $this->hasMany(Designation::class, 'dept_id');
+    }
+
+    /**
+     * Get courses in this department
+     */
+    public function courses()
+    {
+        return $this->hasMany(Course::class, 'department_id');
     }
 }

@@ -28,4 +28,12 @@ class ArchivedRoleAccount extends Model
 
     // If you want to disable timestamps (if not needed in the archived table)
     // public $timestamps = false;
+
+    /**
+     * Get the original role account.
+     */
+    public function originalAccount()
+    {
+        return $this->belongsTo(RoleAccount::class, 'student_id', 'student_id');
+    }
 }

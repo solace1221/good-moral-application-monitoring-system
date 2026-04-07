@@ -15,4 +15,11 @@ class Violation extends Model
       'article',
     ];
 
+    /**
+     * Get student violations of this type.
+     */
+    public function studentViolations()
+    {
+        return $this->hasMany(StudentViolation::class, 'violation_id');
+    }
 }

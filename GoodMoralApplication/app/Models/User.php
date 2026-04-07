@@ -159,14 +159,6 @@ class User extends Authenticatable
         return $this->belongsTo(Designation::class, 'designation_id', 'dsn_id');
     }
 
-    /**
-     * Get the position for PSG Officer
-     */
-    public function position()
-    {
-        return $this->belongsTo(Position::class, 'position_id', 'position_id');
-    }
-
     // =========================================================
     // General Relationships
     // =========================================================
@@ -185,11 +177,6 @@ class User extends Authenticatable
     public function coordinatedCourses()
     {
         return $this->hasMany(Course::class, 'coordinator_id', 'id');
-    }
-
-    public function nfcProcessedTaps()
-    {
-        return $this->hasMany(NfcTap::class, 'tapped_by', 'id');
     }
 
     // =========================================================

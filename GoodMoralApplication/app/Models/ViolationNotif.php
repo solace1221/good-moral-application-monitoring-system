@@ -16,4 +16,19 @@ class ViolationNotif extends Model
     'notif',
   ];
 
+  /**
+   * Get the student this notification belongs to.
+   */
+  public function student()
+  {
+    return $this->belongsTo(RoleAccount::class, 'student_id', 'student_id');
+  }
+
+  /**
+   * Get the student violation this notification references.
+   */
+  public function studentViolation()
+  {
+    return $this->belongsTo(StudentViolation::class, 'ref_num', 'ref_num');
+  }
 }

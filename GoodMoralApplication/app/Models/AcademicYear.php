@@ -272,10 +272,10 @@ class AcademicYear extends Model
     // =========================================================
 
     /**
-     * Get students for this academic year
+     * Get year level histories for this academic year
      */
-    public function students()
+    public function yearLevelHistories()
     {
-        return $this->hasMany(Student::class, 'academic_id', 'id');
+        return $this->hasMany(StudentYearLevelHistory::class, 'academic_year_id');
     }
 }

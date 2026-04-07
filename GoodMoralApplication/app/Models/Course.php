@@ -59,14 +59,6 @@ class Course extends Model
     }
 
     /**
-     * Get students enrolled in this course
-     */
-    public function students()
-    {
-        return $this->hasMany(Student::class, 'course_id', 'id');
-    }
-
-    /**
      * Get all courses grouped by department code
      */
     public static function getByDepartment()

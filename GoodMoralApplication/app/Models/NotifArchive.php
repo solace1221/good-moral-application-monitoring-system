@@ -87,4 +87,12 @@ class NotifArchive extends Model
 
         return "₱" . number_format($amount, 2) . " ({$reasonCount} {$reasonText} × {$copies} {$copyText} × ₱50.00)";
     }
+
+    /**
+     * Get the student this archive belongs to.
+     */
+    public function student()
+    {
+        return $this->belongsTo(RoleAccount::class, 'student_id', 'student_id');
+    }
 }

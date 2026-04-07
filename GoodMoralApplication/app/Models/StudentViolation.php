@@ -79,4 +79,20 @@ class StudentViolation extends Model
 
     return '1st Year'; // Default fallback
   }
+
+  /**
+   * Relationship: Get the violation type record.
+   */
+  public function violation()
+  {
+    return $this->belongsTo(Violation::class, 'violation_id');
+  }
+
+  /**
+   * Relationship: Get notification records for this violation.
+   */
+  public function notifs()
+  {
+    return $this->hasMany(ViolationNotif::class, 'ref_num', 'ref_num');
+  }
 }

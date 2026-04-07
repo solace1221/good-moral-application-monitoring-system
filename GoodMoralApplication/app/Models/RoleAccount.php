@@ -127,4 +127,63 @@ class RoleAccount extends Authenticatable
   {
     return $this->year_level ?: $this->getYearLevelAttribute(null);
   }
+
+  // =========================================================
+  // Relationships
+  // =========================================================
+
+  public function department()
+  {
+    return $this->belongsTo(Department::class, 'department_id');
+  }
+
+  public function course()
+  {
+    return $this->belongsTo(Course::class, 'course_id');
+  }
+
+  public function violations()
+  {
+    return $this->hasMany(StudentViolation::class, 'student_id', 'student_id');
+  }
+
+  public function headOsaApplications()
+  {
+    return $this->hasMany(HeadOSAApplication::class, 'student_id', 'student_id');
+  }
+
+  public function deanApplications()
+  {
+    return $this->hasMany(DeanApplication::class, 'student_id', 'student_id');
+  }
+
+  public function secOsaApplications()
+  {
+    return $this->hasMany(SecOSAApplication::class, 'student_id', 'student_id');
+  }
+
+  public function receipts()
+  {
+    return $this->hasMany(Receipt::class, 'student_id', 'student_id');
+  }
+
+  public function violationNotifs()
+  {
+    return $this->hasMany(ViolationNotif::class, 'student_id', 'student_id');
+  }
+
+  public function notifArchives()
+  {
+    return $this->hasMany(NotifArchive::class, 'student_id', 'student_id');
+  }
+
+  public function yearLevelHistories()
+  {
+    return $this->hasMany(StudentYearLevelHistory::class, 'student_id', 'student_id');
+  }
+
+  public function archivedAccount()
+  {
+    return $this->hasOne(ArchivedRoleAccount::class, 'student_id', 'student_id');
+  }
 }
