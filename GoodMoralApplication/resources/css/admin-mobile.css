@@ -1,0 +1,372 @@
+/* Admin Mobile Responsiveness Enhancements */
+
+/* Image Responsiveness Fixes */
+img {
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+/* Logo and Icon Fixes */
+.sidebar img,
+.header-section img,
+.stat-card img,
+.logo-container img {
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
+/* Department Logo Fixes */
+.stat-card img {
+  height: 60px !important;
+  width: auto !important;
+  flex-shrink: 0;
+}
+
+/* Sidebar Logo Fixes */
+.sidebar img {
+  height: 40px !important;
+  width: auto !important;
+}
+
+/* Enhanced Mobile Navigation */
+.mobile-nav-improvements {
+  /* Improved touch targets */
+  .nav-link,
+  .nav-sublink {
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+  }
+  
+  /* Better spacing for mobile */
+  .nav-link {
+    padding: 14px 20px;
+  }
+  
+  .nav-sublink {
+    padding: 12px 20px 12px 40px;
+  }
+}
+
+/* Mobile Form Enhancements */
+.mobile-form-enhancements {
+  /* Prevent zoom on iOS */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+  
+  /* Better touch targets */
+  button,
+  .btn,
+  input[type="submit"],
+  input[type="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Mobile Table Improvements */
+.mobile-table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  margin: 16px 0;
+}
+
+.mobile-table {
+  min-width: 600px;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* Mobile Card Layouts */
+.mobile-card-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.mobile-card {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-left: 4px solid var(--primary-green);
+}
+
+/* Mobile Header Improvements */
+.mobile-header-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.mobile-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* Mobile Button Groups */
+.mobile-btn-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.mobile-btn-group .btn {
+  width: 100%;
+  justify-content: center;
+}
+
+/* Mobile Search Panel */
+.mobile-search-panel {
+  background: #f8f9fa;
+  border: 1px solid #e1e5e9;
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 16px;
+  display: none;
+  animation: slideDown 0.3s ease;
+}
+
+.mobile-search-panel.active {
+  display: block;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mobile Chart Containers */
+.mobile-chart-container {
+  position: relative;
+  height: 300px;
+  margin: 16px 0;
+}
+
+/* Mobile Notification Improvements */
+.mobile-notification {
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  border-left: 4px solid var(--primary-green);
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.mobile-notification-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.mobile-notification-actions .btn {
+  width: 100%;
+  padding: 10px;
+  font-size: 14px;
+}
+
+/* Mobile Stats Grid */
+.mobile-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.mobile-stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-top: 4px solid var(--primary-green);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.mobile-stat-icon {
+  width: 50px;
+  height: 50px;
+  flex-shrink: 0;
+}
+
+.mobile-stat-content {
+  flex: 1;
+}
+
+.mobile-stat-number {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--primary-green);
+  margin-bottom: 4px;
+}
+
+.mobile-stat-label {
+  color: #666;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Mobile Responsive Utilities */
+.mobile-only {
+  display: none;
+}
+
+.desktop-only {
+  display: block;
+}
+
+.mobile-full-width {
+  width: 100%;
+}
+
+.mobile-text-center {
+  text-align: center;
+}
+
+.mobile-hidden {
+  display: none;
+}
+
+/* Mobile Breakpoints */
+@media (max-width: 768px) {
+  .mobile-only {
+    display: block;
+  }
+  
+  .desktop-only {
+    display: none;
+  }
+  
+  .mobile-responsive {
+    padding: 16px 12px;
+  }
+  
+  /* Stack elements vertically */
+  .mobile-stack {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  
+  /* Full width on mobile */
+  .mobile-full {
+    width: 100% !important;
+    max-width: none !important;
+  }
+  
+  /* Smaller text on mobile */
+  .mobile-text-sm {
+    font-size: 0.9rem !important;
+  }
+  
+  /* Better spacing */
+  .mobile-spacing {
+    margin: 12px 0 !important;
+  }
+  
+  /* Mobile padding adjustments */
+  .mobile-p-sm {
+    padding: 12px !important;
+  }
+  
+  .mobile-p-md {
+    padding: 16px !important;
+  }
+  
+  /* Mobile margin adjustments */
+  .mobile-m-sm {
+    margin: 8px !important;
+  }
+  
+  .mobile-m-md {
+    margin: 16px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .mobile-responsive {
+    padding: 12px 8px;
+  }
+  
+  .mobile-stat-number {
+    font-size: 1.5rem;
+  }
+  
+  .mobile-stat-label {
+    font-size: 0.8rem;
+  }
+  
+  .mobile-chart-container {
+    height: 250px;
+  }
+  
+  /* Extra small mobile adjustments */
+  .mobile-xs-text {
+    font-size: 0.8rem !important;
+  }
+  
+  .mobile-xs-p {
+    padding: 8px !important;
+  }
+  
+  .mobile-xs-m {
+    margin: 6px !important;
+  }
+}
+
+/* Touch-friendly improvements */
+@media (hover: none) and (pointer: coarse) {
+  /* Increase touch targets */
+  button,
+  .btn,
+  a,
+  input,
+  select {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Remove hover effects on touch devices */
+  .btn:hover,
+  .nav-link:hover,
+  .nav-sublink:hover {
+    transform: none;
+  }
+  
+  /* Add active states for touch feedback */
+  .btn:active,
+  .nav-link:active,
+  .nav-sublink:active {
+    transform: scale(0.98);
+    transition: transform 0.1s ease;
+  }
+}
+
+/* High DPI display improvements */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .mobile-stat-icon img,
+  .mobile-logo {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}

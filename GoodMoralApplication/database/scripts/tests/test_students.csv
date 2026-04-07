@@ -1,0 +1,7 @@
+student_id,first_name,middle_initial,last_name,extension_name,department,course_year,email
+2024-100,JOHN,A,DOE,,SITE,BSIT 1st Year,john.doe@spup.edu.ph
+2024-101,JANE,B,SMITH,,SNAHS,BSN 2nd Year,jane.smith@spup.edu.ph
+2024-102,MICHAEL,C,JOHNSON,JR,SBAHM,BSA 3rd Year,michael.johnson@spup.edu.ph
+2024-103,SARAH,D,WILLIAMS,,SASTE,BS Psych 4th Year,sarah.williams@spup.edu.ph
+2024-104,DAVID,E,BROWN,,SITE,BS CpE 2nd Year,david.brown@spup.edu.ph
+2024-105,LISA,F,GARCIA,,SNAHS,BSPh 1st Year,lisa.garcia@spup.edu.ph

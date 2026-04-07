@@ -1,0 +1,72 @@
+# Laravel specific
+/.phpunit.cache
+/node_modules
+/public/hot
+/public/storage
+/storage/*.key
+/vendor
+
+# Environment files - CRITICAL: Never commit these!
+.env
+.env.backup
+.env.production
+.env.local
+
+# IDE specific
+.idea
+.vscode
+*.swp
+*.swo
+*~
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Build and cache
+npm-debug.log
+yarn-error.log
+/public/build
+/public/hot
+
+# Session and cache
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+storage/logs/*
+bootstrap/cache/*
+
+# Keep important directories with .gitkeep
+!storage/app/.gitignore
+!storage/framework/.gitignore
+!storage/framework/cache/.gitignore
+!storage/framework/sessions/.gitignore
+!storage/framework/views/.gitignore
+!storage/logs/.gitignore
+
+# Test files (optional - uncomment if you want to exclude)
+# test_*.php
+# debug_*.php
+
+# Database backups (don't commit to repo)
+*.sql
+*.sql.gz
+backups/
+
+# Uploaded files (don't commit user uploads)
+/storage/app/public/uploaded_receipts/*
+/storage/app/public/payment_notices/*
+/storage/app/public/violations_documents/*
+
+# Composer
+composer.phar
+composer.lock
+
+# Documentation (optional - keep or remove based on preference)
+# *.md
+
+# Security - Never commit sensitive files
+*.key
+*.pem
+*.crt
+*.p12
