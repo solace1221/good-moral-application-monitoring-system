@@ -9,7 +9,7 @@ use App\Http\Controllers\Shared\AcademicYearController;
 use Illuminate\Support\Facades\Route;
 
 // ─── Admin Management (designations, positions, courses, academic years) ─────
-Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::resource('designations', DesignationController::class);
     Route::resource('positions', PositionController::class);
 

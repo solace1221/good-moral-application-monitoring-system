@@ -11,11 +11,6 @@ use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\Auth\RegisteredAccountController;
 use App\Http\Controllers\Auth\RegisterViolationController;
-use App\Http\Controllers\GoodMoral\SecOSAController;
-use App\Http\Controllers\GoodMoral\AdminController;
-use App\Http\Controllers\GoodMoral\DeanController;
-use App\Http\Controllers\GoodMoral\ApplicationController;
-use App\Http\Controllers\GoodMoral\ProgramCoordinatorController;
 use Illuminate\Support\Facades\Route;
 
 // Guest routes - Authentication
@@ -79,24 +74,7 @@ Route::middleware('auth')->group(function () {
 
   Route::post('registerviolation', [RegisterViolationController::class, 'store'])
     ->middleware('role:admin,sec_osa');
-
-  Route::post('RegisterViolation', [AdminController::class, 'create'])
-    ->middleware('admin')
-    ->name('RegisterViolation');
 });
-
-  Route::post('dean/violation/approve/{id}', [DeanController::class, 'deanviolationapprove'])
-    ->name('dean.violation.approve');
-
-  Route::get('/admin/AddAccount', [AdminController::class, 'AddAccountnt'])
-    ->name('admin.AddAccount');
-
-  Route::post('/receipt/upload', [ApplicationController::class, 'upload'])->name('receipt.upload');
-
-// Alternative route for serving files through controller
-Route::get('/files/{path}', [ApplicationController::class, 'serveFile'])
-  ->where('path', '.*')
-  ->name('files.serve');
 
 // Route to serve storage files (outside of auth middleware)
 Route::get('/storage/{path}', function ($path) {
