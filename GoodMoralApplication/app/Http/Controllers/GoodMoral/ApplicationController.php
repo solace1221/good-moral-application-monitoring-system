@@ -11,6 +11,7 @@ use App\Models\RoleAccount;
 use App\Models\NotifArchive;
 use App\Models\StudentViolation;
 use App\Services\ReceiptValidationService;
+use App\Services\NotificationArchiveService;
 use App\Helpers\CourseHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -26,10 +27,11 @@ class ApplicationController extends Controller
    */
   use RoleCheck;
 
-  public function __construct()
+  protected NotificationArchiveService $notifService;
+
+  public function __construct(NotificationArchiveService $notifService)
   {
-    // Temporarily disable role check to fix authentication
-    // $this->checkRole(['student', 'alumni']);
+    $this->notifService = $notifService;
   }
 
   public function dashboard()
@@ -213,7 +215,7 @@ class ApplicationController extends Controller
     }
 
     // Save the application in the database
-    GoodMoralApplication::create([
+    $application = GoodMoralApplication::create([
       'number_of_copies' => $request->num_copies,
       'reference_number' => $referenceNumber,
       'fullname' => $fullname,
@@ -231,23 +233,7 @@ class ApplicationController extends Controller
       'status' => 'pending',
     ]);
 
-    NotifArchive::create([
-      'number_of_copies' => $request->num_copies,
-      'reference_number' => $referenceNumber,
-      'fullname' => $fullname,
-      'gender' => $userGender, // Add gender field
-      'reason' => $selectedReason,
-      'student_id' => $studentId,
-      'department' => $studentDepartment,
-      'course_completed' => $request->course_completed ?? null, // Allowing this to be null
-      'graduation_date' => $request->graduation_date ?? null,
-      'application_status' => null,
-      'is_undergraduate' => $request->is_undergraduate === 'yes',
-      'last_course_year_level' => $request->last_course_year_level ?? null,
-      'last_semester_sy' => $lastSemesterSy,
-      'certificate_type' => $request->certificate_type, // Add certificate type
-      'status' => '0',
-    ]);
+    $this->notifService->createFromApplication($application, '0');
 
     // Redirect to the dashboard with a success message
     $certificateName = $request->certificate_type === 'good_moral' ? 'Good Moral Certificate' : 'Certificate of Residency';
@@ -442,23 +428,7 @@ class ApplicationController extends Controller
       }
 
       // Create notification for student - receipt uploaded, ready for printing
-      NotifArchive::create([
-        'number_of_copies' => $application->number_of_copies,
-        'reference_number' => $application->reference_number,
-        'fullname' => $application->fullname,
-        'gender' => $application->gender,
-        'reason' => $application->reason,
-        'student_id' => $application->student_id,
-        'department' => $application->department,
-        'course_completed' => $application->course_completed,
-        'graduation_date' => $application->graduation_date,
-        'application_status' => null,
-        'is_undergraduate' => $application->is_undergraduate,
-        'last_course_year_level' => $application->last_course_year_level,
-        'last_semester_sy' => $application->last_semester_sy,
-        'certificate_type' => $application->certificate_type,
-        'status' => '4', // Status 4 = Receipt uploaded, ready for printing
-      ]);
+      $this->notifService->createFromApplication($application, '4');
     }
 
     return back()->with('status', 'Official receipt uploaded successfully! Your application is now ready for certificate printing.');

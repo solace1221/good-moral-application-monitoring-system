@@ -1,0 +1,157 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\RoleAccount;
+use App\Models\StudentRegistration;
+use Illuminate\Support\Facades\Hash;
+
+class AccountManagementService
+{
+    /**
+     * Parse course_year field from CSV (e.g., "BSIT 1st Year").
+     */
+    public function parseCourseYear(string $courseYearField): array
+    {
+        $courseYearField = trim($courseYearField);
+
+        if (empty($courseYearField)) {
+            return ['course' => null, 'year_level' => null];
+        }
+
+        // Common year level patterns
+        $yearLevelPatterns = [
+            '1st year', '2nd year', '3rd year', '4th year', '5th year',
+            'first year', 'second year', 'third year', 'fourth year', 'fifth year',
+        ];
+
+        foreach ($yearLevelPatterns as $pattern) {
+            $pos = stripos($courseYearField, $pattern);
+            if ($pos !== false) {
+                $course = trim(substr($courseYearField, 0, $pos));
+                $yearLevel = trim(substr($courseYearField, $pos));
+                return ['course' => $course, 'year_level' => $yearLevel];
+            }
+        }
+
+        // No year level found — treat entire field as course
+        return ['course' => $courseYearField, 'year_level' => null];
+    }
+
+    /**
+     * Import users from parsed CSV data.
+     *
+     * @param array  $rows    Array of CSV row arrays (header removed)
+     * @param string $defaultPassword
+     * @return array ['successCount' => int, 'errorCount' => int, 'errors' => string[]]
+     */
+    public function importUsersFromCsv(array $rows, string $defaultPassword = 'student123'): array
+    {
+        $successCount = 0;
+        $errorCount = 0;
+        $errors = [];
+
+        foreach ($rows as $index => $row) {
+            $rowNumber = $index + 2;
+
+            if (empty(array_filter($row))) {
+                continue;
+            }
+
+            while (count($row) < 8) {
+                $row[] = '';
+            }
+
+            $parsedCourse = $this->parseCourseYear(trim($row[6]));
+
+            $studentData = [
+                'student_id' => trim($row[0]),
+                'fname' => trim($row[1]),
+                'mname' => trim($row[2]) ?: null,
+                'lname' => trim($row[3]),
+                'extension' => trim($row[4]) ?: null,
+                'department' => trim($row[5]),
+                'course' => $parsedCourse['course'],
+                'year_level' => $parsedCourse['year_level'],
+                'email' => strtolower(trim($row[7])),
+            ];
+
+            // Validate required fields
+            if (empty($studentData['student_id']) || empty($studentData['fname']) ||
+                empty($studentData['lname']) || empty($studentData['email']) ||
+                empty($studentData['department'])) {
+                $errors[] = "Row {$rowNumber}: Missing required fields (student_id, first_name, last_name, department, email)";
+                $errorCount++;
+                continue;
+            }
+
+            if (!filter_var($studentData['email'], FILTER_VALIDATE_EMAIL)) {
+                $errors[] = "Row {$rowNumber}: Invalid email format";
+                $errorCount++;
+                continue;
+            }
+
+            if (RoleAccount::where('student_id', $studentData['student_id'])->exists()) {
+                $errors[] = "Row {$rowNumber}: Student ID {$studentData['student_id']} already exists";
+                $errorCount++;
+                continue;
+            }
+
+            if (RoleAccount::whereRaw('LOWER(email) = ?', [$studentData['email']])->exists()) {
+                $errors[] = "Row {$rowNumber}: Email {$studentData['email']} already exists";
+                $errorCount++;
+                continue;
+            }
+
+            try {
+                $fullname = $studentData['lname'] . ', ' . $studentData['fname'];
+                if ($studentData['mname']) {
+                    $fullname .= ' ' . $studentData['mname'];
+                }
+                if ($studentData['extension']) {
+                    $fullname .= ' ' . $studentData['extension'];
+                }
+
+                StudentRegistration::create([
+                    'fname' => $studentData['fname'],
+                    'mname' => $studentData['mname'],
+                    'lname' => $studentData['lname'],
+                    'extension' => $studentData['extension'],
+                    'email' => $studentData['email'],
+                    'department' => $studentData['department'],
+                    'course' => $studentData['course'],
+                    'password' => Hash::make($defaultPassword),
+                    'student_id' => $studentData['student_id'],
+                    'status' => '1',
+                    'account_type' => 'student',
+                    'year_level' => $studentData['year_level'],
+                    'organization' => null,
+                    'position' => null,
+                ]);
+
+                RoleAccount::create([
+                    'fullname' => $fullname,
+                    'mname' => $studentData['mname'],
+                    'extension' => $studentData['extension'],
+                    'department' => $studentData['department'],
+                    'course' => $studentData['course'],
+                    'year_level' => $studentData['year_level'],
+                    'email' => $studentData['email'],
+                    'password' => Hash::make($defaultPassword),
+                    'student_id' => $studentData['student_id'],
+                    'status' => '1',
+                    'account_type' => 'student',
+                    'organization' => null,
+                    'position' => null,
+                ]);
+
+                $successCount++;
+            } catch (\Exception $e) {
+                $errors[] = "Row {$rowNumber}: Error creating account - " . $e->getMessage();
+                $errorCount++;
+            }
+        }
+
+        return compact('successCount', 'errorCount', 'errors');
+    }
+}

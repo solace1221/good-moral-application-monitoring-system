@@ -4,6 +4,12 @@ namespace App\Http\Controllers\GoodMoral;
 use App\Http\Controllers\Controller;
 
 use App\Services\ReceiptService;
+use App\Services\NotificationArchiveService;
+use App\Services\CertificateService;
+use App\Services\DashboardStatsService;
+use App\Services\ViolationService;
+use App\Services\AccountManagementService;
+use App\Services\GoodMoralWorkflowService;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -34,10 +40,27 @@ class AdminController extends Controller
 {
   use RoleCheck, DateFilterTrait, ViolationEscalationTrait;
 
-  public function __construct()
-  {
-    // Temporarily disable role check to fix authentication
-    // $this->checkRole(['admin']);
+  protected NotificationArchiveService $notifService;
+  protected CertificateService $certificateService;
+  protected DashboardStatsService $statsService;
+  protected ViolationService $violationService;
+  protected AccountManagementService $accountService;
+  protected GoodMoralWorkflowService $workflowService;
+
+  public function __construct(
+    NotificationArchiveService $notifService,
+    CertificateService $certificateService,
+    DashboardStatsService $statsService,
+    ViolationService $violationService,
+    AccountManagementService $accountService,
+    GoodMoralWorkflowService $workflowService
+  ) {
+    $this->notifService = $notifService;
+    $this->certificateService = $certificateService;
+    $this->statsService = $statsService;
+    $this->violationService = $violationService;
+    $this->accountService = $accountService;
+    $this->workflowService = $workflowService;
   }
   public function dashboard(Request $request)
   {
@@ -51,66 +74,52 @@ class AdminController extends Controller
     // Get frequency filter from request
     $frequency = $request->get('frequency', 'all');
 
-    // Applicants per department with date filtering
-    $site = $this->applyDateFilter(GoodMoralApplication::where('department', 'SITE'), $frequency)->count();
-    $saste = $this->applyDateFilter(GoodMoralApplication::where('department', 'SASTE'), $frequency)->count();
-    $sbahm = $this->applyDateFilter(GoodMoralApplication::where('department', 'SBAHM'), $frequency)->count();
-    $snahs = $this->applyDateFilter(GoodMoralApplication::where('department', 'SNAHS'), $frequency)->count();
-    $som = $this->applyDateFilter(GoodMoralApplication::where('department', 'SOM'), $frequency)->count();
-    $gradsch = $this->applyDateFilter(GoodMoralApplication::where('department', 'GRADSCH'), $frequency)->count();
+    // Use DashboardStatsService for stats
+    $deptCounts = $this->statsService->getApplicationCountsByDepartment($frequency);
+    $site = $deptCounts['SITE'];
+    $saste = $deptCounts['SASTE'];
+    $sbahm = $deptCounts['SBAHM'];
+    $snahs = $deptCounts['SNAHS'];
+    $som = $deptCounts['SOM'];
+    $gradsch = $deptCounts['GRADSCH'];
 
-    // For Pie Chart stats with date filtering
-    $minorpending = $this->applyDateFilter(StudentViolation::where('status', '!=', 2)->where('offense_type', 'minor'), $frequency)->count();
-    $minorcomplied = $this->applyDateFilter(StudentViolation::where('status', '=', 2)->where('offense_type', 'minor'), $frequency)->count();
-    $majorpending = $this->applyDateFilter(StudentViolation::where('status', '!=', 2)->where('offense_type', 'major'), $frequency)->count();
-    $majorcomplied = $this->applyDateFilter(StudentViolation::where('status', '=', 2)->where('offense_type', 'major'), $frequency)->count();
+    $vStats = $this->statsService->getViolationStats($frequency);
+    $minorpending = $vStats['minorPending'];
+    $minorcomplied = $vStats['minorResolved'];
+    $majorpending = $vStats['majorPending'];
+    $majorcomplied = $vStats['majorResolved'];
 
     // Percentages for minor offenses
-    $totalMinor = $minorpending + $minorcomplied;
+    $totalMinor = $vStats['minorTotal'];
     $pendingPercent = $totalMinor > 0 ? ($minorpending / $totalMinor) * 100 : 0;
     $compliedPercent = 100 - $pendingPercent;
     $dashArray = $pendingPercent . ' ' . $compliedPercent;
 
-    // ✅ Percentages for major offenses
-    $totalMajor = $majorpending + $majorcomplied;
+    // Percentages for major offenses
+    $totalMajor = $vStats['majorTotal'];
     $majorPendingPercent = $totalMajor > 0 ? ($majorpending / $totalMajor) * 100 : 0;
     $majorCompliedPercent = 100 - $majorPendingPercent;
     $majorDashArray = $majorPendingPercent . ' ' . $majorCompliedPercent;
 
     // Departments array for looping
-    $departments = ['SITE', 'SASTE', 'SBAHM', 'SNAHS', 'SOM', 'GRADSCH'];
+    $departments = DashboardStatsService::DEPARTMENTS;
 
-    // Prepare arrays for counts
-    $majorCounts = [];
-    $minorCounts = [];
-    $majorViolationsByDept = [];
-    $minorViolationsByDept = [];
+    // Violation counts by department
+    $deptViolations = $this->statsService->getViolationsByDepartment($frequency);
+    $majorCounts = $deptViolations['majorViolationsByDept'];
+    $minorCounts = $deptViolations['minorViolationsByDept'];
+    $majorViolationsByDept = $majorCounts;
+    $minorViolationsByDept = $minorCounts;
 
-    foreach ($departments as $dept) {
-      $majorCounts[$dept] = $this->applyDateFilter(StudentViolation::where('offense_type', 'major')
-        ->where('department', $dept), $frequency)
-        ->count();
-
-      $minorCounts[$dept] = $this->applyDateFilter(StudentViolation::where('offense_type', 'minor')
-        ->where('department', $dept), $frequency)
-        ->count();
-
-      // For dashboard charts
-      $majorViolationsByDept[$dept] = $majorCounts[$dept];
-      $minorViolationsByDept[$dept] = $minorCounts[$dept];
-    }
-
-    // Calculate totals and percentages for dashboard
-    $minorTotal = $minorpending + $minorcomplied;
-    $majorTotal = $majorpending + $majorcomplied;
-
-    $minorResolved = $minorcomplied;
-    $minorPending = $minorpending;
-    $majorResolved = $majorcomplied;
-    $majorPending = $majorpending;
-
-    $minorResolvedPercentage = $minorTotal > 0 ? round(($minorResolved / $minorTotal) * 100) : 0;
-    $majorResolvedPercentage = $majorTotal > 0 ? round(($majorResolved / $majorTotal) * 100) : 0;
+    // Totals and percentages
+    $minorTotal = $vStats['minorTotal'];
+    $majorTotal = $vStats['majorTotal'];
+    $minorResolved = $vStats['minorResolved'];
+    $minorPending = $vStats['minorPending'];
+    $majorResolved = $vStats['majorResolved'];
+    $majorPending = $vStats['majorPending'];
+    $minorResolvedPercentage = $vStats['minorResolvedPercentage'];
+    $majorResolvedPercentage = $vStats['majorResolvedPercentage'];
 
     // Pagination
     $violationpage = Violation::paginate(10);
@@ -215,51 +224,7 @@ class AdminController extends Controller
    */
   public function escalationNotifications()
   {
-    // Get all students who have 3 or more minor violations
-    $escalatedStudents = StudentViolation::select('student_id', 'first_name', 'last_name', 'department')
-      ->selectRaw('COUNT(*) as minor_violation_count')
-      ->where('offense_type', 'minor')
-      ->groupBy('student_id', 'first_name', 'last_name', 'department')
-      ->havingRaw('COUNT(*) >= 3')
-      ->orderBy('minor_violation_count', 'desc')
-      ->get();
-
-    // For each student, get their violation details and check if major violation was created
-    $escalationNotifications = [];
-    foreach ($escalatedStudents as $student) {
-      // Get all minor violations for this student
-      $minorViolations = StudentViolation::where('student_id', $student->student_id)
-        ->where('offense_type', 'minor')
-        ->orderBy('created_at', 'desc')
-        ->get();
-
-      // Check if a major violation was automatically created for this student
-      $autoMajorViolation = StudentViolation::where('student_id', $student->student_id)
-        ->where('offense_type', 'major')
-        ->where('violation', 'LIKE', '%Escalated from 3 minor violations%')
-        ->first();
-
-      $escalationNotifications[] = [
-        'student_id' => $student->student_id,
-        'fullname' => $student->first_name . ' ' . $student->last_name,
-        'department' => $student->department,
-        'course' => null, // Course column doesn't exist in student_violations table
-        'minor_violation_count' => $student->minor_violation_count,
-        'minor_violations' => $minorViolations,
-        'auto_major_violation' => $autoMajorViolation,
-        'escalation_status' => $autoMajorViolation ? 'escalated' : 'pending_escalation',
-        'latest_violation_date' => $minorViolations->first()->created_at ?? null,
-      ];
-    }
-
-    // Sort by latest violation date (most recent first)
-    usort($escalationNotifications, function($a, $b) {
-      if (!$a['latest_violation_date'] || !$b['latest_violation_date']) {
-        return 0;
-      }
-      return $b['latest_violation_date']->timestamp - $a['latest_violation_date']->timestamp;
-    });
-
+    $escalationNotifications = $this->violationService->getEscalationNotificationsList();
     return view('admin.escalationNotifications', compact('escalationNotifications'));
   }
 
@@ -810,88 +775,36 @@ class AdminController extends Controller
 
   public function approveApplication($id)
   {
-    // Find the GoodMoralApplication
     $application = GoodMoralApplication::findOrFail($id);
 
-    // Check if the application has been approved by dean
     if (!str_contains($application->application_status, 'Approved by Dean:')) {
       return redirect()->route('admin.Application')->with('error', 'Application must be approved by Dean first!');
     }
 
-    // Check if already processed by admin
     if (str_contains($application->application_status, 'Approved by Administrator') ||
         str_contains($application->application_status, 'Rejected by Administrator')) {
       return redirect()->route('admin.Application')->with('error', 'Application has already been processed!');
     }
 
-    // Update the application status to 'Approved by Administrator'
-    $application->application_status = 'Approved by Administrator';
-    $application->save();
+    $result = $this->workflowService->approveByAdmin($application);
 
-    // Generate payment notice automatically
-    $receiptService = new ReceiptService();
-    $receiptData = $receiptService->generatePaymentNotice($application);
-
-    // Create notification for student - receipt is ready for download
-    NotifArchive::create([
-      'number_of_copies' => $application->number_of_copies,
-      'reference_number' => $application->reference_number,
-      'fullname' => $application->fullname,
-      'gender' => $application->gender, // Add gender field
-      'reason' => $application->reason,
-      'student_id' => $application->student_id,
-      'department' => $application->department,
-      'course_completed' => $application->course_completed,
-      'graduation_date' => $application->graduation_date,
-      'application_status' => null,
-      'is_undergraduate' => $application->is_undergraduate,
-      'last_course_year_level' => $application->last_course_year_level,
-      'last_semester_sy' => $application->last_semester_sy,
-      'certificate_type' => $application->certificate_type,
-      'status' => '2', // Status 2 = Approved by Administrator, payment required
-    ]);
-
-    return redirect()->route('admin.Application')->with('status', "Application approved successfully! Payment notice {$receiptData['receipt_number']} has been generated for {$application->formatted_payment}. The student will be notified to upload the receipt.");
+    return redirect()->route('admin.Application')->with('status', "Application approved successfully! Payment notice {$result['receipt_number']} has been generated for {$result['formatted_payment']}. The student will be notified to upload the receipt.");
   }
 
   public function rejectApplication($id)
   {
-    // Find the GoodMoralApplication
     $application = GoodMoralApplication::findOrFail($id);
 
-    // Check if the application has been approved by dean
     if (!str_contains($application->application_status, 'Approved by Dean:')) {
       return redirect()->route('admin.Application')->with('error', 'Application must be approved by Dean first!');
     }
 
-    // Check if already processed by admin
     if (str_contains($application->application_status, 'Approved by Administrator') ||
         str_contains($application->application_status, 'Rejected by Administrator')) {
       return redirect()->route('admin.Application')->with('error', 'Application has already been processed!');
     }
 
-    // Update the application status to 'Rejected by Administrator'
-    $application->application_status = 'Rejected by Administrator';
-    $application->save();
-
-    // Create notification for student
-    NotifArchive::create([
-      'number_of_copies' => $application->number_of_copies,
-      'reference_number' => $application->reference_number,
-      'fullname' => $application->fullname,
-      'gender' => $application->gender, // Add gender field
-      'reason' => $application->reason,
-      'student_id' => $application->student_id,
-      'department' => $application->department,
-      'course_completed' => $application->course_completed,
-      'graduation_date' => $application->graduation_date,
-      'application_status' => null,
-      'is_undergraduate' => $application->is_undergraduate,
-      'last_course_year_level' => $application->last_course_year_level,
-      'last_semester_sy' => $application->last_semester_sy,
-      'certificate_type' => $application->certificate_type,
-      'status' => '-2', // Status -2 = Rejected by Administrator
-    ]);
+    $this->workflowService->rejectByAdmin($application);
 
     return redirect()->route('admin.Application')->with('status', 'Application rejected successfully! Student has been notified.');
   }
@@ -1170,103 +1083,20 @@ class AdminController extends Controller
 
   public function rejectGMA($id)
   {
-    // Find the HeadOSAApplication and update its status to 'rejected'
     $application = HeadOSAApplication::findOrFail($id);
-    $application->status = 'rejected';
-    $application->save();
-
-    // Assuming you want to update the 'GoodMoralApplication' using the same student_id
-    $student_id = $application->student_id;
-
-    // Retrieve the GoodMoralApplication for the same student
-    $goodMoralApplication = GoodMoralApplication::where('student_id', $student_id)->first();
-
-    if ($goodMoralApplication) {
-      // Update the application status for GoodMoralApplication
-      $goodMoralApplication->application_status = 'Rejected by Administrator';
-      $goodMoralApplication->save();
-    }
-
-    NotifArchive::create([
-      'number_of_copies' => $application->number_of_copies,
-      'reference_number' => $application->reference_number,
-      'fullname' => $application->fullname,
-      'gender' => $goodMoralApplication->gender ?? null,
-      'reason' => $application->reason,
-      'student_id' => $goodMoralApplication->student_id,
-      'department' =>  $goodMoralApplication->department,
-      'course_completed' =>  $application->course_completed,  // Allowing this to be null
-      'graduation_date' => $application->graduation_date,
-      'application_status' => null,
-      'is_undergraduate' => $application->is_undergraduate,
-      'last_course_year_level' => $application->last_course_year_level,
-      'last_semester_sy' => $application->last_semester_sy,
-      'certificate_type' => $goodMoralApplication->certificate_type ?? 'good_moral',
-      'status' => '-2',
-    ]);
-
+    $this->workflowService->rejectLegacyByAdmin($application);
     return redirect()->route('admin.GMAApporvedByRegistrar')->with('status', 'Application rejected!');
   }
 
   public function approveGMA($id)
   {
-    // 1. Find the application
     $application = HeadOSAApplication::findOrFail($id);
 
-    // 2. Update the status to 'approved'
-    $application->status = 'approved';
-    $application->save();
-
-    $student_id = $application->student_id;
-
-    // Retrieve the GoodMoralApplication for the same student
-    $goodMoralApplication = GoodMoralApplication::where('student_id', $student_id)->first();
-    if ($goodMoralApplication) {
-      // Update the application status for GoodMoralApplication
-      $goodMoralApplication->application_status = 'Approve by Administrator';
-      $goodMoralApplication->save();
-    }
-
-    // 3. Get the student from role_account
-    $student = $application->student;
-
-    if (!$student) {
+    if (!$application->student) {
       return redirect()->route('admin.GMAApporvedByRegistrar')->with('error', 'Student not found.');
     }
 
-    // 4. Create the head_osa_application record for the single Head OSA
-    SecOSAApplication::create([
-      'number_of_copies' => $application->number_of_copies,
-      'reference_number' => $application->reference_number,
-      'student_id' => $student->student_id,
-      'fullname' => $student->fullname,
-      'department' => $student->department,
-      'reason' => $application->formatted_reasons, // Convert array to string
-      'course_completed' => $application->course_completed, // New field
-      'graduation_date' => $application->graduation_date,   // New field
-      'is_undergraduate' => $application->is_undergraduate, // New field
-      'last_course_year_level' => $application->last_course_year_level, // New field
-      'last_semester_sy' => $application->last_semester_sy,  // New field
-      'status' => 'pending', // Default status
-    ]);
-
-    NotifArchive::create([
-      'number_of_copies' => $application->number_of_copies,
-      'reference_number' => $application->reference_number,
-      'fullname' => $application->fullname,
-      'gender' => $goodMoralApplication->gender ?? null,
-      'reason' => $application->reason,
-      'student_id' => $student->student_id,
-      'department' =>  $student->department,
-      'course_completed' =>  $application->course_completed,  // Allowing this to be null
-      'graduation_date' => $application->graduation_date,
-      'application_status' => null,
-      'is_undergraduate' => $application->is_undergraduate,
-      'last_course_year_level' => $application->last_course_year_level,
-      'last_semester_sy' => $application->last_semester_sy,
-      'certificate_type' => $goodMoralApplication->certificate_type ?? 'good_moral',
-      'status' => '2',
-    ]);
+    $this->workflowService->approveLegacyByAdmin($application);
 
     return redirect()->route('admin.GMAApporvedByRegistrar')->with(
       'status',
@@ -1281,39 +1111,13 @@ class AdminController extends Controller
   {
     $application = GoodMoralApplication::findOrFail($id);
 
-    // Check if application is in correct status (approved by dean)
     if (!str_contains($application->application_status, 'Approved by Dean:')) {
       return redirect()->route('admin.GMAApporvedByRegistrar')->with('error', 'Application must be approved by Dean first.');
     }
 
-    // Update application status
-    $application->application_status = 'Approved by Administrator';
-    $application->save();
+    $result = $this->workflowService->approveByAdmin($application);
 
-    // Generate payment notice automatically
-    $receiptService = new ReceiptService();
-    $receiptData = $receiptService->generatePaymentNotice($application);
-
-    // Create notification for student - receipt is ready for download
-    NotifArchive::create([
-      'number_of_copies' => $application->number_of_copies,
-      'reference_number' => $application->reference_number,
-      'fullname' => $application->fullname,
-      'gender' => $application->gender, // Add gender field
-      'reason' => $application->reason,
-      'student_id' => $application->student_id,
-      'department' => $application->department,
-      'course_completed' => $application->course_completed,
-      'graduation_date' => $application->graduation_date,
-      'application_status' => null,
-      'is_undergraduate' => $application->is_undergraduate,
-      'last_course_year_level' => $application->last_course_year_level,
-      'last_semester_sy' => $application->last_semester_sy,
-      'certificate_type' => $application->certificate_type,
-      'status' => '2', // Status 2 = Approved by Administrator, payment required
-    ]);
-
-    return redirect()->route('admin.GMAApporvedByRegistrar')->with('status', "Application approved! Payment notice {$receiptData['receipt_number']} has been generated for {$application->formatted_payment}. The student will be notified to upload the receipt.");
+    return redirect()->route('admin.GMAApporvedByRegistrar')->with('status', "Application approved! Payment notice {$result['receipt_number']} has been generated for {$result['formatted_payment']}. The student will be notified to upload the receipt.");
   }
 
   /**
@@ -1323,33 +1127,11 @@ class AdminController extends Controller
   {
     $application = GoodMoralApplication::findOrFail($id);
 
-    // Check if application is in correct status (approved by dean)
     if (!str_contains($application->application_status, 'Approved by Dean:')) {
       return redirect()->route('admin.GMAApporvedByRegistrar')->with('error', 'Application must be approved by Dean first.');
     }
 
-    // Update application status
-    $application->application_status = 'Rejected by Administrator';
-    $application->save();
-
-    // Create notification for student
-    NotifArchive::create([
-      'number_of_copies' => $application->number_of_copies,
-      'reference_number' => $application->reference_number,
-      'fullname' => $application->fullname,
-      'gender' => $application->gender, // Add gender field
-      'reason' => $application->reason,
-      'student_id' => $application->student_id,
-      'department' => $application->department,
-      'course_completed' => $application->course_completed,
-      'graduation_date' => $application->graduation_date,
-      'application_status' => null,
-      'is_undergraduate' => $application->is_undergraduate,
-      'last_course_year_level' => $application->last_course_year_level,
-      'last_semester_sy' => $application->last_semester_sy,
-      'certificate_type' => $application->certificate_type,
-      'status' => '-2', // Status -2 = Rejected by Administrator
-    ]);
+    $this->workflowService->rejectByAdmin($application);
 
     return redirect()->route('admin.GMAApporvedByRegistrar')->with('status', 'Application rejected successfully!');
   }
@@ -1394,39 +1176,7 @@ class AdminController extends Controller
     ];
 
     // Get escalation status for ALL students with minor violations
-    $escalationData = [];
-    $allStudentsWithMinor = StudentViolation::where('offense_type', 'minor')
-      ->select('student_id')
-      ->distinct()
-      ->get();
-
-    foreach ($allStudentsWithMinor as $studentRecord) {
-      // Count ALL minor violations for this student regardless of status
-      $minorCount = StudentViolation::where('student_id', $studentRecord->student_id)
-        ->where('offense_type', 'minor')
-        ->count(); // Count all minor violations (pending, approved, resolved)
-
-      // Determine status color and icon based on count
-      $statusColor = '#28a745'; // Green
-      $statusIcon = '✅';
-      if ($minorCount >= 3) {
-        $statusColor = '#dc3545'; // Red
-        $statusIcon = '🚨';
-      } elseif ($minorCount == 2) {
-        $statusColor = '#fd7e14'; // Orange
-        $statusIcon = '⚠️';
-      } elseif ($minorCount >= 1) {
-        $statusColor = '#ffc107'; // Yellow
-        $statusIcon = '⚠️';
-      }
-
-      $escalationData[$studentRecord->student_id] = [
-        'status_color' => $statusColor,
-        'status_icon' => $statusIcon,
-        'minor_count' => $minorCount,
-        'warning_level' => $minorCount >= 3 ? 'critical' : ($minorCount == 2 ? 'high' : ($minorCount == 1 ? 'medium' : 'none'))
-      ];
-    }
+    $escalationData = $this->violationService->getAllEscalationData();
 
     return view('admin.violation', compact('violations', 'escalationData', 'activeTab'));
   }
@@ -1597,39 +1347,7 @@ class AdminController extends Controller
     ];
 
     // Get escalation status for ALL students with minor violations
-    $escalationData = [];
-    $allStudentsWithMinor = StudentViolation::where('offense_type', 'minor')
-      ->select('student_id')
-      ->distinct()
-      ->get();
-
-    foreach ($allStudentsWithMinor as $studentRecord) {
-      // Count ALL minor violations for this student regardless of status
-      $minorCount = StudentViolation::where('student_id', $studentRecord->student_id)
-        ->where('offense_type', 'minor')
-        ->count(); // Count all minor violations (pending, approved, resolved)
-
-      // Determine status color and icon based on count
-      $statusColor = '#28a745'; // Green
-      $statusIcon = '✅';
-      if ($minorCount >= 3) {
-        $statusColor = '#dc3545'; // Red
-        $statusIcon = '🚨';
-      } elseif ($minorCount == 2) {
-        $statusColor = '#fd7e14'; // Orange
-        $statusIcon = '⚠️';
-      } elseif ($minorCount >= 1) {
-        $statusColor = '#ffc107'; // Yellow
-        $statusIcon = '⚠️';
-      }
-
-      $escalationData[$studentRecord->student_id] = [
-        'status_color' => $statusColor,
-        'status_icon' => $statusIcon,
-        'minor_count' => $minorCount,
-        'warning_level' => $minorCount >= 3 ? 'critical' : ($minorCount == 2 ? 'high' : ($minorCount == 1 ? 'medium' : 'none'))
-      ];
-    }
+    $escalationData = $this->violationService->getAllEscalationData();
 
     return view('admin.violation', compact('violations', 'escalationData', 'activeTab'));
   }
@@ -1918,143 +1636,22 @@ class AdminController extends Controller
       // Remove header row
       $header = array_shift($data);
 
-      // Expected CSV format: student_id, first_name, middle_initial, last_name, extension_name, department, course_year, email
-      $expectedHeaders = ['student_id', 'first_name', 'middle_initial', 'last_name', 'extension_name', 'department', 'course_year', 'email'];
-
       // Validate headers
-      if (count($header) < 8) { // At least 8 required fields
+      if (count($header) < 8) {
         return redirect()->back()->with('error', 'CSV file must have 8 columns: student_id, first_name, middle_initial, last_name, extension_name, department, course_year, email');
       }
 
-      $successCount = 0;
-      $errorCount = 0;
-      $errors = [];
-      $defaultPassword = 'student123'; // Default password for all imported students
+      $result = $this->accountService->importUsersFromCsv($data);
 
-      foreach ($data as $index => $row) {
-        $rowNumber = $index + 2; // +2 because we removed header and arrays are 0-indexed
-
-        // Skip empty rows
-        if (empty(array_filter($row))) {
-          continue;
-        }
-
-        // Ensure we have enough columns
-        while (count($row) < 8) {
-          $row[] = '';
-        }
-
-        // Parse course_year field (e.g., "BSIT 1st Year" -> course: "BSIT", year_level: "1st Year")
-        $courseYearField = trim($row[6]);
-        $parsedCourseData = $this->parseCourseYear($courseYearField);
-
-        $studentData = [
-          'student_id' => trim($row[0]),
-          'fname' => trim($row[1]),
-          'mname' => trim($row[2]) ?: null,
-          'lname' => trim($row[3]),
-          'extension' => trim($row[4]) ?: null,
-          'department' => trim($row[5]),
-          'course' => $parsedCourseData['course'],
-          'year_level' => $parsedCourseData['year_level'],
-          'email' => trim($row[7]),
-          'organization' => null, // No longer in CSV
-          'position' => null, // No longer in CSV
-        ];
-
-        // Validate required fields
-        if (empty($studentData['student_id']) || empty($studentData['fname']) ||
-            empty($studentData['lname']) || empty($studentData['email']) ||
-            empty($studentData['department'])) {
-          $errors[] = "Row {$rowNumber}: Missing required fields (student_id, first_name, last_name, department, email)";
-          $errorCount++;
-          continue;
-        }
-
-        // Normalize email for consistent storage
-        $studentData['email'] = strtolower(trim($studentData['email']));
-
-        // Validate email format
-        if (!filter_var($studentData['email'], FILTER_VALIDATE_EMAIL)) {
-          $errors[] = "Row {$rowNumber}: Invalid email format";
-          $errorCount++;
-          continue;
-        }
-
-        // Check if student_id or email already exists (case-insensitive email check)
-        if (RoleAccount::where('student_id', $studentData['student_id'])->exists()) {
-          $errors[] = "Row {$rowNumber}: Student ID {$studentData['student_id']} already exists";
-          $errorCount++;
-          continue;
-        }
-
-        if (RoleAccount::whereRaw('LOWER(email) = ?', [$studentData['email']])->exists()) {
-          $errors[] = "Row {$rowNumber}: Email {$studentData['email']} already exists";
-          $errorCount++;
-          continue;
-        }
-
-        try {
-          // Create fullname
-          $fullname = $studentData['lname'] . ', ' . $studentData['fname'];
-          if ($studentData['mname']) {
-            $fullname .= ' ' . $studentData['mname'];
-          }
-          if ($studentData['extension']) {
-            $fullname .= ' ' . $studentData['extension'];
-          }
-
-          // Create student registration record
-          StudentRegistration::create([
-            'fname' => $studentData['fname'],
-            'mname' => $studentData['mname'],
-            'lname' => $studentData['lname'],
-            'extension' => $studentData['extension'],
-            'email' => $studentData['email'],
-            'department' => $studentData['department'],
-            'course' => $studentData['course'],
-            'password' => Hash::make($defaultPassword),
-            'student_id' => $studentData['student_id'],
-            'status' => '1', // Active
-            'account_type' => 'student',
-            'year_level' => $studentData['year_level'],
-            'organization' => $studentData['organization'],
-            'position' => $studentData['position'],
-          ]);
-
-          // Create role account record
-          RoleAccount::create([
-            'fullname' => $fullname,
-            'mname' => $studentData['mname'],
-            'extension' => $studentData['extension'],
-            'department' => $studentData['department'],
-            'course' => $studentData['course'],
-            'year_level' => $studentData['year_level'],
-            'email' => $studentData['email'],
-            'password' => Hash::make($defaultPassword),
-            'student_id' => $studentData['student_id'],
-            'status' => '1', // Active
-            'account_type' => 'student',
-            'organization' => $studentData['organization'],
-            'position' => $studentData['position'],
-          ]);
-
-          $successCount++;
-        } catch (\Exception $e) {
-          $errors[] = "Row {$rowNumber}: Error creating account - " . $e->getMessage();
-          $errorCount++;
-        }
+      $message = "Import completed! {$result['successCount']} students imported successfully.";
+      if ($result['errorCount'] > 0) {
+        $message .= " {$result['errorCount']} errors occurred.";
       }
 
-      $message = "Import completed! {$successCount} students imported successfully.";
-      if ($errorCount > 0) {
-        $message .= " {$errorCount} errors occurred.";
-      }
-
-      if (!empty($errors)) {
-        $errorMessage = implode("\n", array_slice($errors, 0, 10)); // Show first 10 errors
-        if (count($errors) > 10) {
-          $errorMessage .= "\n... and " . (count($errors) - 10) . " more errors.";
+      if (!empty($result['errors'])) {
+        $errorMessage = implode("\n", array_slice($result['errors'], 0, 10));
+        if (count($result['errors']) > 10) {
+          $errorMessage .= "\n... and " . (count($result['errors']) - 10) . " more errors.";
         }
         return redirect()->back()->with('import_result', $message)->with('import_errors', $errorMessage);
       }
@@ -2787,163 +2384,13 @@ class AdminController extends Controller
    */
   public function printCertificate($id)
   {
-    try {
-      Log::info("Admin Print Certificate Started for ID: {$id}");
-
-      // Find the GoodMoralApplication
-      $application = GoodMoralApplication::findOrFail($id);
-      Log::info("Application found", ['application_id' => $application->id, 'status' => $application->application_status]);
-
-      // Check if the application is approved by administrator, ready for moderator print, or ready for pickup (for reprints)
-      if (!in_array($application->application_status, ['Approved by Administrator', 'Ready for Moderator Print', 'Ready for Pickup'])) {
-        Log::warning("Application not in printable status", ['status' => $application->application_status]);
-        return redirect()->back()->with('error', 'Certificate can only be printed for applications approved by administrator, ready for moderator print, or ready for pickup!');
-      }
-
-      // Check if receipt exists
-      $receipt = \App\Models\Receipt::where('reference_num', $application->reference_number)->first();
-      if (!$receipt || !$receipt->document_path) {
-        Log::error("Receipt not found", ['reference_number' => $application->reference_number]);
-        return redirect()->back()->with('error', 'Payment receipt not found! Student must upload receipt first.');
-      }
-      Log::info("Receipt found", ['receipt_id' => $receipt->id]);
-
-      // Get student details
-      $studentDetails = \App\Models\RoleAccount::where('student_id', $application->student_id)->first();
-      if (!$studentDetails) {
-        Log::error("Student details not found", ['student_id' => $application->student_id]);
-        return redirect()->back()->with('error', 'Student details not found!');
-      }
-      Log::info("Student details found", ['student_id' => $studentDetails->student_id, 'account_type' => $studentDetails->account_type]);
-
-      // Get current admin
-      $admin = Auth::user();
-      Log::info("Admin info", ['admin_id' => $admin->id, 'admin_name' => $admin->fullname]);
-
-      // Prepare data for the PDF
-      $data = [
-        'title' => $application->certificate_type === 'good_moral' ? 'Good Moral Certificate' : 'Certificate of Residency',
-        'application' => $application,
-        'receipt' => $receipt,
-        'printed_by' => $admin->fullname,
-        'studentDetails' => $studentDetails,
-        'studentDetails1' => $application, // The template expects this for semester info
-        'print_date' => now()->format('F j, Y'),
-        'reasons_array' => $application->reasons_array, // Pass individual reasons
-        'number_of_copies' => (int)$application->number_of_copies,
-      ];
-      Log::info("PDF data prepared", ['title' => $data['title']]);
-
-      // Check if student/alumni has unresolved violations
-      $hasUnresolvedViolations = \App\Models\StudentViolation::where('student_id', $application->student_id)
-        ->where('status', '!=', 2) // status 2 = fully resolved
-        ->exists();
-      Log::info("Violation check", ['student_id' => $application->student_id, 'has_violations' => $hasUnresolvedViolations]);
-
-      // Choose view based on certificate type, account type, and violation status
-      if ($application->certificate_type === 'good_moral') {
-        // Good Moral Certificate (only for those without violations)
-        $view = 'pdf.student_certificate';
-      } elseif ($application->certificate_type === 'residency') {
-        // Certificate of Residency - different templates for students vs alumni
-        if ($studentDetails->account_type === 'student') {
-          // Students with violations get simple residency certificate
-          $view = 'pdf.student_residency_certificate';
-        } else {
-          // Alumni with violations get the existing residency certificate
-          $view = 'pdf.other_certificate';
-        }
-      } else {
-        // Fallback logic for legacy applications
-        if ($hasUnresolvedViolations) {
-          $view = $studentDetails->account_type === 'student' ? 'pdf.student_residency_certificate' : 'pdf.other_certificate';
-        } else {
-          $view = 'pdf.student_certificate';
-        }
-      }
-      Log::info("Template selected", [
-        'view' => $view,
-        'certificate_type' => $application->certificate_type,
-        'account_type' => $studentDetails->account_type,
-        'has_violations' => $hasUnresolvedViolations
-      ]);
-
-      // Check if view exists
-      if (!view()->exists($view)) {
-        Log::error("View does not exist", ['view' => $view]);
-        return redirect()->back()->with('error', "PDF template '{$view}' not found!");
-      }
-
-      // Generate PDF
-      Log::info("Starting PDF generation");
-      $pdf = Pdf::loadView($view, $data);
-      $pdf->setPaper('letter', 'portrait');
-      Log::info("PDF generated successfully");
-
-      // Update application status to ready for pickup (only on first print)
-      $isReprint = $application->application_status === 'Ready for Pickup';
-      if (in_array($application->application_status, ['Approved by Administrator', 'Ready for Moderator Print'])) {
-        $application->application_status = 'Ready for Pickup';
-        $application->save();
-        Log::info("First print - Application status updated to Ready for Pickup");
-
-        // Create notification for student - certificate printed and ready for pickup
-        NotifArchive::create([
-          'number_of_copies' => $application->number_of_copies,
-          'reference_number' => $application->reference_number,
-          'fullname' => $application->fullname,
-          'gender' => $application->gender, // Add gender field
-          'reason' => $application->reason,
-          'student_id' => $application->student_id,
-          'department' => $application->department,
-          'course_completed' => $application->course_completed,
-          'graduation_date' => $application->graduation_date,
-          'application_status' => null,
-          'is_undergraduate' => $application->is_undergraduate,
-          'last_course_year_level' => $application->last_course_year_level,
-          'last_semester_sy' => $application->last_semester_sy,
-          'certificate_type' => $application->certificate_type,
-          'status' => '5', // Status 5 = Certificate printed and ready for pickup
-        ]);
-        Log::info("First print - Notification created for student");
-      } else {
-        Log::info("Reprint - status and notification unchanged");
-      }
-
-      // Generate filename
-      $certificateType = $application->certificate_type === 'good_moral' ? 'GoodMoral' : 'Residency';
-      $reprintSuffix = $isReprint ? '_REPRINT' : '';
-      $filename = "{$certificateType}_Certificate_{$application->student_id}_{$application->reference_number}{$reprintSuffix}.pdf";
-      Log::info("Filename generated", ['filename' => $filename, 'is_reprint' => $isReprint]);
-
-      // Try to download the PDF
-      try {
-        Log::info("Attempting PDF download");
-        $response = $pdf->download($filename);
-        Log::info("PDF download successful");
-        return $response;
-      } catch (\Exception $downloadError) {
-        Log::error("PDF download failed", ['error' => $downloadError->getMessage()]);
-
-        // Try alternative: stream the PDF
-        try {
-          Log::info("Attempting PDF stream as fallback");
-          return $pdf->stream($filename);
-        } catch (\Exception $streamError) {
-          Log::error("PDF stream also failed", ['error' => $streamError->getMessage()]);
-          throw new \Exception("Both download and stream failed: " . $downloadError->getMessage() . " | " . $streamError->getMessage());
-        }
-      }
-
-    } catch (\Exception $e) {
-      Log::error("Admin Print Certificate Error", [
-        'message' => $e->getMessage(),
-        'file' => $e->getFile(),
-        'line' => $e->getLine(),
-        'trace' => $e->getTraceAsString()
-      ]);
-      return redirect()->back()->with('error', 'An error occurred while printing the certificate: ' . $e->getMessage());
-    }
+    return $this->certificateService->generateCertificate(
+      $id,
+      'download',
+      ['Approved by Administrator', 'Ready for Moderator Print', 'Ready for Pickup'],
+      'admin.readyForPrintApplications',
+      true
+    );
   }
 
   /**
@@ -2951,132 +2398,13 @@ class AdminController extends Controller
    */
   public function downloadCertificate($id)
   {
-    try {
-      Log::info("Admin Download Certificate Started for ID: {$id}");
-
-      // Find the GoodMoralApplication
-      $application = GoodMoralApplication::findOrFail($id);
-      Log::info("Application found", ['application_id' => $application->id, 'status' => $application->application_status]);
-
-      // Check if the application is ready for pickup (already printed), approved by admin, or ready for moderator print
-      if (!in_array($application->application_status, ['Ready for Pickup', 'Approved by Administrator', 'Ready for Moderator Print'])) {
-        Log::warning("Application not available for download", ['status' => $application->application_status]);
-        return redirect()->route('admin.readyForPrintApplications')->with('error', 'Certificate is not available for download!');
-      }
-
-      // Check if receipt exists
-      $receipt = \App\Models\Receipt::where('reference_num', $application->reference_number)->first();
-      if (!$receipt || !$receipt->document_path) {
-        Log::error("Receipt not found", ['reference_number' => $application->reference_number]);
-        return redirect()->route('admin.readyForPrintApplications')->with('error', 'Payment receipt not found!');
-      }
-      Log::info("Receipt found", ['receipt_id' => $receipt->id]);
-
-      // Get student details
-      $studentDetails = \App\Models\RoleAccount::where('student_id', $application->student_id)->first();
-      if (!$studentDetails) {
-        Log::error("Student details not found", ['student_id' => $application->student_id]);
-        return redirect()->route('admin.readyForPrintApplications')->with('error', 'Student details not found!');
-      }
-      Log::info("Student details found", ['student_id' => $studentDetails->student_id, 'account_type' => $studentDetails->account_type]);
-
-      // Get current admin
-      $admin = Auth::user();
-      Log::info("Admin info", ['admin_id' => $admin->id, 'admin_name' => $admin->fullname]);
-
-      // Prepare data for the PDF
-      $data = [
-        'title' => $application->certificate_type === 'good_moral' ? 'Good Moral Certificate' : 'Certificate of Residency',
-        'application' => $application,
-        'receipt' => $receipt,
-        'printed_by' => $admin->fullname,
-        'studentDetails' => $studentDetails,
-        'studentDetails1' => $application, // The template expects this for semester info
-        'print_date' => now()->format('F j, Y'),
-        'reasons_array' => $application->reasons_array, // Pass individual reasons
-        'number_of_copies' => (int)$application->number_of_copies,
-      ];
-      Log::info("PDF data prepared", ['title' => $data['title']]);
-
-      // Check if student/alumni has unresolved violations
-      $hasUnresolvedViolations = \App\Models\StudentViolation::where('student_id', $application->student_id)
-        ->where('status', '!=', 2) // status 2 = fully resolved
-        ->exists();
-      Log::info("Violation check", ['student_id' => $application->student_id, 'has_violations' => $hasUnresolvedViolations]);
-
-      // Choose view based on certificate type, account type, and violation status
-      if ($application->certificate_type === 'good_moral') {
-        // Good Moral Certificate (only for those without violations)
-        $view = 'pdf.student_certificate';
-      } elseif ($application->certificate_type === 'residency') {
-        // Certificate of Residency - different templates for students vs alumni
-        if ($studentDetails->account_type === 'student') {
-          // Students with violations get simple residency certificate
-          $view = 'pdf.student_residency_certificate';
-        } else {
-          // Alumni with violations get the existing residency certificate
-          $view = 'pdf.other_certificate';
-        }
-      } else {
-        // Fallback logic for legacy applications
-        if ($hasUnresolvedViolations) {
-          $view = $studentDetails->account_type === 'student' ? 'pdf.student_residency_certificate' : 'pdf.other_certificate';
-        } else {
-          $view = 'pdf.student_certificate';
-        }
-      }
-      Log::info("Template selected", [
-        'view' => $view,
-        'certificate_type' => $application->certificate_type,
-        'account_type' => $studentDetails->account_type,
-        'has_violations' => $hasUnresolvedViolations
-      ]);
-
-      // Check if view exists
-      if (!view()->exists($view)) {
-        Log::error("View does not exist", ['view' => $view]);
-        return redirect()->route('admin.readyForPrintApplications')->with('error', "PDF template '{$view}' not found!");
-      }
-
-      // Generate PDF
-      Log::info("Starting PDF generation");
-      $pdf = Pdf::loadView($view, $data);
-      $pdf->setPaper('letter', 'portrait');
-      Log::info("PDF generated successfully");
-
-      // Generate filename
-      $certificateType = $application->certificate_type === 'good_moral' ? 'GoodMoral' : 'Residency';
-      $filename = "{$certificateType}_Certificate_{$application->student_id}_{$application->reference_number}.pdf";
-      Log::info("Filename generated", ['filename' => $filename]);
-
-      // Try to download the PDF
-      try {
-        Log::info("Attempting PDF download");
-        $response = $pdf->download($filename);
-        Log::info("PDF download successful");
-        return $response;
-      } catch (\Exception $downloadError) {
-        Log::error("PDF download failed", ['error' => $downloadError->getMessage()]);
-
-        // Try alternative: stream the PDF
-        try {
-          Log::info("Attempting PDF stream as fallback");
-          return $pdf->stream($filename);
-        } catch (\Exception $streamError) {
-          Log::error("PDF stream also failed", ['error' => $streamError->getMessage()]);
-          throw new \Exception("Both download and stream failed: " . $downloadError->getMessage() . " | " . $streamError->getMessage());
-        }
-      }
-
-    } catch (\Exception $e) {
-      Log::error("Admin Download Certificate Error", [
-        'message' => $e->getMessage(),
-        'file' => $e->getFile(),
-        'line' => $e->getLine(),
-        'trace' => $e->getTraceAsString()
-      ]);
-      return redirect()->route('admin.readyForPrintApplications')->with('error', 'An error occurred while downloading the certificate: ' . $e->getMessage());
-    }
+    return $this->certificateService->generateCertificate(
+      $id,
+      'download',
+      ['Ready for Pickup', 'Approved by Administrator', 'Ready for Moderator Print'],
+      'admin.readyForPrintApplications',
+      false
+    );
   }
 
   /**

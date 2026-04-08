@@ -8,13 +8,17 @@ use App\Models\NotifArchive;
 use App\Models\DeanApplication;
 use App\Traits\RoleCheck;
 use Illuminate\Http\Request;
+use App\Services\NotificationArchiveService;
 
 class RegistrarController extends Controller
 {
   use RoleCheck;
 
-  public function __construct()
+  protected NotificationArchiveService $notifService;
+
+  public function __construct(NotificationArchiveService $notifService)
   {
+    $this->notifService = $notifService;
     // Re-enable role check (but it's disabled in the trait for now)
     $this->checkRole(['registrar']);
   }
@@ -115,22 +119,7 @@ class RegistrarController extends Controller
       'status' => 'pending', // Default status
     ]);
 
-    NotifArchive::create([
-      'number_of_copies' => $application->number_of_copies,
-      'reference_number' => $application->reference_number,
-      'fullname' => $application->fullname,
-      'gender' => $application->gender, // Add gender field
-      'reason' => $application->reason,
-      'student_id' => $student->student_id,
-      'department' =>  $student->department,
-      'course_completed' =>  $application->course_completed,  // Allowing this to be null
-      'graduation_date' => $application->graduation_date,
-      'application_status' => null,
-      'is_undergraduate' => $application->is_undergraduate,
-      'last_course_year_level' => $application->last_course_year_level,
-      'last_semester_sy' => $application->last_semester_sy,
-      'status' => '1',
-    ]);
+    $this->notifService->createFromApplication($application, '1');
 
 
     return redirect()->route('registrar.goodMoralApplication')->with('status', 'Application approved and forwarded to Dean Office.');
@@ -181,22 +170,7 @@ class RegistrarController extends Controller
     $application->save();
 
     // Create notification for student
-    NotifArchive::create([
-      'number_of_copies' => $application->number_of_copies,
-      'reference_number' => $application->reference_number,
-      'fullname' => $application->fullname,
-      'gender' => $application->gender,
-      'reason' => $application->reason,
-      'student_id' => $application->student_id,
-      'department' => $application->department,
-      'course_completed' => $application->course_completed,
-      'graduation_date' => $application->graduation_date,
-      'application_status' => 'Rejected: ' . $rejectionReason,
-      'is_undergraduate' => $application->is_undergraduate,
-      'last_course_year_level' => $application->last_course_year_level,
-      'last_semester_sy' => $application->last_semester_sy,
-      'status' => '-1', // Rejected status
-    ]);
+    $this->notifService->createFromApplication($application, '-1', 'Rejected: ' . $rejectionReason);
 
     // Redirect back with success message
     return redirect()->route('registrar.goodMoralApplication')->with('status', 'Application rejected successfully.');

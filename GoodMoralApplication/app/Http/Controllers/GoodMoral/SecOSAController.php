@@ -19,20 +19,33 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use App\Services\CertificateService;
+use App\Services\DashboardStatsService;
+use App\Services\ViolationService;
 
 class SecOSAController extends Controller
 {
 
   use RoleCheck;
 
-  public function __construct()
-  {
+  protected CertificateService $certificateService;
+  protected DashboardStatsService $statsService;
+  protected ViolationService $violationService;
+
+  public function __construct(
+    CertificateService $certificateService,
+    DashboardStatsService $statsService,
+    ViolationService $violationService
+  ) {
+    $this->certificateService = $certificateService;
+    $this->statsService = $statsService;
+    $this->violationService = $violationService;
+
     // Apply middleware to all methods except profile
     $action = request()->route() ? request()->route()->getActionMethod() : null;
     
     // Skip role check if accessing profile method
     if ($action !== 'profile') {
-      // Enable role check to ensure proper authorization for other methods
       $this->checkRole(['sec_osa']);
     }
   }
@@ -47,45 +60,29 @@ class SecOSAController extends Controller
     ];
     $frequency = request()->get('frequency', 'monthly');
     $frequencyLabel = $frequencyOptions[$frequency];
-    
-    //Applicants per department (using GoodMoralApplication for new system)
-    $site = GoodMoralApplication::where('department', 'SITE')->count();
-    $saste = GoodMoralApplication::where('department', 'SASTE')->count();
-    $sbahm = GoodMoralApplication::where('department', 'SBAHM')->count();
-    $snahs = GoodMoralApplication::where('department', 'SNAHS')->count();
-    $som = GoodMoralApplication::where('department', 'SOM')->count();
-    $gradsch = GoodMoralApplication::where('department', 'GRADSCH')->count();
 
-    // Minor violations statistics
-    $minorPending = StudentViolation::where('status', '!=', 2)->where('offense_type', 'minor')->count();
-    $minorResolved = StudentViolation::where('status', '=', 2)->where('offense_type', 'minor')->count();
-    $minorTotal = $minorPending + $minorResolved;
-    $minorResolvedPercentage = $minorTotal > 0 ? round(($minorResolved / $minorTotal) * 100, 1) : 0;
+    // Use DashboardStatsService for stats
+    $deptCounts = $this->statsService->getApplicationCountsByDepartment();
+    $site = $deptCounts['SITE'];
+    $saste = $deptCounts['SASTE'];
+    $sbahm = $deptCounts['SBAHM'];
+    $snahs = $deptCounts['SNAHS'];
+    $som = $deptCounts['SOM'];
+    $gradsch = $deptCounts['GRADSCH'];
 
-    // Major violations statistics
-    $majorPending = StudentViolation::where('status', '!=', 2)->where('offense_type', 'major')->count();
-    $majorResolved = StudentViolation::where('status', '=', 2)->where('offense_type', 'major')->count();
-    $majorTotal = $majorPending + $majorResolved;
-    $majorResolvedPercentage = $majorTotal > 0 ? round(($majorResolved / $majorTotal) * 100, 1) : 0;
+    $vStats = $this->statsService->getViolationStats();
+    $minorPending = $vStats['minorPending'];
+    $minorResolved = $vStats['minorResolved'];
+    $minorTotal = $vStats['minorTotal'];
+    $minorResolvedPercentage = $vStats['minorResolvedPercentage'];
+    $majorPending = $vStats['majorPending'];
+    $majorResolved = $vStats['majorResolved'];
+    $majorTotal = $vStats['majorTotal'];
+    $majorResolvedPercentage = $vStats['majorResolvedPercentage'];
 
-    // Violations by department (using department field directly from student_violations table)
-    $majorViolationsByDept = [
-      'SITE' => StudentViolation::where('offense_type', 'major')->where('department', 'SITE')->count(),
-      'SASTE' => StudentViolation::where('offense_type', 'major')->where('department', 'SASTE')->count(),
-      'SBAHM' => StudentViolation::where('offense_type', 'major')->where('department', 'SBAHM')->count(),
-      'SNAHS' => StudentViolation::where('offense_type', 'major')->where('department', 'SNAHS')->count(),
-      'SOM' => StudentViolation::where('offense_type', 'major')->where('department', 'SOM')->count(),
-      'GRADSCH' => StudentViolation::where('offense_type', 'major')->where('department', 'GRADSCH')->count(),
-    ];
-
-    $minorViolationsByDept = [
-      'SITE' => StudentViolation::where('offense_type', 'minor')->where('department', 'SITE')->count(),
-      'SASTE' => StudentViolation::where('offense_type', 'minor')->where('department', 'SASTE')->count(),
-      'SBAHM' => StudentViolation::where('offense_type', 'minor')->where('department', 'SBAHM')->count(),
-      'SNAHS' => StudentViolation::where('offense_type', 'minor')->where('department', 'SNAHS')->count(),
-      'SOM' => StudentViolation::where('offense_type', 'minor')->where('department', 'SOM')->count(),
-      'GRADSCH' => StudentViolation::where('offense_type', 'minor')->where('department', 'GRADSCH')->count(),
-    ];
+    $deptViolations = $this->statsService->getViolationsByDepartment();
+    $majorViolationsByDept = $deptViolations['majorViolationsByDept'];
+    $minorViolationsByDept = $deptViolations['minorViolationsByDept'];
 
     $applications = SecOSAApplication::where('status', 'pending')->get();
 
@@ -612,161 +609,13 @@ class SecOSAController extends Controller
 
   public function printCertificate($id)
   {
-    try {
-      Log::info("Print Certificate Started for ID: {$id}");
-
-      // Find the GoodMoralApplication
-      $application = GoodMoralApplication::findOrFail($id);
-      Log::info("Application found", ['application_id' => $application->id, 'status' => $application->application_status]);
-
-      // Check if the application is ready for moderator print or already printed (allow reprint)
-      if (!in_array($application->application_status, ['Ready for Moderator Print', 'Ready for Pickup'])) {
-        Log::warning("Application not ready for print", ['status' => $application->application_status]);
-        return redirect()->route('sec_osa.dashboard')->with('error', 'Application is not ready for printing!');
-      }
-
-      // Check if receipt exists
-      $receipt = \App\Models\Receipt::where('reference_num', $application->reference_number)->first();
-      if (!$receipt || !$receipt->document_path) {
-        Log::error("Receipt not found", ['reference_number' => $application->reference_number]);
-        return redirect()->route('sec_osa.dashboard')->with('error', 'Payment receipt not found!');
-      }
-      Log::info("Receipt found", ['receipt_id' => $receipt->id]);
-
-      // Get student details
-      $studentDetails = \App\Models\RoleAccount::where('student_id', $application->student_id)->first();
-      if (!$studentDetails) {
-        Log::error("Student details not found", ['student_id' => $application->student_id]);
-        return redirect()->route('sec_osa.dashboard')->with('error', 'Student details not found!');
-      }
-      Log::info("Student details found", ['student_id' => $studentDetails->student_id, 'account_type' => $studentDetails->account_type]);
-
-      // Get current moderator
-      $moderator = Auth::user();
-      Log::info("Moderator info", ['moderator_id' => $moderator->id, 'moderator_name' => $moderator->fullname]);
-
-      // Prepare data for the PDF
-      $data = [
-        'title' => $application->certificate_type === 'good_moral' ? 'Good Moral Certificate' : 'Certificate of Residency',
-        'application' => $application,
-        'receipt' => $receipt,
-        'printed_by' => $moderator->fullname,
-        'studentDetails' => $studentDetails,
-        'studentDetails1' => $application, // The template expects this for semester info
-        'print_date' => now()->format('F j, Y'),
-        'reasons_array' => $application->reasons_array, // Pass individual reasons
-        'number_of_copies' => (int)$application->number_of_copies,
-      ];
-      Log::info("PDF data prepared", ['title' => $data['title']]);
-
-      // Check if student/alumni has unresolved violations
-      $hasUnresolvedViolations = \App\Models\StudentViolation::where('student_id', $application->student_id)
-        ->where('status', '!=', 2) // status 2 = fully resolved
-        ->exists();
-      Log::info("Violation check", ['student_id' => $application->student_id, 'has_violations' => $hasUnresolvedViolations]);
-
-      // Choose view based on certificate type, account type, and violation status
-      if ($application->certificate_type === 'good_moral') {
-        // Good Moral Certificate (only for those without violations)
-        $view = 'pdf.student_certificate';
-      } elseif ($application->certificate_type === 'residency') {
-        // Certificate of Residency - different templates for students vs alumni
-        if ($studentDetails->account_type === 'student') {
-          // Students with violations get simple residency certificate
-          $view = 'pdf.student_residency_certificate';
-        } else {
-          // Alumni with violations get the existing residency certificate
-          $view = 'pdf.other_certificate';
-        }
-      } else {
-        // Fallback logic for legacy applications
-        if ($hasUnresolvedViolations) {
-          $view = $studentDetails->account_type === 'student' ? 'pdf.student_residency_certificate' : 'pdf.other_certificate';
-        } else {
-          $view = 'pdf.student_certificate';
-        }
-      }
-      Log::info("Template selected", [
-        'view' => $view,
-        'certificate_type' => $application->certificate_type,
-        'account_type' => $studentDetails->account_type,
-        'has_violations' => $hasUnresolvedViolations
-      ]);
-
-      // Check if view exists
-      if (!view()->exists($view)) {
-        Log::error("View does not exist", ['view' => $view]);
-        return redirect()->route('sec_osa.dashboard')->with('error', "PDF template '{$view}' not found!");
-      }
-
-      // Generate PDF
-      Log::info("Starting PDF generation");
-      $pdf = Pdf::loadView($view, $data);
-      $pdf->setPaper('letter', 'portrait');
-      Log::info("PDF generated successfully");
-
-      // Update application status to ready for pickup (only on first print)
-      if ($application->application_status === 'Ready for Moderator Print') {
-        $application->application_status = 'Ready for Pickup';
-        $application->save();
-        Log::info("Application status updated to Ready for Pickup");
-
-        // Create notification for student - certificate printed and ready for pickup
-        NotifArchive::create([
-          'number_of_copies' => $application->number_of_copies,
-          'reference_number' => $application->reference_number,
-          'fullname' => $application->fullname,
-          'gender' => $application->gender, // Add gender field
-          'reason' => $application->reason,
-          'student_id' => $application->student_id,
-          'department' => $application->department,
-          'course_completed' => $application->course_completed,
-          'graduation_date' => $application->graduation_date,
-          'application_status' => null,
-          'is_undergraduate' => $application->is_undergraduate,
-          'last_course_year_level' => $application->last_course_year_level,
-          'last_semester_sy' => $application->last_semester_sy,
-          'certificate_type' => $application->certificate_type,
-          'status' => '5', // Status 5 = Certificate printed and ready for pickup
-        ]);
-        Log::info("Notification created for student");
-      } else {
-        Log::info("Reprint - status and notification unchanged");
-      }
-
-      // Generate filename
-      $certificateType = $application->certificate_type === 'good_moral' ? 'GoodMoral' : 'Residency';
-      $filename = "{$certificateType}_Certificate_{$application->student_id}_{$application->reference_number}.pdf";
-      Log::info("Filename generated", ['filename' => $filename]);
-
-      // Try to download the PDF
-      try {
-        Log::info("Attempting PDF download");
-        $response = $pdf->download($filename);
-        Log::info("PDF download successful");
-        return $response;
-      } catch (\Exception $downloadError) {
-        Log::error("PDF download failed", ['error' => $downloadError->getMessage()]);
-
-        // Try alternative: stream the PDF
-        try {
-          Log::info("Attempting PDF stream as fallback");
-          return $pdf->stream($filename);
-        } catch (\Exception $streamError) {
-          Log::error("PDF stream also failed", ['error' => $streamError->getMessage()]);
-          throw new \Exception("Both download and stream failed: " . $downloadError->getMessage() . " | " . $streamError->getMessage());
-        }
-      }
-
-    } catch (\Exception $e) {
-      Log::error("Print Certificate Error", [
-        'message' => $e->getMessage(),
-        'file' => $e->getFile(),
-        'line' => $e->getLine(),
-        'trace' => $e->getTraceAsString()
-      ]);
-      return redirect()->route('sec_osa.dashboard')->with('error', 'An error occurred while printing the certificate: ' . $e->getMessage());
-    }
+    return $this->certificateService->generateCertificate(
+      $id,
+      'download',
+      ['Ready for Moderator Print', 'Ready for Pickup'],
+      'sec_osa.dashboard',
+      false
+    );
   }
 
   /**
@@ -774,132 +623,13 @@ class SecOSAController extends Controller
    */
   public function downloadCertificate($id)
   {
-    try {
-      Log::info("Download Certificate Started for ID: {$id}");
-
-      // Find the GoodMoralApplication
-      $application = GoodMoralApplication::findOrFail($id);
-      Log::info("Application found", ['application_id' => $application->id, 'status' => $application->application_status]);
-
-      // Check if the application is ready for pickup (already printed) or ready for print
-      if (!in_array($application->application_status, ['Ready for Pickup', 'Ready for Moderator Print'])) {
-        Log::warning("Application not available for download", ['status' => $application->application_status]);
-        return redirect()->route('sec_osa.dashboard')->with('error', 'Certificate is not available for download!');
-      }
-
-      // Check if receipt exists
-      $receipt = \App\Models\Receipt::where('reference_num', $application->reference_number)->first();
-      if (!$receipt || !$receipt->document_path) {
-        Log::error("Receipt not found", ['reference_number' => $application->reference_number]);
-        return redirect()->route('sec_osa.dashboard')->with('error', 'Payment receipt not found!');
-      }
-      Log::info("Receipt found", ['receipt_id' => $receipt->id]);
-
-      // Get student details
-      $studentDetails = \App\Models\RoleAccount::where('student_id', $application->student_id)->first();
-      if (!$studentDetails) {
-        Log::error("Student details not found", ['student_id' => $application->student_id]);
-        return redirect()->route('sec_osa.dashboard')->with('error', 'Student details not found!');
-      }
-      Log::info("Student details found", ['student_id' => $studentDetails->student_id, 'account_type' => $studentDetails->account_type]);
-
-      // Get current moderator
-      $moderator = Auth::user();
-      Log::info("Moderator info", ['moderator_id' => $moderator->id, 'moderator_name' => $moderator->fullname]);
-
-      // Prepare data for the PDF
-      $data = [
-        'title' => $application->certificate_type === 'good_moral' ? 'Good Moral Certificate' : 'Certificate of Residency',
-        'application' => $application,
-        'receipt' => $receipt,
-        'printed_by' => $moderator->fullname,
-        'studentDetails' => $studentDetails,
-        'studentDetails1' => $application, // The template expects this for semester info
-        'print_date' => now()->format('F j, Y'),
-        'reasons_array' => $application->reasons_array, // Pass individual reasons
-        'number_of_copies' => (int)$application->number_of_copies,
-      ];
-      Log::info("PDF data prepared", ['title' => $data['title']]);
-
-      // Check if student/alumni has unresolved violations
-      $hasUnresolvedViolations = \App\Models\StudentViolation::where('student_id', $application->student_id)
-        ->where('status', '!=', 2) // status 2 = fully resolved
-        ->exists();
-      Log::info("Violation check", ['student_id' => $application->student_id, 'has_violations' => $hasUnresolvedViolations]);
-
-      // Choose view based on certificate type, account type, and violation status
-      if ($application->certificate_type === 'good_moral') {
-        // Good Moral Certificate (only for those without violations)
-        $view = 'pdf.student_certificate';
-      } elseif ($application->certificate_type === 'residency') {
-        // Certificate of Residency - different templates for students vs alumni
-        if ($studentDetails->account_type === 'student') {
-          // Students with violations get simple residency certificate
-          $view = 'pdf.student_residency_certificate';
-        } else {
-          // Alumni with violations get the existing residency certificate
-          $view = 'pdf.other_certificate';
-        }
-      } else {
-        // Fallback logic for legacy applications
-        if ($hasUnresolvedViolations) {
-          $view = $studentDetails->account_type === 'student' ? 'pdf.student_residency_certificate' : 'pdf.other_certificate';
-        } else {
-          $view = 'pdf.student_certificate';
-        }
-      }
-      Log::info("Template selected", [
-        'view' => $view,
-        'certificate_type' => $application->certificate_type,
-        'account_type' => $studentDetails->account_type,
-        'has_violations' => $hasUnresolvedViolations
-      ]);
-
-      // Check if view exists
-      if (!view()->exists($view)) {
-        Log::error("View does not exist", ['view' => $view]);
-        return redirect()->route('sec_osa.dashboard')->with('error', "PDF template '{$view}' not found!");
-      }
-
-      // Generate PDF
-      Log::info("Starting PDF generation");
-      $pdf = Pdf::loadView($view, $data);
-      $pdf->setPaper('letter', 'portrait');
-      Log::info("PDF generated successfully");
-
-      // Generate filename
-      $certificateType = $application->certificate_type === 'good_moral' ? 'GoodMoral' : 'Residency';
-      $filename = "{$certificateType}_Certificate_{$application->student_id}_{$application->reference_number}.pdf";
-      Log::info("Filename generated", ['filename' => $filename]);
-
-      // Try to download the PDF
-      try {
-        Log::info("Attempting PDF download");
-        $response = $pdf->download($filename);
-        Log::info("PDF download successful");
-        return $response;
-      } catch (\Exception $downloadError) {
-        Log::error("PDF download failed", ['error' => $downloadError->getMessage()]);
-
-        // Try alternative: stream the PDF
-        try {
-          Log::info("Attempting PDF stream as fallback");
-          return $pdf->stream($filename);
-        } catch (\Exception $streamError) {
-          Log::error("PDF stream also failed", ['error' => $streamError->getMessage()]);
-          throw new \Exception("Both download and stream failed: " . $downloadError->getMessage() . " | " . $streamError->getMessage());
-        }
-      }
-
-    } catch (\Exception $e) {
-      Log::error("Download Certificate Error", [
-        'message' => $e->getMessage(),
-        'file' => $e->getFile(),
-        'line' => $e->getLine(),
-        'trace' => $e->getTraceAsString()
-      ]);
-      return redirect()->route('sec_osa.dashboard')->with('error', 'An error occurred while downloading the certificate: ' . $e->getMessage());
-    }
+    return $this->certificateService->generateCertificate(
+      $id,
+      'download',
+      ['Ready for Pickup', 'Ready for Moderator Print'],
+      'sec_osa.dashboard',
+      false
+    );
   }
   
   /**
@@ -907,50 +637,7 @@ class SecOSAController extends Controller
    */
   public function escalationNotifications()
   {
-    // Get all students who have 3 or more minor violations
-    $escalatedStudents = StudentViolation::select('student_id', 'first_name', 'last_name', 'department', 'course')
-      ->selectRaw('COUNT(*) as minor_violation_count')
-      ->where('offense_type', 'minor')
-      ->groupBy('student_id', 'first_name', 'last_name', 'department', 'course')
-      ->havingRaw('COUNT(*) >= 3')
-      ->orderBy('minor_violation_count', 'desc')
-      ->get();
-
-    // For each student, get their violation details and check if major violation was created
-    $escalationNotifications = [];
-    foreach ($escalatedStudents as $student) {
-      // Get all minor violations for this student
-      $minorViolations = StudentViolation::where('student_id', $student->student_id)
-        ->where('offense_type', 'minor')
-        ->orderBy('created_at', 'desc')
-        ->get();
-
-      // Check if a major violation was automatically created for this student
-      $autoMajorViolation = StudentViolation::where('student_id', $student->student_id)
-        ->where('offense_type', 'major')
-        ->where('violation', 'LIKE', '%Escalated from 3 minor violations%')
-        ->first();
-
-      $escalationNotifications[] = [
-        'student_id' => $student->student_id,
-        'fullname' => $student->first_name . ' ' . $student->last_name,
-        'department' => $student->department,
-        'course' => $student->course,
-        'minor_violation_count' => $student->minor_violation_count,
-        'minor_violations' => $minorViolations,
-        'auto_major_violation' => $autoMajorViolation,
-        'escalation_status' => $autoMajorViolation ? 'escalated' : 'pending_escalation',
-        'latest_violation_date' => $minorViolations->first()->created_at ?? null,
-      ];
-    }
-
-    // Sort by latest violation date (most recent first)
-    usort($escalationNotifications, function($a, $b) {
-      if (!$a['latest_violation_date'] || !$b['latest_violation_date']) {
-        return 0;
-      }
-      return $b['latest_violation_date']->timestamp - $a['latest_violation_date']->timestamp;
-    });
+    $escalationNotifications = $this->violationService->getEscalationNotificationsList();
 
     return view('sec_osa.escalationNotifications', compact('escalationNotifications'));
   }

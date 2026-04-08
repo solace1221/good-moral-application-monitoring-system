@@ -16,6 +16,8 @@ use App\Models\Violation;
 use App\Models\HeadOSAApplication;
 use Illuminate\Support\Str;
 use App\Models\ViolationNotif;
+use App\Services\GoodMoralWorkflowService;
+use App\Services\NotificationArchiveService;
 
 class DeanController extends Controller
 {
@@ -26,10 +28,15 @@ class DeanController extends Controller
    */
   use RoleCheck, DateFilterTrait;
 
-  public function __construct()
-  {
-    // Temporarily disable role check to fix authentication
-    // $this->checkRole(['dean']);
+  protected GoodMoralWorkflowService $workflowService;
+  protected NotificationArchiveService $notifService;
+
+  public function __construct(
+    GoodMoralWorkflowService $workflowService,
+    NotificationArchiveService $notifService
+  ) {
+    $this->workflowService = $workflowService;
+    $this->notifService = $notifService;
   }
 
   public function dashboard(Request $request)
@@ -630,22 +637,9 @@ class DeanController extends Controller
     $application->status = 'rejected';
     $application->save();
 
-    NotifArchive::create([
-      'number_of_copies' => $goodMoralApplication->number_of_copies,
-      'reference_number' => $goodMoralApplication->reference_number,
-      'fullname' => $goodMoralApplication->fullname,
-      'gender' => $goodMoralApplication->gender, // Add gender field
-      'reason' => $goodMoralApplication->reason,
-      'student_id' => $goodMoralApplication->student_id,
-      'department' =>  $goodMoralApplication->department,
-      'course_completed' =>  $goodMoralApplication->course_completed,  // Allowing this to be null
-      'graduation_date' => $goodMoralApplication->graduation_date,
-      'application_status' => null,
-      'is_undergraduate' => $goodMoralApplication->is_undergraduate,
-      'last_course_year_level' => $goodMoralApplication->last_course_year_level,
-      'last_semester_sy' => $goodMoralApplication->last_semester_sy,
-      'status' => '-3',
-    ]);
+    if ($goodMoralApplication) {
+      $this->notifService->createFromApplication($goodMoralApplication, '-3');
+    }
 
     return redirect()->route('dean.dashboard')->with('status', 'Application rejected!');
   }
@@ -675,28 +669,8 @@ class DeanController extends Controller
         return redirect()->route('dean.application')->with('error', 'Application is not ready for dean approval.');
       }
 
-      // Update application status
-      $application->application_status = "Approved by Dean: {$dean->fullname}";
-      $application->save();
-
-      // Create notification for student
-      NotifArchive::create([
-        'number_of_copies' => $application->number_of_copies,
-        'reference_number' => $application->reference_number,
-        'fullname' => $application->fullname,
-        'gender' => $application->gender,
-        'reason' => $application->reason,
-        'student_id' => $application->student_id,
-        'department' => $application->department,
-        'course_completed' => $application->course_completed,
-        'graduation_date' => $application->graduation_date,
-        'application_status' => null,
-        'is_undergraduate' => $application->is_undergraduate,
-        'last_course_year_level' => $application->last_course_year_level,
-        'last_semester_sy' => $application->last_semester_sy,
-        'certificate_type' => $application->certificate_type,
-        'status' => '3', // Status 3 = Approved by Dean
-      ]);
+      // Update application status and create notification via service
+      $this->workflowService->approveByDean($application, $dean->fullname);
 
       $successMessage = "Good Moral application approved successfully! Application forwarded to Admin for final approval.";
       
@@ -740,28 +714,8 @@ class DeanController extends Controller
       return redirect()->route('dean.application')->with('error', 'Application is not ready for dean action.');
     }
 
-    // Update application status
-    $application->application_status = "Rejected by Dean: {$dean->fullname}";
-    $application->save();
-
-    // Create notification for student
-    NotifArchive::create([
-      'number_of_copies' => $application->number_of_copies,
-      'reference_number' => $application->reference_number,
-      'fullname' => $application->fullname,
-      'gender' => $application->gender, // Add gender field
-      'reason' => $application->reason,
-      'student_id' => $application->student_id,
-      'department' => $application->department,
-      'course_completed' => $application->course_completed,
-      'graduation_date' => $application->graduation_date,
-      'application_status' => null,
-      'is_undergraduate' => $application->is_undergraduate,
-      'last_course_year_level' => $application->last_course_year_level,
-      'last_semester_sy' => $application->last_semester_sy,
-      'certificate_type' => $application->certificate_type,
-      'status' => '-3', // Status -3 = Rejected by Dean
-    ]);
+    // Update application status and create notification via service
+    $this->workflowService->rejectByDean($application, $dean->fullname);
 
     return redirect()->route('dean.application')->with('status', 'Good Moral application rejected successfully!');
   }
@@ -784,34 +738,8 @@ class DeanController extends Controller
       return redirect()->route('dean.application')->with('error', 'Unauthorized access to application.');
     }
 
-    // Update application with rejection details
-    $application->status = 'rejected';
-    $application->application_status = "Rejected by Dean: {$dean->fullname}";
-    $application->rejection_reason = $request->rejection_reason;
-    $application->rejection_details = $request->rejection_details;
-    $application->rejected_by = "Dean: {$dean->fullname}";
-    $application->rejected_at = now();
-    $application->action_history = ($application->action_history ?? '') . "\n" . now()->format('Y-m-d H:i:s') . " - Rejected by Dean: {$dean->fullname} (Reason: {$request->rejection_reason})";
-    $application->save();
-
-    // Create notification for student
-    NotifArchive::create([
-      'number_of_copies' => $application->number_of_copies,
-      'reference_number' => $application->reference_number,
-      'fullname' => $application->fullname,
-      'gender' => $application->gender,
-      'reason' => $application->reason,
-      'student_id' => $application->student_id,
-      'department' => $application->department,
-      'course_completed' => $application->course_completed,
-      'graduation_date' => $application->graduation_date,
-      'application_status' => 'Rejected by Dean: ' . $request->rejection_reason,
-      'is_undergraduate' => $application->is_undergraduate,
-      'last_course_year_level' => $application->last_course_year_level,
-      'last_semester_sy' => $application->last_semester_sy,
-      'certificate_type' => $application->certificate_type,
-      'status' => '-3', // Status -3 = Rejected by Dean
-    ]);
+    // Update application with rejection details and create notification via service
+    $this->workflowService->rejectByDean($application, $dean->fullname, $request->rejection_reason, $request->rejection_details);
 
     return redirect()->route('dean.application')->with('status', 'Application rejected successfully.');
   }
