@@ -6,10 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\StudentRegistration;
 use App\Models\RoleAccount;
+use App\Models\Designation;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rules;
@@ -44,7 +46,9 @@ class RegisteredAccountController extends Controller
 
     $students = $query->orderBy('fullname', 'asc')->paginate(10)->appends($request->query());
 
-    return view('admin.add-account', compact('students'));
+    $organizations = Designation::orderBy('description')->get();
+
+    return view('admin.add-account', compact('students', 'organizations'));
   }
 
   /**
@@ -60,33 +64,67 @@ class RegisteredAccountController extends Controller
     // Hash password once to use everywhere
     $hashedPassword = Hash::make($request->password);
 
-    // Create user in Good Moral system
-    $user = RoleAccount::create([
-      'fullname' => $request->fullname,
-      'email' => $request->email,
-      'department' => $request->department,
-      'password' => $hashedPassword,
-      'student_id' => $request->student_id,
-      'course' => $request->course,
-      'year_level' => $request->year_level,
-      'status' => "1",
-      'account_type' => $request->account_type,
-    ]);
+    // Map account_type to users.role
+    $roleMap = [
+      'student'     => 'student',
+      'alumni'      => 'student',
+      'admin'       => 'admin',
+      'dean'        => 'dean',
+      'registrar'   => 'registrar',
+      'head_osa'    => 'head_osa',
+      'sec_osa'     => 'sec_osa',
+      'psg_officer' => 'psg_officer',
+      'prog_coor'   => 'prog_coor',
+    ];
 
-    // Create user in local users table for authentication (for student and alumni only)
-    if (in_array($request->account_type, ['student', 'alumni'])) {
+    $userRole = $roleMap[$request->account_type] ?? $request->account_type;
+
+    DB::transaction(function () use ($request, $nameParts, $hashedPassword, $userRole) {
+      // 1. Always create login record in users table
       User::create([
-        'name' => strtolower($nameParts['firstname'] . '.' . $nameParts['lastname']),
+        'name' => strtolower(trim($nameParts['firstname'] . '.' . $nameParts['lastname'], '.')),
         'firstname' => $nameParts['firstname'],
         'lastname' => $nameParts['lastname'],
         'middlename' => $nameParts['middlename'],
         'suffix_name' => $nameParts['extension'],
         'email' => $request->email,
         'password' => $hashedPassword,
-        'role' => 'student',
-        'status' => 'active',
+        'role' => $userRole,
+        'status' => $request->account_type === 'psg_officer' ? 'inactive' : 'active',
       ]);
-    }
+
+      // 2. Always create profile in role_account
+      RoleAccount::create([
+        'fullname' => $request->fullname,
+        'email' => $request->email,
+        'department' => $request->department,
+        'password' => $hashedPassword,
+        'student_id' => $request->student_id,
+        'course' => $request->course,
+        'year_level' => $request->year_level,
+        'organization' => $request->organization,
+        'status' => $request->account_type === 'psg_officer' ? '5' : '1',
+        'account_type' => $request->account_type,
+      ]);
+
+      // 3. Create student_registrations only for student roles
+      if (in_array($request->account_type, ['student', 'alumni'])) {
+        StudentRegistration::create([
+          'fname' => $nameParts['firstname'],
+          'mname' => $nameParts['middlename'],
+          'lname' => $nameParts['lastname'],
+          'extension' => $nameParts['extension'],
+          'email' => $request->email,
+          'department' => $request->department,
+          'course' => $request->course,
+          'password' => $hashedPassword,
+          'student_id' => $request->student_id,
+          'status' => '1',
+          'account_type' => $request->account_type,
+          'year_level' => $request->year_level,
+        ]);
+      }
+    });
 
     return redirect()->route('admin.AddAccount')->with('success', 'Account successfully created!');
   }

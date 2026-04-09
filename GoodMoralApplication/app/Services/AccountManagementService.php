@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\RoleAccount;
 use App\Models\StudentRegistration;
+use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class AccountManagementService
@@ -98,7 +100,13 @@ class AccountManagementService
             }
 
             if (RoleAccount::whereRaw('LOWER(email) = ?', [$studentData['email']])->exists()) {
-                $errors[] = "Row {$rowNumber}: Email {$studentData['email']} already exists";
+                $errors[] = "Row {$rowNumber}: Email {$studentData['email']} already exists in role_account";
+                $errorCount++;
+                continue;
+            }
+
+            if (User::whereRaw('LOWER(email) = ?', [$studentData['email']])->exists()) {
+                $errors[] = "Row {$rowNumber}: Email {$studentData['email']} already exists in users";
                 $errorCount++;
                 continue;
             }
@@ -112,38 +120,59 @@ class AccountManagementService
                     $fullname .= ' ' . $studentData['extension'];
                 }
 
-                StudentRegistration::create([
-                    'fname' => $studentData['fname'],
-                    'mname' => $studentData['mname'],
-                    'lname' => $studentData['lname'],
-                    'extension' => $studentData['extension'],
-                    'email' => $studentData['email'],
-                    'department' => $studentData['department'],
-                    'course' => $studentData['course'],
-                    'password' => Hash::make($defaultPassword),
-                    'student_id' => $studentData['student_id'],
-                    'status' => '1',
-                    'account_type' => 'student',
-                    'year_level' => $studentData['year_level'],
-                    'organization' => null,
-                    'position' => null,
-                ]);
+                // Hash password once for role_account and student_registrations
+                $hashedPassword = Hash::make($defaultPassword);
 
-                RoleAccount::create([
-                    'fullname' => $fullname,
-                    'mname' => $studentData['mname'],
-                    'extension' => $studentData['extension'],
-                    'department' => $studentData['department'],
-                    'course' => $studentData['course'],
-                    'year_level' => $studentData['year_level'],
-                    'email' => $studentData['email'],
-                    'password' => Hash::make($defaultPassword),
-                    'student_id' => $studentData['student_id'],
-                    'status' => '1',
-                    'account_type' => 'student',
-                    'organization' => null,
-                    'position' => null,
-                ]);
+                DB::transaction(function () use ($studentData, $fullname, $defaultPassword, $hashedPassword) {
+                    // 1. Create login record in users table
+                    //    User model has 'password' => 'hashed' cast, so pass plain-text
+                    User::create([
+                        'name' => strtolower($studentData['fname'] . '.' . $studentData['lname']),
+                        'firstname' => $studentData['fname'],
+                        'lastname' => $studentData['lname'],
+                        'middlename' => $studentData['mname'],
+                        'suffix_name' => $studentData['extension'],
+                        'email' => $studentData['email'],
+                        'password' => $defaultPassword,
+                        'role' => 'student',
+                        'status' => 'active',
+                    ]);
+
+                    // 2. Create profile in role_account
+                    RoleAccount::create([
+                        'fullname' => $fullname,
+                        'mname' => $studentData['mname'],
+                        'extension' => $studentData['extension'],
+                        'department' => $studentData['department'],
+                        'course' => $studentData['course'],
+                        'year_level' => $studentData['year_level'],
+                        'email' => $studentData['email'],
+                        'password' => $hashedPassword,
+                        'student_id' => $studentData['student_id'],
+                        'status' => '1',
+                        'account_type' => 'student',
+                        'organization' => null,
+                        'position' => null,
+                    ]);
+
+                    // 3. Create enrollment record in student_registrations
+                    StudentRegistration::create([
+                        'fname' => $studentData['fname'],
+                        'mname' => $studentData['mname'],
+                        'lname' => $studentData['lname'],
+                        'extension' => $studentData['extension'],
+                        'email' => $studentData['email'],
+                        'department' => $studentData['department'],
+                        'course' => $studentData['course'],
+                        'password' => $hashedPassword,
+                        'student_id' => $studentData['student_id'],
+                        'status' => '1',
+                        'account_type' => 'student',
+                        'year_level' => $studentData['year_level'],
+                        'organization' => null,
+                        'position' => null,
+                    ]);
+                });
 
                 $successCount++;
             } catch (\Exception $e) {

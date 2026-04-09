@@ -115,7 +115,6 @@
                 <th style="padding: 16px; text-align: left; font-weight: 600; font-size: 14px; color: black;">Full Name</th>
                 <th style="padding: 16px; text-align: left; font-weight: 600; font-size: 14px; color: black;">Department</th>
                 <th style="padding: 16px; text-align: left; font-weight: 600; font-size: 14px; color: black;">Organization</th>
-                <th style="padding: 16px; text-align: left; font-weight: 600; font-size: 14px; color: black;">Position</th>
                 <th style="padding: 16px; text-align: left; font-weight: 600; font-size: 14px; color: black;">Status</th>
                 <th style="padding: 16px; text-align: left; font-weight: 600; font-size: 14px; color: black;">Applied On</th>
                 <th style="padding: 16px; text-align: center; font-weight: 600; font-size: 14px; color: black;">Actions</th>
@@ -143,7 +142,6 @@
                   </span>
                 </td>
                 <td style="padding: 16px; color: #6b7280;">{{ $application->organization ?? 'N/A' }}</td>
-                <td style="padding: 16px; color: #6b7280;">{{ $application->position ?? 'N/A' }}</td>
                 <td style="padding: 16px;">
                   @if($application->status == '5')
                     <span style="display: inline-flex; align-items: center; padding: 6px 12px; background: #fbbf24; color: #ffffff; border-radius: 20px; font-size: 12px; font-weight: 600;">

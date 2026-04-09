@@ -134,7 +134,7 @@
         </div>
 
         <!-- Department -->
-        <div x-data="{ showOther: false }">
+        <div id="department_field" x-data="{ showOther: false }">
           <label for="department" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Department</label>
           <select id="department" name="department"
             style="width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px; transition: border-color 0.3s ease;"
@@ -238,6 +238,21 @@
             <option value="5th Year" {{ old('year_level') == '5th Year' ? 'selected' : '' }}>5th Year</option>
           </select>
           <x-input-error :messages="$errors->get('year_level')" class="mt-1" />
+        </div>
+
+        <!-- PSG Organization -->
+        <div id="organization_field" style="display: none;">
+          <label for="organization" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Organization <span style="color: #dc3545;">*</span></label>
+          <select
+            id="organization"
+            name="organization"
+            style="width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px; transition: border-color 0.3s ease; background: white;">
+            <option value="">Select Organization</option>
+            @foreach ($organizations as $org)
+              <option value="{{ $org->description }}" {{ old('organization') == $org->description ? 'selected' : '' }}>{{ $org->description }}</option>
+            @endforeach
+          </select>
+          <x-input-error :messages="$errors->get('organization')" class="mt-1" />
         </div>
 
         <!-- Password -->
@@ -1283,12 +1298,39 @@
       const studentIdField = document.getElementById('student_id_field');
       const courseField = document.getElementById('course_field');
       const yearLevelField = document.getElementById('year_level_field');
+      const departmentField = document.getElementById('department_field');
+      const organizationField = document.getElementById('organization_field');
 
       const studentIdInput = document.getElementById('student_id');
       const courseInput = document.getElementById('course');
       const yearLevelInput = document.getElementById('year_level');
+      const departmentInput = document.getElementById('department');
+      const organizationInput = document.getElementById('organization');
 
-      // Show/hide fields based on account type
+      // Roles that do not require a department
+      const noDepartmentRoles = ['sec_osa', 'head_osa'];
+
+      // Toggle department field based on account type
+      if (noDepartmentRoles.includes(accountType)) {
+        departmentField.style.display = 'none';
+        departmentInput.removeAttribute('required');
+        departmentInput.value = '';
+      } else {
+        departmentField.style.display = 'block';
+        departmentInput.setAttribute('required', 'required');
+      }
+
+      // Toggle PSG-specific fields
+      if (accountType === 'psg_officer') {
+        organizationField.style.display = 'block';
+        organizationInput.setAttribute('required', 'required');
+      } else {
+        organizationField.style.display = 'none';
+        organizationInput.removeAttribute('required');
+        organizationInput.value = '';
+      }
+
+      // Show/hide student-specific fields based on account type
       if (accountType === 'student' || accountType === 'alumni') {
         // Show student fields
         studentIdField.style.display = 'block';

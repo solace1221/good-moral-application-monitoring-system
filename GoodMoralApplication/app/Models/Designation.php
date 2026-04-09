@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Designation extends Model
 {
-    protected $primaryKey = 'dsn_ids';
+    protected $primaryKey = 'dsn_id';
     
     protected $fillable = [
         'dept_id',

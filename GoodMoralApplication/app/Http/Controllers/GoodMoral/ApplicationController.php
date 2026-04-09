@@ -8,6 +8,7 @@ use App\Models\Receipt;
 use Illuminate\Support\Str;
 use App\Models\GoodMoralApplication;
 use App\Models\RoleAccount;
+use App\Models\StudentRegistration;
 use App\Models\NotifArchive;
 use App\Models\StudentViolation;
 use App\Services\ReceiptValidationService;
@@ -15,6 +16,7 @@ use App\Services\NotificationArchiveService;
 use App\Helpers\CourseHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rules;
@@ -589,45 +591,60 @@ class ApplicationController extends Controller
       abort(403, 'Unauthorized access.');
     }
 
+    /** @var \App\Models\User $user */
     $user = Auth::user();
+    $oldEmail = $user->email;
 
-    // Base validation rules - RESTRICTED: Name fields, course, and year_level are excluded for students/alumni
+    // Find the matching role_account record
+    $roleAccount = RoleAccount::where('email', $oldEmail)->first();
+    if (!$roleAccount) {
+      return redirect()->route('student.profile')->with('error', 'Account record not found.');
+    }
+
     if (in_array($user->account_type, ['student', 'alumni'])) {
-      // Students and alumni cannot update name fields, course, or year_level
+      // Students and alumni can only update email and gender
       $rules = [
-        'email' => ['required', 'email', 'max:255', 'unique:role_account,email,' . Auth::id()],
+        'email' => ['required', 'email', 'max:255', 'unique:role_account,email,' . $roleAccount->id],
         'gender' => ['required', 'string', 'in:male,female'],
-        // Removed name fields, course, and year_level for security
       ];
 
-      // Validate only editable fields
       $request->validate($rules);
-
-      // Only update allowed fields for students/alumni
-      $updateData = [
-        'email' => $request->email,
-        'gender' => $request->gender,
-      ];
 
       // Log attempted unauthorized changes for security monitoring
       $restrictedFields = ['first_name', 'middle_name', 'last_name', 'extension', 'course', 'year_level'];
       $attemptedChanges = array_intersect(array_keys($request->all()), $restrictedFields);
-      
+
       if (!empty($attemptedChanges)) {
         Log::warning('Unauthorized profile update attempt', [
           'user_id' => $user->id,
-          'student_id' => $user->student_id,
+          'student_id' => $roleAccount->student_id,
           'attempted_fields' => $attemptedChanges,
           'ip_address' => $request->ip(),
         ]);
       }
 
-      $oldEmail = $user->email;
-      /** @var \App\Models\User $user */
-      $user->update($updateData);
-      
+      DB::transaction(function () use ($user, $roleAccount, $request, $oldEmail) {
+        // 1. Update users table (email only — gender not in User $fillable)
+        $user->update([
+          'email' => $request->email,
+        ]);
+
+        // 2. Update role_account table (email + gender)
+        $roleAccount->update([
+          'email' => $request->email,
+          'gender' => $request->gender,
+        ]);
+
+        // 3. Sync student_registrations if student/alumni and email changed
+        if ($request->email !== $oldEmail) {
+          StudentRegistration::where('email', $oldEmail)->update([
+            'email' => $request->email,
+          ]);
+        }
+      });
+
       $successMessage = 'Profile updated successfully! Note: Name changes require formal request to Registrar/OSA. Academic information is managed by the Registrar.';
-      
+
     } else if ($user->account_type === 'psg_officer') {
       // PSG officers can update more fields including name and organizational info
       $rules = [
@@ -635,7 +652,7 @@ class ApplicationController extends Controller
         'middle_name' => ['nullable', 'string', 'max:255', 'regex:/^[A-Za-z\s]*$/'],
         'last_name' => ['required', 'string', 'max:255', 'regex:/^[A-Za-z\s]+$/'],
         'extension' => ['nullable', 'string', 'max:10', 'regex:/^[A-Za-z\s]*$/'],
-        'email' => ['required', 'email', 'max:255', 'unique:role_account,email,' . Auth::id()],
+        'email' => ['required', 'email', 'max:255', 'unique:role_account,email,' . $roleAccount->id],
         'gender' => ['required', 'string', 'in:male,female'],
         'organization' => ['required', 'string', 'max:255'],
         'position' => ['required', 'string', 'max:255'],
@@ -643,26 +660,34 @@ class ApplicationController extends Controller
 
       $request->validate($rules);
 
-      // Create fullname from parts for PSG officers
+      // Create fullname from parts
       $fullname = $request->last_name . ', ' . $request->first_name;
       if ($request->middle_name) {
         $fullname .= ' ' . $request->middle_name;
       }
 
-      $updateData = [
-        'fullname' => $fullname,
-        'mname' => $request->middle_name,
-        'extension' => $request->extension,
-        'email' => $request->email,
-        'gender' => $request->gender,
-        'organization' => $request->organization,
-        'position' => $request->position,
-      ];
+      DB::transaction(function () use ($user, $roleAccount, $request, $oldEmail, $fullname) {
+        // 1. Update users table (fields that exist in User $fillable)
+        $user->update([
+          'firstname' => $request->first_name,
+          'lastname' => $request->last_name,
+          'middlename' => $request->middle_name,
+          'suffix_name' => $request->extension,
+          'email' => $request->email,
+        ]);
 
-      $oldEmail = $user->email;
-      /** @var \App\Models\User $user */
-      $user->update($updateData);
-      
+        // 2. Update role_account table (all profile fields)
+        $roleAccount->update([
+          'fullname' => $fullname,
+          'mname' => $request->middle_name,
+          'extension' => $request->extension,
+          'email' => $request->email,
+          'gender' => $request->gender,
+          'organization' => $request->organization,
+          'position' => $request->position,
+        ]);
+      });
+
       $successMessage = 'Profile updated successfully!';
     }
 

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\RoleAccount;
 use App\Models\ArchivedRoleAccount;
 use App\Models\StudentRegistration;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class PsgController extends Controller
@@ -46,9 +47,15 @@ class PsgController extends Controller
     // Delete the original application from the RoleAccount table
     $application->delete();
     $id = $application->student_id;
+
+    // Deactivate the login account
+    User::where('email', $application->email)->update(['status' => 'inactive']);
+
     // Delete the original registraton from the registration table
-    $registration = StudentRegistration::where('student_id', $id)->firstOrFail();
-    $registration->delete();
+    $registration = StudentRegistration::where('student_id', $id)->first();
+    if ($registration) {
+      $registration->delete();
+    }
 
 
     // Redirect with a success message
@@ -60,10 +67,16 @@ class PsgController extends Controller
   {
     $application = RoleAccount::where('student_id', $student_id)->firstOrFail();
     $application->status = '1';
-    $applicationStudent = StudentRegistration::where('student_id', $student_id)->firstOrFail();
-    $applicationStudent->status = '1';
-    $applicationStudent->save();
     $application->save();
+
+    // Activate the login account so the PSG officer can log in
+    User::where('email', $application->email)->update(['status' => 'active']);
+
+    $applicationStudent = StudentRegistration::where('student_id', $student_id)->first();
+    if ($applicationStudent) {
+      $applicationStudent->status = '1';
+      $applicationStudent->save();
+    }
 
     return redirect()->route('admin.psgApplication')->with('status', 'Application approved.');
   }
