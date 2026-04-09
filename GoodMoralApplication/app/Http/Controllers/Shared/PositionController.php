@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Position;
 use App\Models\Designation;
 use Illuminate\Http\Request;
+use App\Http\Requests\StorePositionRequest;
 
 class PositionController extends Controller
 {
@@ -30,12 +31,9 @@ class PositionController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StorePositionRequest $request)
     {
-        $validatedData = $request->validate([
-            'dsn_id' => 'required|exists:designations,dsn_id',
-            'position_title' => 'required|string|max:255'
-        ]);
+        $validatedData = $request->validated();
 
         Position::create($validatedData);
 
@@ -65,12 +63,9 @@ class PositionController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(StorePositionRequest $request, string $id)
     {
-        $validatedData = $request->validate([
-            'dsn_id' => 'required|exists:designations,dsn_id',
-            'position_title' => 'required|string|max:255'
-        ]);
+        $validatedData = $request->validated();
 
         $position = Position::findOrFail($id);
         $position->update($validatedData);

@@ -1,7 +1,16 @@
 ﻿<?php
 
 use App\Http\Controllers\GoodMoral\ApplicationController;
-use App\Http\Controllers\GoodMoral\AdminController;
+use App\Http\Controllers\Admin\AccountController;
+use App\Http\Controllers\Admin\ApplicationController as AdminApplicationController;
+use App\Http\Controllers\Admin\ReportController;
+use App\Http\Controllers\Admin\DatabaseSummaryController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\EscalationController;
+use App\Http\Controllers\Admin\PsgController;
+use App\Http\Controllers\Admin\NotificationController;
+use App\Http\Controllers\Admin\ViolationController;
+use App\Http\Controllers\Admin\ViolatorController;
 use App\Http\Controllers\GoodMoral\DeanController;
 use App\Http\Controllers\GoodMoral\HeadOSAController;
 use App\Http\Controllers\GoodMoral\SecOSAController;
@@ -9,6 +18,7 @@ use App\Http\Controllers\GoodMoral\PsgOfficerController;
 use App\Http\Controllers\GoodMoral\RegistrarController;
 use App\Http\Controllers\GoodMoral\ProgramCoordinatorController;
 use App\Http\Controllers\Auth\RegisterViolationController;
+use App\Http\Controllers\Auth\RegisteredAccountController;
 use Illuminate\Support\Facades\Route;
 
 // ─── Student / Application ────────────────────────────────────────────────────
@@ -26,46 +36,50 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 // ─── Admin ────────────────────────────────────────────────────────────────────
 Route::middleware(['auth', 'verified', 'admin'])->group(function () {
-    Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
-    Route::get('/admin/notification-counts', [AdminController::class, 'getNotificationCounts'])->name('admin.notificationCounts');
-    Route::get('/admin/Application', [AdminController::class, 'applicationDashboard'])->name('admin.Application');
-    Route::get('/admin/ready-for-print', [AdminController::class, 'readyForPrintApplications'])->name('admin.readyForPrintApplications');
-    Route::post('/admin/print-certificate/{id}', [AdminController::class, 'printCertificate'])->name('admin.printCertificate');
-    Route::get('/admin/download-certificate/{id}', [AdminController::class, 'downloadCertificate'])->name('admin.downloadCertificate');
-    Route::patch('/admin/good-moral/{id}/approve', [AdminController::class, 'approveGoodMoralApplication'])->name('admin.approveGoodMoralApplication');
-    Route::patch('/admin/good-moral/{id}/reject', [AdminController::class, 'rejectGoodMoralApplication'])->name('admin.rejectGoodMoralApplication');
-    Route::get('/admin/psgApplication', [AdminController::class, 'psgApplication'])->name('admin.psgApplication');
-    Route::get('/admin/generate-violators-report', [AdminController::class, 'generateViolatorsReport'])->name('admin.generateViolatorsReport');
-    Route::get('/admin/reports', [AdminController::class, 'reportsPage'])->name('admin.reports');
-    Route::get('/admin/reports/history', [AdminController::class, 'reportsHistory'])->name('admin.reports.history');
-    Route::post('/admin/generate-selected-report', [AdminController::class, 'generateSelectedReport'])->name('admin.generateSelectedReport');
-    Route::patch('/admin/psgApplication/{student_id}/approve', [AdminController::class, 'approvepsg'])->name('admin.approvepsg');
-    Route::delete('/admin/psgApplication/{student_id}/reject', [AdminController::class, 'rejectpsg'])->name('admin.rejectpsg');
-    Route::patch('/admin/psgApplication/{student_id}/revoke', [AdminController::class, 'revokePsg'])->name('admin.revokepsg');
-    Route::patch('/admin/psgApplication/{student_id}/reconsider', [AdminController::class, 'reconsiderPsg'])->name('admin.reconsiderpsg');
-    Route::delete('/admin/Addviolation/{id}/delete', [AdminController::class, 'deleteViolation'])->name('admin.deleteViolation');
-    Route::patch('/admin/violation/update/{id}', [AdminController::class, 'updateViolation'])->name('admin.updateViolation');
-    Route::get('/admin/GMAApporvedByRegistrar', [AdminController::class, 'GMAApporvedByRegistrar'])->name('admin.GMAApporvedByRegistrar');
-    Route::post('/admin/import-users', [AdminController::class, 'importUsers'])->name('admin.importUsers');
-    Route::get('/admin/account/{id}/edit', [AdminController::class, 'editAccount'])->name('admin.editAccount');
-    Route::put('/admin/account/{id}/update', [AdminController::class, 'updateAccount'])->name('admin.updateAccount');
-    Route::delete('/admin/account/{id}/delete', [AdminController::class, 'deleteAccount'])->name('admin.deleteAccount');
-    Route::get('/admin/download-template', [AdminController::class, 'downloadTemplate'])->name('admin.downloadTemplate');
-    Route::get('/admin/violation', [AdminController::class, 'violation'])->name('admin.violation');
-    Route::get('/admin/violation/search', [AdminController::class, 'violationsearch'])->name('admin.violationsearch');
-    Route::post('/admin/violation/{id}/close-case', [AdminController::class, 'closeCase'])->name('violations.closeCase');
-    Route::post('/admin/violation/{id}/mark-downloaded', [AdminController::class, 'markDownloaded'])->name('violations.markDownloaded');
-    Route::get('/admin/violation-details/{id}', [AdminController::class, 'getViolationDetails'])->name('admin.violationDetails');
-    Route::post('/admin/notification/{id}/mark-read', [AdminController::class, 'markNotificationAsRead'])->name('admin.markNotificationAsRead');
-    Route::patch('/admin/application/{id}/approve', [AdminController::class, 'approveGMA'])->name('admin.approveGMA');
-    Route::delete('/admin/application/{id}/reject', [AdminController::class, 'rejectGMA'])->name('admin.rejectGMA');
-    Route::get('/admin/AddViolation', [AdminController::class, 'AddViolationDashboard'])->name('admin.AddViolation');
-    Route::get('/admin/AddViolator', [AdminController::class, 'AddViolatorDashboard'])->name('admin.AddViolator');
-    Route::get('/admin/escalation-notifications', [AdminController::class, 'escalationNotifications'])->name('admin.escalationNotifications');
-    Route::post('/admin/trigger-escalation/{student_id}', [AdminController::class, 'triggerManualEscalation'])->name('admin.triggerEscalation');
-    Route::post('/admin/AddViolator', [AdminController::class, 'storeViolator'])->name('admin.storeViolator');
-    Route::get('/admin/AddMultipleViolators', [AdminController::class, 'addMultipleViolatorsForm'])->name('admin.AddMultipleViolators');
-    Route::post('/admin/AddMultipleViolators', [AdminController::class, 'storeMultipleViolators'])->name('admin.storeMultipleViolators');
+    Route::get('/admin/dashboard', [DashboardController::class, 'dashboard'])->name('admin.dashboard');
+    Route::get('/admin/notification-counts', [NotificationController::class, 'getNotificationCounts'])->name('admin.notificationCounts');
+    Route::get('/admin/Application', [AdminApplicationController::class, 'applicationDashboard'])->name('admin.Application');
+    Route::get('/admin/ready-for-print', [AdminApplicationController::class, 'readyForPrintApplications'])->name('admin.readyForPrintApplications');
+    Route::post('/admin/print-certificate/{id}', [AdminApplicationController::class, 'printCertificate'])->name('admin.printCertificate');
+    Route::get('/admin/download-certificate/{id}', [AdminApplicationController::class, 'downloadCertificate'])->name('admin.downloadCertificate');
+    Route::patch('/admin/good-moral/{id}/approve', [AdminApplicationController::class, 'approveGoodMoralApplication'])->name('admin.approveGoodMoralApplication');
+    Route::patch('/admin/good-moral/{id}/reject', [AdminApplicationController::class, 'rejectGoodMoralApplication'])->name('admin.rejectGoodMoralApplication');
+    Route::get('/admin/psgApplication', [PsgController::class, 'psgApplication'])->name('admin.psgApplication');
+    Route::get('/admin/generate-violators-report', [ReportController::class, 'generateViolatorsReport'])->name('admin.generateViolatorsReport');
+    Route::get('/admin/reports', [ReportController::class, 'reportsPage'])->name('admin.reports');
+    Route::get('/admin/reports/history', [ReportController::class, 'reportsHistory'])->name('admin.reports.history');
+    Route::post('/admin/generate-selected-report', [ReportController::class, 'generateSelectedReport'])->name('admin.generateSelectedReport');
+    Route::patch('/admin/psgApplication/{student_id}/approve', [PsgController::class, 'approvepsg'])->name('admin.approvepsg');
+    Route::delete('/admin/psgApplication/{student_id}/reject', [PsgController::class, 'rejectpsg'])->name('admin.rejectpsg');
+    Route::patch('/admin/psgApplication/{student_id}/revoke', [PsgController::class, 'revokePsg'])->name('admin.revokepsg');
+    Route::patch('/admin/psgApplication/{student_id}/reconsider', [PsgController::class, 'reconsiderPsg'])->name('admin.reconsiderpsg');
+    Route::delete('/admin/Addviolation/{id}/delete', [ViolationController::class, 'deleteViolation'])->name('admin.deleteViolation');
+    Route::patch('/admin/violation/update/{id}', [ViolationController::class, 'updateViolation'])->name('admin.updateViolation');
+    Route::get('/admin/GMAApporvedByRegistrar', [AdminApplicationController::class, 'GMAApporvedByRegistrar'])->name('admin.GMAApporvedByRegistrar');
+    Route::post('/admin/import-users', [AccountController::class, 'importUsers'])->name('admin.importUsers');
+    Route::get('/admin/account/{id}/edit', [AccountController::class, 'editAccount'])->name('admin.editAccount');
+    Route::put('/admin/account/{id}/update', [AccountController::class, 'updateAccount'])->name('admin.updateAccount');
+    Route::delete('/admin/account/{id}/delete', [AccountController::class, 'deleteAccount'])->name('admin.deleteAccount');
+    Route::get('/admin/download-template', [AccountController::class, 'downloadTemplate'])->name('admin.downloadTemplate');
+    Route::get('/admin/violation', [ViolationController::class, 'violation'])->name('admin.violation');
+    Route::get('/admin/violation/search', [ViolationController::class, 'violationsearch'])->name('admin.violationsearch');
+    Route::post('/admin/violation/{id}/close-case', [ViolationController::class, 'closeCase'])->name('violations.closeCase');
+    Route::post('/admin/violation/{id}/mark-downloaded', [ViolationController::class, 'markDownloaded'])->name('violations.markDownloaded');
+    Route::get('/admin/violation-details/{id}', [ViolationController::class, 'getViolationDetails'])->name('admin.violationDetails');
+    Route::post('/admin/notification/{id}/mark-read', [EscalationController::class, 'markNotificationAsRead'])->name('admin.markNotificationAsRead');
+    Route::patch('/admin/application/{id}/approve', [AdminApplicationController::class, 'approveGMA'])->name('admin.approveGMA');
+    Route::delete('/admin/application/{id}/reject', [AdminApplicationController::class, 'rejectGMA'])->name('admin.rejectGMA');
+    Route::get('/admin/AddViolation', [ViolationController::class, 'AddViolationDashboard'])->name('admin.AddViolation');
+    Route::get('/admin/AddViolator', [ViolatorController::class, 'AddViolatorDashboard'])->name('admin.AddViolator');
+    Route::get('/admin/escalation-notifications', [EscalationController::class, 'escalationNotifications'])->name('admin.escalationNotifications');
+    Route::post('/admin/trigger-escalation/{student_id}', [EscalationController::class, 'triggerManualEscalation'])->name('admin.triggerEscalation');
+    Route::post('/admin/AddViolator', [ViolatorController::class, 'storeViolator'])->name('admin.storeViolator');
+    Route::get('/admin/AddMultipleViolators', [ViolatorController::class, 'addMultipleViolatorsForm'])->name('admin.AddMultipleViolators');
+    Route::post('/admin/AddMultipleViolators', [ViolatorController::class, 'storeMultipleViolators'])->name('admin.storeMultipleViolators');
+    Route::get('/admin/AddAccount', [RegisteredAccountController::class, 'create'])->name('admin.AddAccount');
+    Route::get('/admin/database-summary', [DatabaseSummaryController::class, 'databaseSummary'])->name('admin.databaseSummary');
+    Route::get('/admin/database-summary/pdf', [DatabaseSummaryController::class, 'downloadDatabaseSummaryPDF'])->name('admin.downloadDatabaseSummaryPDF');
+    Route::get('/admin/database-summary/excel', [DatabaseSummaryController::class, 'downloadDatabaseSummaryExcel'])->name('admin.downloadDatabaseSummaryExcel');
 });
 
 // ─── PSG Officer ──────────────────────────────────────────────────────────────

@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Course;
 use App\Helpers\CourseHelper;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Validator;
+use App\Http\Requests\UploadCourseCsvRequest;
 
 class CourseController extends Controller
 {
@@ -41,17 +41,8 @@ class CourseController extends Controller
     /**
      * Handle CSV file upload and import courses
      */
-    public function uploadCsv(Request $request)
+    public function uploadCsv(UploadCourseCsvRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'csv_file' => 'required|file|mimes:csv,txt|max:2048',
-            'clear_existing' => 'boolean'
-        ]);
-
-        if ($validator->fails()) {
-            return back()->withErrors($validator)->withInput();
-        }
-
         try {
             $file = $request->file('csv_file');
             $filename = 'courses_' . time() . '.csv';

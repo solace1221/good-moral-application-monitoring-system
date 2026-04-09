@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class ImportUsersRequest extends FormRequest
+class UploadViolationDocumentRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -14,7 +14,7 @@ class ImportUsersRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'csv_file' => ['required', 'file', 'mimes:csv,txt', 'max:2048'],
+            'document' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:2048'],
         ];
     }
 }

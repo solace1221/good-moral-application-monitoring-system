@@ -52,7 +52,7 @@
     <div style="background: white; padding: 24px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 24px;">
       <h3 style="margin: 0 0 20px; color: var(--primary-green); font-size: 1.25rem; font-weight: 600;">Add New Violation</h3>
       
-      <form method="POST" action="{{ route('RegisterViolation') }}" style="display: grid; gap: 20px;">
+      <form method="POST" action="{{ route('registerviolation') }}" style="display: grid; gap: 20px;">
         @csrf
 
         <div>

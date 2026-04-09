@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
 use App\Models\Violation;
+use App\Http\Requests\RegisterUserRequest;
 
 class RegisteredUserController extends Controller
 {
@@ -83,35 +84,8 @@ class RegisteredUserController extends Controller
    *
    * @throws \Illuminate\Validation\ValidationException
    */
-  public function store(Request $request): RedirectResponse
+  public function store(RegisterUserRequest $request): RedirectResponse
   {
-    // Base validation rules
-    $rules = [
-      'fname' => ['required', 'string', 'max:255', 'regex:/^[A-Za-z\s]+$/'],
-      'mname' => ['nullable', 'string', 'max:255', 'regex:/^[A-Za-z\s]*$/'],
-      'lname' => ['required', 'string', 'max:255', 'regex:/^[A-Za-z\s]+$/'],
-      'extension' => ['nullable', 'string', 'max:10', 'regex:/^[A-Za-z\s]*$/'],
-      'gender' => ['required', 'string', 'in:male,female'],
-      'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:student_registrations,email'],
-      'password' => ['required', 'confirmed', Rules\Password::defaults()],
-      'department' => ['required', 'string',  'in:SITE,SBAHM,SASTE,SNAHS,SOM,GRADSCH'],
-      'student_id' => ['required', 'string', 'max:20', 'unique:student_registrations'],
-      'account_type' => ['required', 'string', 'in:student,alumni,psg_officer'],
-      'year_level' => ['nullable', 'string', 'max:50'],
-      'organization' => ['nullable', 'string', 'max:255'],
-      'position' => ['nullable', 'string', 'max:255'],
-    ];
-
-    // Conditional validation based on account type
-    if ($request->account_type === 'psg_officer') {
-      $rules['organization'] = ['required', 'string', 'max:255'];
-      $rules['position'] = ['required', 'string', 'max:255'];
-    } elseif ($request->account_type === 'student') {
-      $rules['year_level'] = ['required', 'string', 'max:50'];
-    }
-
-    $request->validate($rules);
-
     // Format the fullname
     $fullname = $this->formatFullname($request->fname, $request->mname, $request->lname, $request->extension);
 

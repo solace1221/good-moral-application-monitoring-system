@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Designation;
 use App\Models\Department;
 use Illuminate\Http\Request;
+use App\Http\Requests\StoreDesignationRequest;
 
 class DesignationController extends Controller
 {
@@ -30,12 +31,9 @@ class DesignationController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreDesignationRequest $request)
     {
-        $validatedData = $request->validate([
-            'dept_id' => 'required|exists:departments,id',
-            'description' => 'required|string|max:255'
-        ]);
+        $validatedData = $request->validated();
 
         Designation::create($validatedData);
 
@@ -65,12 +63,9 @@ class DesignationController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(StoreDesignationRequest $request, string $id)
     {
-        $validatedData = $request->validate([
-            'dept_id' => 'required|exists:departments,id',
-            'description' => 'required|string|max:255'
-        ]);
+        $validatedData = $request->validated();
 
         $designation = Designation::findOrFail($id);
         $designation->update($validatedData);

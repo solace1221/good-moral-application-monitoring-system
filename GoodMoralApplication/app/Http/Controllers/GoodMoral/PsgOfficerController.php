@@ -13,6 +13,7 @@ use App\Models\StudentViolation;
 use App\Models\RoleAccount;
 use App\Models\StudentRegistration;
 use App\Helpers\CourseHelper;
+use App\Http\Requests\ApplyGoodMoralRequest;
 
 class PsgOfficerController extends Controller
 {
@@ -27,7 +28,7 @@ class PsgOfficerController extends Controller
     public function dashboard()
     {
         // Check if user is PSG officer
-        if (!auth()->check() || auth()->user()->account_type !== 'psg_officer') {
+        if (!Auth::check() || Auth::user()->account_type !== 'psg_officer') {
             abort(403, 'Unauthorized access. PSG Officer access required.');
         }
 
@@ -79,7 +80,7 @@ class PsgOfficerController extends Controller
     public function showGoodMoralForm()
     {
         // Check if user is PSG officer
-        if (!auth()->check() || auth()->user()->account_type !== 'psg_officer') {
+        if (!Auth::check() || Auth::user()->account_type !== 'psg_officer') {
             abort(403, 'Unauthorized access. PSG Officer access required.');
         }
 
@@ -117,10 +118,10 @@ class PsgOfficerController extends Controller
     /**
      * Process good moral application for PSG officers
      */
-    public function applyForGoodMoral(Request $request): RedirectResponse
+    public function applyForGoodMoral(ApplyGoodMoralRequest $request): RedirectResponse
     {
         // Check if user is PSG officer
-        if (!auth()->check() || auth()->user()->account_type !== 'psg_officer') {
+        if (!Auth::check() || Auth::user()->account_type !== 'psg_officer') {
             abort(403, 'Unauthorized access. PSG Officer access required.');
         }
 
@@ -131,16 +132,6 @@ class PsgOfficerController extends Controller
         $timestamp = time();
         $randomString = Str::upper(Str::random(6));
         $referenceNumber = $prefix . '-' . $timestamp . '-' . $randomString;
-
-        // Validate the input
-        $request->validate([
-            'num_copies' => ['required', 'string', 'max:255'],
-            'reason' => ['required', 'array', 'min:1'],
-            'reason.*' => ['required', 'string', 'max:255'],
-            'reason_other' => ['nullable', 'string', 'max:255'],
-            'is_undergraduate' => ['nullable', 'in:yes,no'],
-            'certificate_type' => ['required', 'in:good_moral,residency'],
-        ]);
 
         // Get PSG officer's information
         $student = RoleAccount::where('id', $user->id)->first();
@@ -191,7 +182,7 @@ class PsgOfficerController extends Controller
     public function showPersonalViolations()
     {
         // Check if user is PSG officer
-        if (!auth()->check() || auth()->user()->account_type !== 'psg_officer') {
+        if (!Auth::check() || Auth::user()->account_type !== 'psg_officer') {
             abort(403, 'Unauthorized access. PSG Officer access required.');
         }
 
@@ -218,7 +209,7 @@ class PsgOfficerController extends Controller
     public function showApplications()
     {
         // Check if user is PSG officer
-        if (!auth()->check() || auth()->user()->account_type !== 'psg_officer') {
+        if (!Auth::check() || Auth::user()->account_type !== 'psg_officer') {
             abort(403, 'Unauthorized access. PSG Officer access required.');
         }
 

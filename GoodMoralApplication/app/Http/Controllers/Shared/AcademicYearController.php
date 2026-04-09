@@ -9,6 +9,8 @@ use App\Models\RoleAccount;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Http\Requests\StoreAcademicYearRequest;
+use App\Http\Requests\PromoteStudentRequest;
 
 class AcademicYearController extends Controller
 {
@@ -48,15 +50,8 @@ class AcademicYearController extends Controller
     /**
      * Create new academic year
      */
-    public function store(Request $request)
+    public function store(StoreAcademicYearRequest $request)
     {
-        $request->validate([
-            'year_name' => 'required|string|unique:academic_years,year_name',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after:start_date',
-            'notes' => 'nullable|string|max:1000'
-        ]);
-
         $academicYear = AcademicYear::create([
             'year_name' => $request->year_name,
             'start_date' => $request->start_date,
@@ -123,13 +118,8 @@ class AcademicYearController extends Controller
     /**
      * Manual student promotion
      */
-    public function promoteStudent(Request $request)
+    public function promoteStudent(PromoteStudentRequest $request)
     {
-        $request->validate([
-            'student_id' => 'required|exists:role_account,student_id',
-            'new_year_level' => 'required|integer|min:1|max:4',
-            'reason' => 'required|string|max:500'
-        ]);
 
         $currentYear = AcademicYear::where('is_current', true)->first();
         if (!$currentYear) {

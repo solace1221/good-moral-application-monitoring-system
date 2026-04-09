@@ -17,6 +17,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
+use App\Http\Requests\StoreViolationReportRequest;
+use Illuminate\Support\Facades\Log;
+
 class RegisterViolationController extends Controller
 {
   use DateFilterTrait, ViolationEscalationTrait;
@@ -33,7 +36,7 @@ class RegisterViolationController extends Controller
   public function dashboard(Request $request): View
   {
     // Check if user is PSG officer
-    if (auth()->user()->account_type !== 'psg_officer') {
+    if (Auth::user()->account_type !== 'psg_officer') {
       abort(403, 'Unauthorized access.');
     }
 
@@ -41,7 +44,7 @@ class RegisterViolationController extends Controller
     $frequency = $request->get('frequency', 'all');
 
     // Get current PSG Officer
-    $currentUser = auth()->user()->fullname;
+    $currentUser = Auth::user()->fullname;
 
     // Get statistics for minor violations (PSG Officers only see violations they added)
     $minorPending = $this->applyDateFilter(StudentViolation::where('status', '!=', 2)->where('offense_type', 'minor')->where('added_by', $currentUser), $frequency)->count();
@@ -72,11 +75,11 @@ class RegisterViolationController extends Controller
   public function create(): View
   {
     // Check if user is PSG officer
-    if (auth()->user()->account_type !== 'psg_officer') {
+    if (Auth::user()->account_type !== 'psg_officer') {
       abort(403, 'Unauthorized access.');
     }
 
-    return view('PsgOfficer.PsgAddViolation');
+    return view('PsgOfficer.psg-add-violation');
   }
 
   /**
@@ -84,10 +87,10 @@ class RegisterViolationController extends Controller
    *
    * @throws \Illuminate\Validation\ValidationException
    */
-  public function store(Request $request): RedirectResponse
+  public function store(StoreViolationReportRequest $request): RedirectResponse
   {
     // Debug logging
-    \Log::info('PSG Violation Store Method Called', [
+    Log::info('PSG Violation Store Method Called', [
       'user_id' => Auth::id(),
       'request_data' => $request->all()
     ]);
@@ -97,25 +100,7 @@ class RegisterViolationController extends Controller
     $userName = $currentUser->fullname;
     $uniqueID = $currentUser->student_id;
 
-    try {
-      $request->validate([
-        'first_name' => ['required', 'string', 'max:255'],
-        'last_name' => ['required', 'string', 'max:255'],
-        'student_id' => ['required', 'string', 'max:20'],
-        'violation' => ['required', 'string', 'max:255'],
-        'department' => ['required', 'string', 'max:255'],
-        'course' => ['nullable', 'string', 'max:255'],
-        'others' => ['nullable', 'string', 'max:255'],
-      ]);
-
-      \Log::info('Validation passed successfully');
-    } catch (\Illuminate\Validation\ValidationException $e) {
-      \Log::error('Validation failed', [
-        'errors' => $e->errors(),
-        'request_data' => $request->all()
-      ]);
-      throw $e;
-    }
+    Log::info('Validation passed successfully');
 
     $violationParts = explode('|', $request->violation);
     $offenseType = $violationParts[0] ?? '';
@@ -158,7 +143,7 @@ class RegisterViolationController extends Controller
     }
 
     // Log violation creation
-    \Log::info('Violation Created Successfully', [
+    Log::info('Violation Created Successfully', [
       'violation_id' => $violation->id,
       'student_id' => $violation->student_id,
       'offense_type' => $violation->offense_type,
@@ -191,13 +176,13 @@ class RegisterViolationController extends Controller
   public function violator()
   {
     // PSG Officers can only view violations they have added
-    $currentUser = auth()->user()->fullname;
+    $currentUser = Auth::user()->fullname;
     $students = StudentViolation::where('added_by', $currentUser)
       ->orderBy('created_at', 'desc')
       ->paginate(10);
 
     // Return the view instead of redirecting
-    return view('PsgOfficer.Violator', compact('students'));
+    return view('PsgOfficer.violator', compact('students'));
   }
   public function ViolatorDashboard()
   {
@@ -211,19 +196,19 @@ class RegisterViolationController extends Controller
       'SNAHS' => ['BSN', 'BSPh', 'BSMT', 'BSPT', 'BSRT'],
     ];
 
-    return view('PsgOfficer.PsgAddViolation', compact('violations', 'coursesByDepartment'));
+    return view('PsgOfficer.psg-add-violation', compact('violations', 'coursesByDepartment'));
   }
 
   public function PsgViolation()
   {
     // PSG Officers can only view violations they have added (minor violations only)
-    $currentUser = auth()->user()->fullname;
+    $currentUser = Auth::user()->fullname;
     $violations = StudentViolation::where('offense_type', 'minor')
       ->where('added_by', $currentUser)
       ->orderBy('created_at', 'desc')
       ->paginate(10);
 
-    return view('PsgOfficer.PsgViolation', compact('violations'));
+    return view('PsgOfficer.psg-violation', compact('violations'));
   }
 
   /**

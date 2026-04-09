@@ -19,6 +19,10 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rules;
 use App\Traits\RoleCheck;
+use App\Http\Requests\ApplyGoodMoralRequest;
+use App\Http\Requests\UploadReceiptRequest;
+use App\Http\Requests\StudentUpdatePasswordRequest;
+use App\Http\Requests\StudentUpdateEmailRequest;
 
 class ApplicationController extends Controller
 {
@@ -36,7 +40,7 @@ class ApplicationController extends Controller
 
   public function dashboard()
   {
-    $accountType = auth()->user()->account_type;
+    $accountType = Auth::user()->account_type;
 
     // Redirect non-student/alumni users to their correct dashboard
     if (!in_array($accountType, ['student', 'alumni'])) {
@@ -121,7 +125,7 @@ class ApplicationController extends Controller
 
     return $certificates;
   }
-  public function applyForGoodMoralCertificate(Request $request)
+  public function applyForGoodMoralCertificate(ApplyGoodMoralRequest $request)
   {
     $accountType = Auth::user()?->account_type;
 
@@ -129,16 +133,6 @@ class ApplicationController extends Controller
     $timestamp = time(); // Current timestamp
     $randomString = Str::upper(Str::random(6)); // Random 6-character string
     $referenceNumber = $prefix . '-' . $timestamp . '-' . $randomString;
-
-    // Validate the input
-    $request->validate([
-      'num_copies' => ['required', 'string', 'max:255'],
-      'reason' => ['required', 'array', 'min:1'],
-      'reason.*' => ['required', 'string', 'max:255'],
-      'reason_other' => ['nullable', 'string', 'max:255'],
-      'is_undergraduate' => ['nullable', 'in:yes,no'],
-      'certificate_type' => ['required', 'in:good_moral,residency'],
-    ]);
 
     // Get all valid course codes for validation
     $validCourses = array_keys(CourseHelper::getAllCourses());
@@ -149,28 +143,6 @@ class ApplicationController extends Controller
       'Second Semester',
       'Summer Term'
     ];
-
-    // Validate additional fields if the student is undergraduate
-    if ($accountType === 'student') {
-      $request->validate([
-        'last_course_year_level' => ['nullable', 'string', 'in:' . implode(',', $validCourses)],
-        'last_semester' => ['required', 'string', 'in:' . implode(',', $validSemesters)],
-        'last_school_year' => ['required', 'string', 'regex:/^\d{4}-\d{4}$/'],
-      ]);
-    } else if ($accountType === 'alumni') {
-      $request->validate([
-        'course_completed' => ['nullable', 'string', 'in:' . implode(',', $validCourses)],
-        'graduation_date' => ['required', 'date'],
-      ]);
-    } else {
-      $request->validate([
-        'last_course_year_level' => ['nullable', 'string', 'in:' . implode(',', $validCourses)],
-        'last_semester' => ['nullable', 'string', 'in:' . implode(',', $validSemesters)],
-        'last_school_year' => ['nullable', 'string', 'regex:/^\d{4}-\d{4}$/'],
-        'course_completed' => ['nullable', 'string', 'in:' . implode(',', $validCourses)],
-        'graduation_date' => ['nullable', 'date'],
-      ]);
-    }
 
     // Get the student details from the authenticated user
     $user = Auth::user();
@@ -350,14 +322,8 @@ class ApplicationController extends Controller
       ]
     ]);
   }
-  public function upload(Request $request)
+  public function upload(UploadReceiptRequest $request)
   {
-    $request->validate([
-      'reference_num' => 'required|string',
-      'official_receipt_no' => 'required|string|max:255',
-      'date_paid' => 'required|date|before_or_equal:today',
-      'document_path' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
-    ]);
 
     // Validate that the uploaded file is actually a receipt using the service
     $uploadedFile = $request->file('document_path');
@@ -373,7 +339,7 @@ class ApplicationController extends Controller
       }
     } catch (\Exception $e) {
       // Log the error but still validate basic file properties
-      \Log::error('Receipt validation failed with exception: ' . $e->getMessage(), [
+      Log::error('Receipt validation failed with exception: ' . $e->getMessage(), [
         'file' => $uploadedFile->getClientOriginalName(),
         'trace' => $e->getTraceAsString()
       ]);
@@ -386,7 +352,7 @@ class ApplicationController extends Controller
         ])->withInput();
       }
 
-      \Log::warning('Proceeding with receipt upload after basic validation');
+      Log::warning('Proceeding with receipt upload after basic validation');
     }
 
     // Store the file
@@ -498,7 +464,7 @@ class ApplicationController extends Controller
       }
 
       if (!$hasReceiptKeyword) {
-        \Log::warning('File uploaded without receipt-related keywords in filename', [
+        Log::warning('File uploaded without receipt-related keywords in filename', [
           'filename' => $originalName
         ]);
         // Don't reject, but log for monitoring
@@ -510,7 +476,7 @@ class ApplicationController extends Controller
       ];
 
     } catch (\Exception $e) {
-      \Log::error('Basic receipt validation failed: ' . $e->getMessage());
+      Log::error('Basic receipt validation failed: ' . $e->getMessage());
       return [
         'is_valid' => false,
         'error_message' => 'Error validating the uploaded file. Please try uploading a different format.'
@@ -551,7 +517,7 @@ class ApplicationController extends Controller
   public function profile()
   {
     // Check if user is student or alumni
-    if (!in_array(auth()->user()->account_type, ['student', 'alumni'])) {
+    if (!in_array(Auth::user()->account_type, ['student', 'alumni'])) {
       abort(403, 'Unauthorized access.');
     }
 
@@ -570,22 +536,20 @@ class ApplicationController extends Controller
   /**
    * Update the student's password
    */
-  public function updatePassword(Request $request)
+  public function updatePassword(StudentUpdatePasswordRequest $request)
   {
     // Check if user is student or alumni
-    if (!in_array(auth()->user()->account_type, ['student', 'alumni'])) {
+    if (!in_array(Auth::user()->account_type, ['student', 'alumni'])) {
       abort(403, 'Unauthorized access.');
     }
-
-    $request->validate([
-      'current_password' => ['required', 'current_password'],
-      'password' => ['required', 'confirmed', Rules\Password::defaults()],
-    ]);
 
     $user = Auth::user();
     $oldEmail = $user->email;
 
     // Update the password
+    /** @var \App\Models\User $user */
+    $user = Auth::user();
+
     $user->update([
       'password' => Hash::make($request->password),
     ]);
@@ -596,21 +560,18 @@ class ApplicationController extends Controller
   /**
    * Update the student's email address
    */
-  public function updateEmail(Request $request)
+  public function updateEmail(StudentUpdateEmailRequest $request)
   {
     // Check if user is student or alumni
-    if (!in_array(auth()->user()->account_type, ['student', 'alumni'])) {
+    if (!in_array(Auth::user()->account_type, ['student', 'alumni'])) {
       abort(403, 'Unauthorized access.');
     }
-
-    $request->validate([
-      'email' => ['required', 'email', 'max:255', 'unique:role_account,email,' . auth()->id()],
-    ]);
 
     $user = Auth::user();
     $oldEmail = $user->email;
 
     // Update the email
+    /** @var \App\Models\User $user */
     $user->update([
       'email' => $request->email,
     ]);
@@ -624,7 +585,7 @@ class ApplicationController extends Controller
   public function updateProfile(Request $request)
   {
     // Check if user is student, alumni, or PSG officer
-    if (!in_array(auth()->user()->account_type, ['student', 'alumni', 'psg_officer'])) {
+    if (!in_array(Auth::user()->account_type, ['student', 'alumni', 'psg_officer'])) {
       abort(403, 'Unauthorized access.');
     }
 
@@ -634,7 +595,7 @@ class ApplicationController extends Controller
     if (in_array($user->account_type, ['student', 'alumni'])) {
       // Students and alumni cannot update name fields, course, or year_level
       $rules = [
-        'email' => ['required', 'email', 'max:255', 'unique:role_account,email,' . auth()->id()],
+        'email' => ['required', 'email', 'max:255', 'unique:role_account,email,' . Auth::id()],
         'gender' => ['required', 'string', 'in:male,female'],
         // Removed name fields, course, and year_level for security
       ];
@@ -653,7 +614,7 @@ class ApplicationController extends Controller
       $attemptedChanges = array_intersect(array_keys($request->all()), $restrictedFields);
       
       if (!empty($attemptedChanges)) {
-        \Log::warning('Unauthorized profile update attempt', [
+        Log::warning('Unauthorized profile update attempt', [
           'user_id' => $user->id,
           'student_id' => $user->student_id,
           'attempted_fields' => $attemptedChanges,
@@ -662,6 +623,7 @@ class ApplicationController extends Controller
       }
 
       $oldEmail = $user->email;
+      /** @var \App\Models\User $user */
       $user->update($updateData);
       
       $successMessage = 'Profile updated successfully! Note: Name changes require formal request to Registrar/OSA. Academic information is managed by the Registrar.';
@@ -673,7 +635,7 @@ class ApplicationController extends Controller
         'middle_name' => ['nullable', 'string', 'max:255', 'regex:/^[A-Za-z\s]*$/'],
         'last_name' => ['required', 'string', 'max:255', 'regex:/^[A-Za-z\s]+$/'],
         'extension' => ['nullable', 'string', 'max:10', 'regex:/^[A-Za-z\s]*$/'],
-        'email' => ['required', 'email', 'max:255', 'unique:role_account,email,' . auth()->id()],
+        'email' => ['required', 'email', 'max:255', 'unique:role_account,email,' . Auth::id()],
         'gender' => ['required', 'string', 'in:male,female'],
         'organization' => ['required', 'string', 'max:255'],
         'position' => ['required', 'string', 'max:255'],
@@ -698,6 +660,7 @@ class ApplicationController extends Controller
       ];
 
       $oldEmail = $user->email;
+      /** @var \App\Models\User $user */
       $user->update($updateData);
       
       $successMessage = 'Profile updated successfully!';

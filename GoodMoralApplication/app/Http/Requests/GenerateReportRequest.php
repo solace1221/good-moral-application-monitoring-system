@@ -15,8 +15,8 @@ class GenerateReportRequest extends FormRequest
     {
         return [
             'academic_year' => ['required', 'string'],
-            'report_type' => ['required', 'string', 'in:applications,violations'],
-            'time_period' => ['required', 'string'],
+            'report_type' => ['required', 'string', 'in:good_moral_applicants,residency_applicants,minor_violators,major_violators,overall_report,minor_offenses_overall'],
+            'time_period' => ['nullable', 'string'],
         ];
     }
 }

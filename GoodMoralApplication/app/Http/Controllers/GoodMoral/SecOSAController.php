@@ -22,6 +22,11 @@ use Illuminate\Support\Str;
 use App\Services\CertificateService;
 use App\Services\DashboardStatsService;
 use App\Services\ViolationService;
+use App\Http\Requests\UploadProceedingsRequest;
+use App\Http\Requests\UploadViolationDocumentRequest;
+use App\Http\Requests\UpdateStaffProfileRequest;
+use App\Http\Requests\UpdateModeratorEmailRequest;
+use App\Http\Requests\UpdateModeratorPasswordRequest;
 
 class SecOSAController extends Controller
 {
@@ -274,13 +279,8 @@ class SecOSAController extends Controller
   /**
    * Upload proceedings document for major violation
    */
-  public function uploadProceedings(Request $request, $id)
+  public function uploadProceedings(UploadProceedingsRequest $request, $id)
   {
-    $request->validate([
-      'proceedings_document' => 'required|file|mimes:pdf,doc,docx|max:10240', // 10MB max
-      'meeting_date' => 'required|date',
-      'meeting_notes' => 'nullable|string|max:1000',
-    ]);
 
     $violation = StudentViolation::findOrFail($id);
 
@@ -427,11 +427,8 @@ class SecOSAController extends Controller
 
     return view('sec_osa.minor', compact('students', 'pendingCount', 'approvedCount', 'closedCount'));
   }
-  public function uploadDocument(Request $request, $id)
+  public function uploadDocument(UploadViolationDocumentRequest $request, $id)
   {
-    $request->validate([
-      'document' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
-    ]);
 
     $violation = StudentViolation::findOrFail($id);
 
@@ -727,15 +724,9 @@ class SecOSAController extends Controller
   /**
    * Update moderator profile information
    */
-  public function updateProfile(Request $request)
+  public function updateProfile(UpdateStaffProfileRequest $request)
   {
     $user = Auth::user();
-    
-    $request->validate([
-      'fullname' => 'required|string|max:255',
-      'department' => 'required|string|max:255',
-      'gender' => 'required|in:male,female',
-    ]);
 
     // Find the user in roleaccounts table and update
     $userRecord = RoleAccount::find($user->id);
@@ -750,14 +741,9 @@ class SecOSAController extends Controller
   /**
    * Update moderator email address
    */
-  public function updateEmail(Request $request)
+  public function updateEmail(UpdateModeratorEmailRequest $request)
   {
     $user = Auth::user();
-    
-    $request->validate([
-      'email' => 'required|email|unique:roleaccounts,email,' . $user->id,
-      'current_password' => 'required|string',
-    ]);
 
     // Verify current password manually
     if (!Hash::check($request->current_password, $user->password)) {
@@ -775,14 +761,9 @@ class SecOSAController extends Controller
   /**
    * Update moderator password
    */
-  public function updatePassword(Request $request)
+  public function updatePassword(UpdateModeratorPasswordRequest $request)
   {
     $user = Auth::user();
-    
-    $request->validateWithBag('updatePassword', [
-      'current_password' => 'required|string',
-      'password' => 'required|min:8|confirmed',
-    ]);
 
     // Verify current password manually
     if (!Hash::check($request->current_password, $user->password)) {

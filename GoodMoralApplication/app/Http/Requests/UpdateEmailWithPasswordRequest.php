@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class ImportUsersRequest extends FormRequest
+class UpdateEmailWithPasswordRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -14,7 +14,8 @@ class ImportUsersRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'csv_file' => ['required', 'file', 'mimes:csv,txt', 'max:2048'],
+            'email' => ['required', 'string', 'email', 'max:255'],
+            'current_password' => ['required', 'string'],
         ];
     }
 }

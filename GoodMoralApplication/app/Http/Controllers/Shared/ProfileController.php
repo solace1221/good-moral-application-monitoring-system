@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Shared;
 use App\Http\Controllers\Controller;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Http\Requests\UpdateGraduationStatusRequest;
+use App\Http\Requests\UpdateEmailWithPasswordRequest;
+use App\Http\Requests\UpdateStaffProfileRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,6 +18,7 @@ use Illuminate\View\View;
 use App\Traits\RoleCheck;
 use App\Models\RoleAccount;
 use App\Models\StudentRegistration;
+use PhpParser\Node\Arg;
 
 class ProfileController extends Controller
 {
@@ -59,14 +63,8 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        // Add gender validation for all users
-        $request->validate([
-            'gender' => ['required', 'string', 'in:male,female'],
-        ]);
-
         $user = $request->user();
         $user->fill($request->validated());
-        $user->gender = $request->gender;
 
         if ($user->isDirty('email')) {
             $user->email_verified_at = null;
@@ -101,7 +99,7 @@ class ProfileController extends Controller
     /**
      * Update graduation status for the authenticated user.
      */
-    public function updateGraduationStatus(Request $request)
+    public function updateGraduationStatus(UpdateGraduationStatusRequest $request)
     {
         $user = $request->user();
 
@@ -112,11 +110,6 @@ class ProfileController extends Controller
                 'message' => 'Only students can update graduation status.'
             ], 403);
         }
-
-        $request->validate([
-            'is_graduating' => 'required|boolean',
-            'graduation_date' => 'required_if:is_graduating,true|date|after_or_equal:today'
-        ]);
 
         $isGraduating = $request->boolean('is_graduating');
 
@@ -195,12 +188,8 @@ class ProfileController extends Controller
     /**
      * Update user's email address with verification
      */
-    public function updateEmail(Request $request): RedirectResponse
+    public function updateEmail(UpdateEmailWithPasswordRequest $request): RedirectResponse
     {
-        $request->validate([
-            'email' => ['required', 'string', 'email', 'max:255'],
-            'current_password' => ['required', 'string'],
-        ]);
 
         $user = $request->user();
 
@@ -292,29 +281,23 @@ class ProfileController extends Controller
      */
     public function adminProfile()
     {
-        if (auth()->user()->account_type !== 'admin') {
+        if (Auth::user()->account_type !== 'admin') {
             abort(403, 'Unauthorized access.');
         }
 
-        return view('profile.admin', ['user' => auth()->user()]);
+        return view('profile.admin', ['user' => Auth::user()]);
     }
 
     /**
      * Update admin profile
      */
-    public function updateAdminProfile(Request $request)
+    public function updateAdminProfile(UpdateStaffProfileRequest $request)
     {
-        if (auth()->user()->account_type !== 'admin') {
+        if (Auth::user()->account_type !== 'admin') {
             abort(403, 'Unauthorized access.');
         }
 
-        $request->validate([
-            'fullname' => ['required', 'string', 'max:255'],
-            'department' => ['required', 'string', 'max:255'],
-            'gender' => ['required', 'string', 'in:male,female'],
-        ]);
-
-        $user = auth()->user();
+        $user = Auth::user();
         $user->update([
             'fullname' => $request->fullname,
             'department' => $request->department,
@@ -329,29 +312,23 @@ class ProfileController extends Controller
      */
     public function moderatorProfile()
     {
-        if (auth()->user()->account_type !== 'moderator') {
+        if (Auth::user()->account_type !== 'moderator') {
             abort(403, 'Unauthorized access.');
         }
 
-        return view('profile.moderator', ['user' => auth()->user()]);
+        return view('profile.moderator', ['user' => Auth::user()]);
     }
 
     /**
      * Update moderator profile
      */
-    public function updateModeratorProfile(Request $request)
+    public function updateModeratorProfile(UpdateStaffProfileRequest $request)
     {
-        if (auth()->user()->account_type !== 'moderator') {
+        if (Auth::user()->account_type !== 'moderator') {
             abort(403, 'Unauthorized access.');
         }
 
-        $request->validate([
-            'fullname' => ['required', 'string', 'max:255'],
-            'department' => ['required', 'string', 'max:255'],
-            'gender' => ['required', 'string', 'in:male,female'],
-        ]);
-
-        $user = auth()->user();
+        $user = Auth::user();
         $user->update([
             'fullname' => $request->fullname,
             'department' => $request->department,

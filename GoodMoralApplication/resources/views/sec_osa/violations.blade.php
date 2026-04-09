@@ -1,9 +1,10 @@
-@extends('layouts.app')
+<x-dashboard-layout>
+  <x-slot name="roleTitle">Moderator</x-slot>
 
-@section('content')
-<x-moderator-navigation />
+  <x-slot name="navigation">
+    <x-moderator-navigation />
+  </x-slot>
 
-<div style="margin-left: 250px; padding: 20px;">
     <div class="container-fluid">
         <!-- Header -->
         <div class="card shadow-sm mb-4">
@@ -116,7 +117,6 @@
             </div>
         </div>
     </div>
-</div>
 
 <style>
 /* Custom styling for the violations page */
@@ -200,4 +200,4 @@ function clearFilters() {
     });
 }
 </script>
-@endsection
+</x-dashboard-layout>

@@ -8,7 +8,10 @@ use App\Models\NotifArchive;
 use App\Models\DeanApplication;
 use App\Traits\RoleCheck;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use App\Services\NotificationArchiveService;
+use App\Http\Requests\RejectApplicationRequest;
+use App\Http\Requests\ReconsiderApplicationRequest;
 
 class RegistrarController extends Controller
 {
@@ -26,7 +29,7 @@ class RegistrarController extends Controller
   public function goodMoralApplication()
   {
     // Check if user is authenticated
-    $user = auth()->user();
+    $user = Auth::user();
 
     if (!$user) {
       return redirect()->route('login')->with('error', 'Please log in first.');
@@ -91,7 +94,7 @@ class RegistrarController extends Controller
     $application = GoodMoralApplication::findOrFail($id);
 
     // 2. Update the status to 'approved'
-    $registrar = auth()->user();
+    $registrar = Auth::user();
     $application->status = 'approved';
     $application->application_status = 'Approved By Registrar ' . $registrar->fullname;
     $application->save();
@@ -131,27 +134,11 @@ class RegistrarController extends Controller
    * @param  int  $id
    * @return \Illuminate\Http\RedirectResponse
    */
-  public function reject(Request $request, $id)
+  public function reject(RejectApplicationRequest $request, $id)
   {
-    // Custom validation rules
-    $rules = [
-      'rejection_reason' => 'required|string|max:255',
-      'rejection_details' => 'nullable|string|max:1000',
-      'specify_reason' => 'nullable|string|max:255',
-    ];
-
-    // Make specify_reason required if "Others: specify" is selected
-    if ($request->rejection_reason === 'Others: specify') {
-      $rules['specify_reason'] = 'required|string|max:255';
-    }
-
-    $request->validate($rules, [
-      'specify_reason.required' => 'Please specify the reason when "Others: specify" is selected.',
-    ]);
-
     // Find the application by its ID
     $application = GoodMoralApplication::findOrFail($id);
-    $registrar = auth()->user();
+    $registrar = Auth::user();
 
     // Prepare the rejection reason
     $rejectionReason = $request->rejection_reason;
@@ -179,15 +166,12 @@ class RegistrarController extends Controller
   /**
    * Reconsider a rejected application.
    */
-  public function reconsider(Request $request, $id)
+  public function reconsider(ReconsiderApplicationRequest $request, $id)
   {
-    $request->validate([
-      'reconsider_notes' => 'nullable|string|max:1000',
-    ]);
 
     // Find the application by its ID
     $application = GoodMoralApplication::findOrFail($id);
-    $registrar = auth()->user();
+    $registrar = Auth::user();
 
     // Update the application status back to 'pending'
     $application->status = 'pending';

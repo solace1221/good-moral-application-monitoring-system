@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class ImportUsersRequest extends FormRequest
+class UploadCourseCsvRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -15,6 +15,7 @@ class ImportUsersRequest extends FormRequest
     {
         return [
             'csv_file' => ['required', 'file', 'mimes:csv,txt', 'max:2048'],
+            'clear_existing' => ['boolean'],
         ];
     }
 }

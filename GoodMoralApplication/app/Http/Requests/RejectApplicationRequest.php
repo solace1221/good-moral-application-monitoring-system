@@ -13,10 +13,23 @@ class RejectApplicationRequest extends FormRequest
 
     public function rules(): array
     {
+        $rules = [
+            'rejection_reason' => ['required', 'string', 'max:255'],
+            'rejection_details' => ['nullable', 'string', 'max:1000'],
+            'specify_reason' => ['nullable', 'string', 'max:255'],
+        ];
+
+        if ($this->input('rejection_reason') === 'Others: specify') {
+            $rules['specify_reason'] = ['required', 'string', 'max:255'];
+        }
+
+        return $rules;
+    }
+
+    public function messages(): array
+    {
         return [
-            'rejection_reason' => ['required', 'string'],
-            'rejection_details' => ['nullable', 'string'],
-            'specify_reason' => ['required_if:rejection_reason,Others', 'nullable', 'string'],
+            'specify_reason.required' => 'Please specify the reason when "Others: specify" is selected.',
         ];
     }
 }

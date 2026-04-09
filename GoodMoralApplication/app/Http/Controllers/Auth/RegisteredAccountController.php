@@ -14,13 +14,37 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
+use App\Http\Requests\StoreAccountRequest;
 
 
 class RegisteredAccountController extends Controller
 {
-  public function create(): View
+  public function create(Request $request): View
   {
-    return view('auth.admin.AdminAccount')->with('success', 'Account successfully created!');
+    $query = RoleAccount::query();
+
+    if ($request->filled('search_name')) {
+      $query->where('fullname', 'LIKE', '%' . $request->search_name . '%');
+    }
+    if ($request->filled('search_student_id')) {
+      $query->where('student_id', 'LIKE', '%' . $request->search_student_id . '%');
+    }
+    if ($request->filled('search_email')) {
+      $query->where('email', 'LIKE', '%' . $request->search_email . '%');
+    }
+    if ($request->filled('search_department')) {
+      $query->where('department', $request->search_department);
+    }
+    if ($request->filled('search_account_type')) {
+      $query->where('account_type', $request->search_account_type);
+    }
+    if ($request->filled('search_status')) {
+      $query->where('status', $request->search_status);
+    }
+
+    $students = $query->orderBy('fullname', 'asc')->paginate(10)->appends($request->query());
+
+    return view('admin.add-account', compact('students'));
   }
 
   /**
@@ -28,19 +52,8 @@ class RegisteredAccountController extends Controller
    *
    * @throws \Illuminate\Validation\ValidationException
    */
-  public function store(Request $request): RedirectResponse
+  public function store(StoreAccountRequest $request): RedirectResponse
   {
-    $request->validate([
-      'fullname' => ['required', 'string', 'max:255'],
-      'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:role_account,email'],
-      'department' => ['required', 'string', 'max:255'],
-      'password' => ['required', 'confirmed', Rules\Password::defaults()],
-      'student_id' => ['nullable', 'string', 'max:20', 'unique:role_account,student_id'],
-      'course' => ['nullable', 'string', 'max:255'],
-      'year_level' => ['nullable', 'string', 'max:255'],
-      'account_type' => ['required', 'string', 'in:dean,sec_osa,registrar,prog_coor,psg_officer,student,alumni'],
-    ]);
-
     // Parse fullname into parts for sync
     $nameParts = $this->parseFullname($request->fullname);
 

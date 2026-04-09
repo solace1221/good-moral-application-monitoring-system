@@ -1,6 +1,10 @@
-@extends('layouts.app')
+<x-dashboard-layout>
+  <x-slot name="roleTitle">Admin</x-slot>
 
-@section('content')
+  <x-slot name="navigation">
+    <x-admin-navigation />
+  </x-slot>
+
 <div class="container mx-auto px-4 py-6">
     <div class="mb-6">
         <div class="flex justify-between items-center">
@@ -227,4 +231,4 @@
         </div>
     @endif
 </div>
-@endsection
+</x-dashboard-layout>

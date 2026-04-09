@@ -18,6 +18,9 @@ use Illuminate\Support\Str;
 use App\Models\ViolationNotif;
 use App\Services\GoodMoralWorkflowService;
 use App\Services\NotificationArchiveService;
+use App\Http\Requests\DeanRejectRequest;
+use App\Http\Requests\ReconsiderApplicationRequest;
+use Illuminate\Support\Facades\Log;
 
 class DeanController extends Controller
 {
@@ -461,12 +464,12 @@ class DeanController extends Controller
 
       // Validate dean authentication
       if (!$dean) {
-        \Log::error('Dean Application Access: No authenticated user');
+        Log::error('Dean Application Access: No authenticated user');
         return redirect()->route('login')->with('error', 'Please login to access applications.');
       }
 
       if (!in_array($dean->account_type, ['dean'])) {
-        \Log::error('Dean Application Access: User is not a dean', ['user_type' => $dean->account_type]);
+        Log::error('Dean Application Access: User is not a dean', ['user_type' => $dean->account_type]);
         return redirect()->route('dashboard')->with('error', 'Access denied. Dean privileges required.');
       }
 
@@ -523,10 +526,10 @@ class DeanController extends Controller
       ]);
 
     } catch (\Exception $e) {
-      \Log::error('Dean Application Error', [
+      Log::error('Dean Application Error', [
         'error' => $e->getMessage(),
         'trace' => $e->getTraceAsString(),
-        'user_id' => auth()->id()
+        'user_id' => Auth::id()
       ]);
 
       return redirect()->route('dean.dashboard')->with('error', 'Unable to load applications. Please try again.');
@@ -723,12 +726,8 @@ class DeanController extends Controller
   /**
    * Reject application with detailed reason.
    */
-  public function rejectWithReason(Request $request, $id)
+  public function rejectWithReason(DeanRejectRequest $request, $id)
   {
-    $request->validate([
-      'rejection_reason' => 'required|string|max:255',
-      'rejection_details' => 'nullable|string|max:1000',
-    ]);
 
     $dean = Auth::user();
     $application = GoodMoralApplication::findOrFail($id);
@@ -747,11 +746,8 @@ class DeanController extends Controller
   /**
    * Reconsider a rejected application.
    */
-  public function reconsider(Request $request, $id)
+  public function reconsider(ReconsiderApplicationRequest $request, $id)
   {
-    $request->validate([
-      'reconsider_notes' => 'nullable|string|max:1000',
-    ]);
 
     $dean = Auth::user();
     $application = GoodMoralApplication::findOrFail($id);

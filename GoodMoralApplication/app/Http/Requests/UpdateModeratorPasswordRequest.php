@@ -4,8 +4,10 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class ImportUsersRequest extends FormRequest
+class UpdateModeratorPasswordRequest extends FormRequest
 {
+    protected $errorBag = 'updatePassword';
+
     public function authorize(): bool
     {
         return true;
@@ -14,7 +16,8 @@ class ImportUsersRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'csv_file' => ['required', 'file', 'mimes:csv,txt', 'max:2048'],
+            'current_password' => ['required', 'string'],
+            'password' => ['required', 'min:8', 'confirmed'],
         ];
     }
 }

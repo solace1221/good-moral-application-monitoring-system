@@ -3,7 +3,6 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class UpdateAccountRequest extends FormRequest
 {
@@ -18,13 +17,13 @@ class UpdateAccountRequest extends FormRequest
 
         return [
             'fullname' => ['required', 'string', 'max:255'],
-            'student_id' => ['required', 'string', 'max:255', Rule::unique('role_accounts', 'student_id')->ignore($userId)],
-            'email' => ['required', 'email', 'max:255', Rule::unique('role_accounts', 'email')->ignore($userId)],
+            'student_id' => ['nullable', 'string', 'max:255', 'unique:role_account,student_id,' . $userId],
+            'email' => ['required', 'email', 'max:255', 'unique:role_account,email,' . $userId],
             'department' => ['required', 'string', 'max:255'],
             'course' => ['nullable', 'string', 'max:255'],
             'year_level' => ['nullable', 'string', 'max:255'],
-            'account_type' => ['required', 'string', 'max:255'],
-            'status' => ['required', 'in:active,inactive'],
+            'account_type' => ['required', 'string', 'in:admin,dean,registrar,sec_osa,prog_coor,psg_officer,student,alumni'],
+            'status' => ['required', 'in:0,1'],
         ];
     }
 }

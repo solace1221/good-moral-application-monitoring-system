@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\GoodMoral\AdminController;
+use App\Http\Controllers\Admin\ViolatorController;
 use App\Http\Controllers\Shared\ProfileController;
 use App\Http\Controllers\Shared\DesignationController;
 use App\Http\Controllers\Shared\PositionController;
@@ -33,7 +33,7 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
 // ─── API ──────────────────────────────────────────────────────────────────────
 Route::get('/api/courses', [CourseController::class, 'apiGetCourses'])->name('api.courses');
 
-Route::get('/api/students/search', [AdminController::class, 'searchStudents'])
+Route::get('/api/students/search', [ViolatorController::class, 'searchStudents'])
     ->middleware(['auth', 'verified'])
     ->name('api.students.search');
 
