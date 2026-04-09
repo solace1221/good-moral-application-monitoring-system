@@ -9,8 +9,6 @@ class StudentYearLevelHistory extends Model
 {
     use HasFactory;
 
-    protected $table = 'student_year_level_history';
-
     protected $fillable = [
         'student_id',
         'academic_year_id',

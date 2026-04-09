@@ -9,8 +9,6 @@ class Receipt extends Model
 {
   use HasFactory;
 
-  protected $table = 'receipt';
-
   protected $fillable = [
     'document_path',
     'reference_num',

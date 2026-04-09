@@ -129,6 +129,11 @@ class ApplicationController extends Controller
   }
   public function applyForGoodMoralCertificate(ApplyGoodMoralRequest $request)
   {
+    Log::info('Good Moral Application submitted', [
+      'user_id' => Auth::id(),
+      'inputs' => $request->except(['_token']),
+    ]);
+
     $accountType = Auth::user()?->account_type;
 
     $prefix = 'REF'; // You can customize the prefix

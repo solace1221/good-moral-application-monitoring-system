@@ -14,7 +14,7 @@ class StoreDesignationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'dept_id' => ['required', 'exists:departments,id'],
+            'department_id' => ['required', 'exists:departments,id'],
             'description' => ['required', 'string', 'max:255'],
         ];
     }

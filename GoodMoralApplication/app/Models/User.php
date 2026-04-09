@@ -156,7 +156,7 @@ class User extends Authenticatable
      */
     public function designation()
     {
-        return $this->belongsTo(Designation::class, 'designation_id', 'dsn_id');
+        return $this->belongsTo(Designation::class, 'designation_id');
     }
 
     // =========================================================

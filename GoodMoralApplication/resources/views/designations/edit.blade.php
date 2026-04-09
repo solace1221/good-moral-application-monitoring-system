@@ -29,16 +29,16 @@
       </div>
       @endif
 
-      <form action="{{ route('admin.designations.update', $designation->dsn_id) }}" method="POST" style="max-width: 600px;">
+      <form action="{{ route('admin.designations.update', $designation->id) }}" method="POST" style="max-width: 600px;">
         @csrf
         @method('PUT')
 
         <div style="margin-top: 24px;">
-          <label for="dept_id" style="display: block; margin-bottom: 8px; font-weight: 500; color: #374151;">Department</label>
-          <select name="dept_id" id="dept_id" required style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
+          <label for="department_id" style="display: block; margin-bottom: 8px; font-weight: 500; color: #374151;">Department</label>
+          <select name="department_id" id="department_id" required style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
             <option value="">Select Department</option>
             @foreach($departments as $department)
-            <option value="{{ $department->id }}" {{ (old('dept_id', $designation->dept_id) == $department->id) ? 'selected' : '' }}>
+            <option value="{{ $department->id }}" {{ (old('department_id', $designation->department_id) == $department->id) ? 'selected' : '' }}>
               {{ $department->department_name }}
             </option>
             @endforeach

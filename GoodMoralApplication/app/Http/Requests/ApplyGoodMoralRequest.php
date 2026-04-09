@@ -28,17 +28,17 @@ class ApplyGoodMoralRequest extends FormRequest
         ];
 
         if ($accountType === 'student') {
-            $rules['last_course_year_level'] = ['nullable', 'string', 'in:' . implode(',', $validCourses)];
+            $rules['last_course_year_level'] = ['nullable', 'string', 'max:50'];
             $rules['last_semester'] = ['required', 'string', 'in:' . implode(',', $validSemesters)];
             $rules['last_school_year'] = ['required', 'string', 'regex:/^\d{4}-\d{4}$/'];
         } elseif ($accountType === 'alumni') {
-            $rules['course_completed'] = ['nullable', 'string', 'in:' . implode(',', $validCourses)];
+            $rules['course_completed'] = ['nullable', 'string', 'max:50'];
             $rules['graduation_date'] = ['required', 'date'];
         } else {
-            $rules['last_course_year_level'] = ['nullable', 'string', 'in:' . implode(',', $validCourses)];
+            $rules['last_course_year_level'] = ['nullable', 'string', 'max:50'];
             $rules['last_semester'] = ['nullable', 'string', 'in:' . implode(',', $validSemesters)];
             $rules['last_school_year'] = ['nullable', 'string', 'regex:/^\d{4}-\d{4}$/'];
-            $rules['course_completed'] = ['nullable', 'string', 'in:' . implode(',', $validCourses)];
+            $rules['course_completed'] = ['nullable', 'string', 'max:50'];
             $rules['graduation_date'] = ['nullable', 'date'];
         }
 

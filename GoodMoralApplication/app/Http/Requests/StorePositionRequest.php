@@ -14,7 +14,7 @@ class StorePositionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'dsn_id' => ['required', 'exists:designations,dsn_id'],
+            'dsn_id' => ['required', 'exists:designations,id'],
             'position_title' => ['required', 'string', 'max:255'],
         ];
     }

@@ -2,8 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 
 class AdminSeeder extends Seeder
 {
@@ -12,6 +13,18 @@ class AdminSeeder extends Seeder
      */
     public function run(): void
     {
-        //
+        User::updateOrCreate(
+            ['email' => 'admin@spup.edu.ph'],
+            [
+                'name' => 'System Administrator',
+                'firstname' => 'System',
+                'lastname' => 'Administrator',
+                'middlename' => null,
+                'suffix_name' => null,
+                'role' => 'admin',
+                'status' => 'active',
+                'password' => Hash::make('password123'),
+            ]
+        );
     }
 }

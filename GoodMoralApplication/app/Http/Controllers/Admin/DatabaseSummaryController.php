@@ -109,11 +109,11 @@ class DatabaseSummaryController extends Controller
     }
 
     // 5. RECEIPTS & PAYMENTS
-    $totalReceipts = DB::table('receipt')->count();
-    $totalRevenue = DB::table('receipt')->sum('amount') ?? 0;
+    $totalReceipts = DB::table('receipts')->count();
+    $totalRevenue = DB::table('receipts')->sum('amount') ?? 0;
     $averagePayment = $totalReceipts > 0 ? $totalRevenue / $totalReceipts : 0;
 
-    $receiptsByPaymentMethod = DB::table('receipt')
+    $receiptsByPaymentMethod = DB::table('receipts')
       ->select('payment_method', DB::raw('count(*) as count'), DB::raw('sum(amount) as total'))
       ->groupBy('payment_method')
       ->get()
@@ -139,7 +139,7 @@ class DatabaseSummaryController extends Controller
       ['name' => 'student_violations', 'count' => StudentViolation::count(), 'description' => 'Student violation records'],
       ['name' => 'violations', 'count' => Violation::count(), 'description' => 'Violation types and definitions'],
       ['name' => 'violation_notifs', 'count' => ViolationNotif::count(), 'description' => 'Violation notifications'],
-      ['name' => 'receipt', 'count' => DB::table('receipt')->count(), 'description' => 'Payment receipts'],
+      ['name' => 'receipts', 'count' => DB::table('receipts')->count(), 'description' => 'Payment receipts'],
       ['name' => 'courses', 'count' => DB::table('courses')->count(), 'description' => 'Course catalog'],
       ['name' => 'academic_years', 'count' => AcademicYear::count(), 'description' => 'Academic year records'],
       ['name' => 'head_osa_applications', 'count' => HeadOSAApplication::count(), 'description' => 'Head OSA approval records'],

@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\ViolatorController;
 use App\Http\Controllers\Shared\ProfileController;
 use App\Http\Controllers\Shared\DesignationController;
 use App\Http\Controllers\Shared\PositionController;
+use App\Http\Controllers\Shared\DepartmentController;
 use App\Http\Controllers\Shared\CourseController;
 use App\Http\Controllers\Shared\AcademicYearController;
 use Illuminate\Support\Facades\Route;
@@ -17,8 +18,15 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     Route::post('/courses/upload', [CourseController::class, 'uploadCsv'])->name('courses.upload');
     Route::get('/courses/template', [CourseController::class, 'downloadTemplate'])->name('courses.template');
     Route::get('/courses', [CourseController::class, 'index'])->name('courses.index');
+    Route::post('/courses', [CourseController::class, 'store'])->name('courses.store');
+    Route::put('/courses/{course}', [CourseController::class, 'update'])->name('courses.update');
     Route::patch('/courses/{course}/toggle', [CourseController::class, 'toggleStatus'])->name('courses.toggle');
     Route::delete('/courses/{course}', [CourseController::class, 'destroy'])->name('courses.destroy');
+
+    Route::get('/departments', [DepartmentController::class, 'index'])->name('departments.index');
+    Route::post('/departments', [DepartmentController::class, 'store'])->name('departments.store');
+    Route::put('/departments/{department}', [DepartmentController::class, 'update'])->name('departments.update');
+    Route::delete('/departments/{department}', [DepartmentController::class, 'destroy'])->name('departments.destroy');
 
     Route::get('/academic-years', [AcademicYearController::class, 'index'])->name('academic-year.index');
     Route::post('/academic-years', [AcademicYearController::class, 'store'])->name('academic-year.store');

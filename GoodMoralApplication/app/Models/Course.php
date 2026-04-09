@@ -12,16 +12,31 @@ class Course extends Model
     protected $fillable = [
         'course_code',
         'course_name',
-        'department_id',
-        'coordinator_id',
+        'department',
+        'department_name',
+        'is_active',
+        'description',
+        'sort_order',
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
     ];
 
     /**
-     * Get the department that owns the course
+     * Get the department model via department code string
      */
-    public function department()
+    public function departmentModel()
     {
-        return $this->belongsTo(Department::class, 'department_id');
+        return $this->belongsTo(Department::class, 'department', 'department_code');
+    }
+
+    /**
+     * Scope: only active courses
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
     }
 
     /**
@@ -29,17 +44,15 @@ class Course extends Model
      */
     public function scopeByDepartmentCode($query, $departmentCode)
     {
-        return $query->whereHas('department', function($q) use ($departmentCode) {
-            $q->where('department_code', $departmentCode);
-        });
+        return $query->where('department', $departmentCode);
     }
 
     /**
-     * Scope to get courses by department ID
+     * Scope to get courses by department code (alias)
      */
-    public function scopeByDepartment($query, $departmentId)
+    public function scopeByDepartment($query, $departmentCode)
     {
-        return $query->where('department_id', $departmentId);
+        return $query->where('department', $departmentCode);
     }
 
     /**
@@ -51,24 +64,14 @@ class Course extends Model
     }
 
     /**
-     * Get the coordinator (User) for this course
-     */
-    public function coordinator()
-    {
-        return $this->belongsTo(User::class, 'coordinator_id', 'id');
-    }
-
-    /**
      * Get all courses grouped by department code
      */
     public static function getByDepartment()
     {
-        return self::with('department')
+        return self::active()
             ->ordered()
             ->get()
-            ->groupBy(function($course) {
-                return $course->department ? $course->department->department_code : 'Unknown';
-            })
+            ->groupBy('department')
             ->map(function ($courses) {
                 return $courses->pluck('course_name', 'course_code');
             });
@@ -79,7 +82,8 @@ class Course extends Model
      */
     public static function getAllCourses()
     {
-        return self::ordered()
+        return self::active()
+            ->ordered()
             ->pluck('course_name', 'course_code')
             ->toArray();
     }

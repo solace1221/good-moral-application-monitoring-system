@@ -6,10 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Designation extends Model
 {
-    protected $primaryKey = 'dsn_id';
-    
     protected $fillable = [
-        'dept_id',
+        'department_id',
         'description'
     ];
 
@@ -18,7 +16,7 @@ class Designation extends Model
      */
     public function department()
     {
-        return $this->belongsTo(Department::class, 'dept_id');
+        return $this->belongsTo(Department::class, 'department_id');
     }
 
 }

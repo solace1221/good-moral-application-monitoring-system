@@ -208,6 +208,18 @@
     <form method="POST" action="{{ route('apply.good_moral_certificate') }}" class="responsive-form">
       @csrf
 
+      {{-- Global validation error banner so failures are NEVER silent --}}
+      @if ($errors->any())
+        <div style="background: #fef2f2; border: 1px solid #fca5a5; border-left: 4px solid #dc2626; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+          <h4 style="color: #dc2626; margin: 0 0 8px 0; font-size: 15px; font-weight: 600;">⚠️ Please fix the following errors:</h4>
+          <ul style="margin: 0; padding-left: 20px; color: #991b1b; font-size: 14px;">
+            @foreach ($errors->all() as $error)
+              <li>{{ $error }}</li>
+            @endforeach
+          </ul>
+        </div>
+      @endif
+
       <!-- Certificate Type Selection -->
       @if (count($availableCertificates) > 1)
       <div class="responsive-form-group">

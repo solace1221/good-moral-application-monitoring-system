@@ -75,11 +75,11 @@
               <select id="designation_id" class="form-input" name="designation_id" style="padding: 12px 16px; border-radius: 8px; border: 1px solid #d1d5db;">
                 <option value="">Select Designation</option>
                 @foreach($designations as $designation)
-                  <option value="{{ $designation->dsn_id }}" 
-                          data-dept-id="{{ $designation->dept_id }}" 
+                  <option value="{{ $designation->id }}" 
+                          data-dept-id="{{ $designation->department_id }}" 
                           data-dept-code="{{ $designation->department ? $designation->department->department_code : '' }}"
                           data-dept-name="{{ $designation->department ? $designation->department->department_name : '' }}"
-                          {{ old('designation_id') == $designation->dsn_id ? 'selected' : '' }}>
+                          {{ old('designation_id') == $designation->id ? 'selected' : '' }}>
                     {{ $designation->description }}
                   </option>
                 @endforeach

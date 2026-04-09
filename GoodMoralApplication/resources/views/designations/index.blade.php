@@ -56,10 +56,10 @@
                 <td class="px-6 py-4 text-sm text-gray-600">{{ $designation->created_at->format('Y-m-d H:i') }}</td>
                 <td class="px-6 py-4 text-sm text-gray-600">
                   <div class="flex gap-2">
-                    <a href="{{ route('admin.designations.edit', $designation->dsn_id) }}" class="bg-blue-500 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-xs">
+                    <a href="{{ route('admin.designations.edit', $designation->id) }}" class="bg-blue-500 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-xs">
                       Edit
                     </a>
-                    <form action="{{ route('admin.designations.destroy', $designation->dsn_id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this designation?');">
+                    <form action="{{ route('admin.designations.destroy', $designation->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this designation?');">
                       @csrf
                       @method('DELETE')
                       <button type="submit" class="bg-red-500 hover:bg-red-700 text-white px-3 py-1 rounded-md text-xs">

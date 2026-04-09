@@ -79,8 +79,8 @@ class CourseHelper
      */
     public static function getDepartmentForCourse(string $courseCode): ?string
     {
-        $course = Course::with('department')->where('course_code', $courseCode)->first();
-        return $course && $course->department ? $course->department->department_code : null;
+        $course = Course::where('course_code', $courseCode)->first();
+        return $course ? $course->department : null;
     }
 
     /**

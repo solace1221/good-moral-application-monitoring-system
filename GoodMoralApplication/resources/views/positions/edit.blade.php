@@ -38,7 +38,7 @@
           <select name="dsn_id" id="dsn_id" required style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
             <option value="">Select Designation</option>
             @foreach($designations as $designation)
-            <option value="{{ $designation->dsn_id }}" {{ (old('dsn_id', $position->dsn_id) == $designation->dsn_id) ? 'selected' : '' }}>
+            <option value="{{ $designation->id }}" {{ (old('dsn_id', $position->dsn_id) == $designation->id) ? 'selected' : '' }}>
               {{ $designation->description }} ({{ $designation->department ? $designation->department->department_name : 'N/A' }})
             </option>
             @endforeach

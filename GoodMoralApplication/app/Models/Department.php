@@ -38,14 +38,14 @@ class Department extends Model
      */
     public function designations()
     {
-        return $this->hasMany(Designation::class, 'dept_id');
+        return $this->hasMany(Designation::class, 'department_id');
     }
 
     /**
-     * Get courses in this department
+     * Get courses in this department (matched via department_code string)
      */
     public function courses()
     {
-        return $this->hasMany(Course::class, 'department_id');
+        return $this->hasMany(Course::class, 'department', 'department_code');
     }
 }

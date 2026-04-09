@@ -5,6 +5,7 @@ use App\Http\Controllers\Controller;
 
 use Illuminate\Http\Request;
 use App\Models\Course;
+use App\Models\Department;
 use App\Helpers\CourseHelper;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\UploadCourseCsvRequest;
@@ -16,8 +17,7 @@ class CourseController extends Controller
      */
     public function index()
     {
-        $courses = Course::with([])
-            ->orderBy('department')
+        $courses = Course::orderBy('department')
             ->orderBy('sort_order')
             ->orderBy('course_name')
             ->get()
@@ -28,6 +28,48 @@ class CourseController extends Controller
         $activeCourses = Course::active()->count();
 
         return view('admin.courses.index', compact('courses', 'departments', 'totalCourses', 'activeCourses'));
+    }
+
+    /**
+     * Store a new course
+     */
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'course_code' => 'required|string|max:20|unique:courses,course_code',
+            'course_name' => 'required|string|max:300',
+            'department' => 'required|string|max:10|exists:departments,department_code',
+            'description' => 'nullable|string',
+        ]);
+
+        $dept = Department::where('department_code', $validated['department'])->first();
+        $validated['department_name'] = $dept->department_name;
+        $validated['is_active'] = true;
+        $validated['sort_order'] = Course::where('department', $validated['department'])->max('sort_order') + 1;
+
+        Course::create($validated);
+
+        return back()->with('success', "Course {$validated['course_code']} created successfully.");
+    }
+
+    /**
+     * Update an existing course
+     */
+    public function update(Request $request, Course $course)
+    {
+        $validated = $request->validate([
+            'course_code' => 'required|string|max:20|unique:courses,course_code,' . $course->id,
+            'course_name' => 'required|string|max:300',
+            'department' => 'required|string|max:10|exists:departments,department_code',
+            'description' => 'nullable|string',
+        ]);
+
+        $dept = Department::where('department_code', $validated['department'])->first();
+        $validated['department_name'] = $dept->department_name;
+
+        $course->update($validated);
+
+        return back()->with('success', "Course {$validated['course_code']} updated successfully.");
     }
 
     /**
