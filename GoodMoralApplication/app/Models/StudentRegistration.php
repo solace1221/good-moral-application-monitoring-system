@@ -27,7 +27,7 @@ class StudentRegistration extends Authenticatable
     'year_level',
     'organization',
     'position',
-    'designation_id',
+    'organization_id',
     'position_id',
   ];
 

@@ -13,7 +13,7 @@ class DatabaseSeeder extends Seeder
             CourseSeeder::class,
             AdminSeeder::class,
             DefaultUsersSeeder::class,
-            DesignationSeeder::class,
+            OrganizationSeeder::class,
         ]);
     }
 }

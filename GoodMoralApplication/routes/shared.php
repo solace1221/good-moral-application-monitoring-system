@@ -2,16 +2,16 @@
 
 use App\Http\Controllers\Admin\ViolatorController;
 use App\Http\Controllers\Shared\ProfileController;
-use App\Http\Controllers\Shared\DesignationController;
+use App\Http\Controllers\Shared\OrganizationController;
 use App\Http\Controllers\Shared\PositionController;
 use App\Http\Controllers\Shared\DepartmentController;
 use App\Http\Controllers\Shared\CourseController;
 use App\Http\Controllers\Shared\AcademicYearController;
 use Illuminate\Support\Facades\Route;
 
-// ─── Admin Management (designations, positions, courses, academic years) ─────
+// ─── Admin Management (organizations, positions, courses, academic years) ─────
 Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::resource('designations', DesignationController::class);
+    Route::resource('organizations', OrganizationController::class);
     Route::resource('positions', PositionController::class);
 
     Route::get('/courses/upload', [CourseController::class, 'uploadForm'])->name('courses.upload.form');

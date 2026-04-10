@@ -9,8 +9,8 @@
   <div class="header-section">
     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
       <div>
-        <h1 class="role-title">Create New Designation</h1>
-        <p class="welcome-text">Add a new designation to the system</p>
+        <h1 class="role-title">Edit: {{ $organization->description }}</h1>
+        <p class="welcome-text">Update organization information</p>
         <div class="accent-line"></div>
       </div>
     </div>
@@ -29,15 +29,16 @@
       </div>
       @endif
 
-      <form action="{{ route('admin.designations.store') }}" method="POST" style="max-width: 600px;">
+      <form action="{{ route('admin.organizations.update', $organization->id) }}" method="POST" style="max-width: 600px;">
         @csrf
+        @method('PUT')
 
         <div style="margin-top: 24px;">
           <label for="department_id" style="display: block; margin-bottom: 8px; font-weight: 500; color: #374151;">Department</label>
           <select name="department_id" id="department_id" required style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
             <option value="">Select Department</option>
             @foreach($departments as $department)
-            <option value="{{ $department->id }}" {{ old('department_id') == $department->id ? 'selected' : '' }}>
+            <option value="{{ $department->id }}" {{ (old('department_id', $organization->department_id) == $department->id) ? 'selected' : '' }}>
               {{ $department->department_name }}
             </option>
             @endforeach
@@ -46,14 +47,14 @@
 
         <div style="margin-top: 24px;">
           <label for="description" style="display: block; margin-bottom: 8px; font-weight: 500; color: #374151;">Description</label>
-          <input type="text" name="description" id="description" value="{{ old('description') }}" required style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
+          <input type="text" name="description" id="description" value="{{ old('description', $organization->description) }}" required style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
         </div>
 
         <div style="margin-top: 32px; display: flex; gap: 12px;">
           <button type="submit" class="btn-primary" style="padding: 10px 20px;">
-            Create Designation
+            Update Organization
           </button>
-          <a href="{{ route('admin.designations.index') }}" class="btn-secondary" style="padding: 10px 20px; text-decoration: none; display: inline-block;">
+          <a href="{{ route('admin.organizations.index') }}" class="btn-secondary" style="padding: 10px 20px; text-decoration: none; display: inline-block;">
             Cancel
           </a>
         </div>

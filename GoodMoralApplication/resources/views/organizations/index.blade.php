@@ -9,16 +9,16 @@
   <div class="header-section">
     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
       <div>
-        <h1 class="role-title">Designation Management</h1>
-        <p class="welcome-text">Manage designations for departments</p>
+        <h1 class="role-title">Organization Management</h1>
+        <p class="welcome-text">Manage organizations for departments</p>
         <div class="accent-line"></div>
       </div>
       <div style="display: flex; gap: 12px; align-items: center;">
-        <a href="{{ route('admin.designations.create') }}" class="btn-primary" style="padding: 10px 16px; font-size: 14px; text-decoration: none; display: flex; align-items: center; gap: 8px;">
+        <a href="{{ route('admin.organizations.create') }}" class="btn-primary" style="padding: 10px 16px; font-size: 14px; text-decoration: none; display: flex; align-items: center; gap: 8px;">
           <svg xmlns="http://www.w3.org/2000/svg" style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>
-          Add New Designation
+          Add New Organization
         </a>
       </div>
     </div>
@@ -33,9 +33,9 @@
       </div>
       @endif
 
-      @if($designations->isEmpty())
+      @if($organizations->isEmpty())
       <div style="text-align: center; padding: 40px 20px; color: #666;">
-        <p>No designations found.</p>
+        <p>No organizations found.</p>
       </div>
       @else
         <div class="overflow-x-auto">
@@ -49,17 +49,17 @@
               </tr>
             </thead>
             <tbody>
-              @foreach($designations as $designation)
+              @foreach($organizations as $organization)
               <tr class="border-b hover:bg-gray-50">
-                <td class="px-6 py-4 text-sm text-gray-600">{{ $designation->description }}</td>
-                <td class="px-6 py-4 text-sm text-gray-600">{{ $designation->department ? $designation->department->department_name : 'N/A' }}</td>
-                <td class="px-6 py-4 text-sm text-gray-600">{{ $designation->created_at->format('Y-m-d H:i') }}</td>
+                <td class="px-6 py-4 text-sm text-gray-600">{{ $organization->description }}</td>
+                <td class="px-6 py-4 text-sm text-gray-600">{{ $organization->department ? $organization->department->department_name : 'N/A' }}</td>
+                <td class="px-6 py-4 text-sm text-gray-600">{{ $organization->created_at->format('Y-m-d H:i') }}</td>
                 <td class="px-6 py-4 text-sm text-gray-600">
                   <div class="flex gap-2">
-                    <a href="{{ route('admin.designations.edit', $designation->id) }}" class="bg-blue-500 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-xs">
+                    <a href="{{ route('admin.organizations.edit', $organization->id) }}" class="bg-blue-500 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-xs">
                       Edit
                     </a>
-                    <form action="{{ route('admin.designations.destroy', $designation->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this designation?');">
+                    <form action="{{ route('admin.organizations.destroy', $organization->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this organization?');">
                       @csrf
                       @method('DELETE')
                       <button type="submit" class="bg-red-500 hover:bg-red-700 text-white px-3 py-1 rounded-md text-xs">
@@ -76,7 +76,7 @@
         
         <!-- Pagination -->
         <div style="margin-top: 20px;">
-          {{ $designations->links('vendor.pagination.custom') }}
+          {{ $organizations->links('vendor.pagination.custom') }}
         </div>
       @endif
     </div>

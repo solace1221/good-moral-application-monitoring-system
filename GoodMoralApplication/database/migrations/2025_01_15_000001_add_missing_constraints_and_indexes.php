@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Safe database integrity improvements identified during architecture audit.
  *
- * 1. designations.dept_id — FK to departments.id (nullable, nullOnDelete)
+ * 1. organizations.dept_id — FK to departments.id (nullable, nullOnDelete)
  * 2. good_moral_applications.reference_number — index (used in workflow lookups)
  * 3. dean_applications.reference_number — index (joined to good_moral_applications)
  * 4. head_osa_applications.reference_number — index
@@ -22,8 +22,8 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // 1. Add FK constraint: designations.dept_id → departments.id
-        Schema::table('designations', function (Blueprint $table) {
+        // 1. Add FK constraint: organizations.dept_id → departments.id
+        Schema::table('organizations', function (Blueprint $table) {
             $table->foreign('dept_id')
                 ->references('id')
                 ->on('departments')
@@ -74,7 +74,7 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::table('designations', function (Blueprint $table) {
+        Schema::table('organizations', function (Blueprint $table) {
             $table->dropForeign(['dept_id']);
         });
 

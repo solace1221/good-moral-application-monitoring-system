@@ -69,29 +69,29 @@
 
           <!-- PSG Officer Fields (Hidden by default) -->
           <div id="psg-fields" style="display: none;">
-            <!-- Designation -->
+            <!-- Organization -->
             <div style="margin-bottom: 20px;">
-              <label for="designation_id" class="form-label">Designation</label>
-              <select id="designation_id" class="form-input" name="designation_id" style="padding: 12px 16px; border-radius: 8px; border: 1px solid #d1d5db;">
-                <option value="">Select Designation</option>
-                @foreach($designations as $designation)
-                  <option value="{{ $designation->id }}" 
-                          data-dept-id="{{ $designation->department_id }}" 
-                          data-dept-code="{{ $designation->department ? $designation->department->department_code : '' }}"
-                          data-dept-name="{{ $designation->department ? $designation->department->department_name : '' }}"
-                          {{ old('designation_id') == $designation->id ? 'selected' : '' }}>
-                    {{ $designation->description }}
+              <label for="organization_id" class="form-label">Organization</label>
+              <select id="organization_id" class="form-input" name="organization_id" style="padding: 12px 16px; border-radius: 8px; border: 1px solid #d1d5db;">
+                <option value="">Select Organization</option>
+                @foreach($organizations as $organization)
+                  <option value="{{ $organization->id }}" 
+                          data-dept-id="{{ $organization->department_id }}" 
+                          data-dept-code="{{ $organization->department ? $organization->department->department_code : '' }}"
+                          data-dept-name="{{ $organization->department ? $organization->department->department_name : '' }}"
+                          {{ old('organization_id') == $organization->id ? 'selected' : '' }}>
+                    {{ $organization->description }}
                   </option>
                 @endforeach
               </select>
-              <x-input-error :messages="$errors->get('designation_id')" class="mt-2" style="color: #e74c3c; font-size: 12px;" />
+              <x-input-error :messages="$errors->get('organization_id')" class="mt-2" style="color: #e74c3c; font-size: 12px;" />
             </div>
 
             <!-- Position -->
             <div style="margin-bottom: 20px;">
               <label for="position_id" class="form-label">Position</label>
               <select id="position_id" class="form-input" name="position_id" style="padding: 12px 16px; border-radius: 8px; border: 1px solid #d1d5db;">
-                <option value="">Select Designation First</option>
+                <option value="">Select Organization First</option>
                 @foreach($positions as $position)
                   <option value="{{ $position->position_id }}" 
                           data-dsn-id="{{ $position->dsn_id }}"
@@ -197,13 +197,13 @@
     <!-- JavaScript for dynamic course dropdown and PSG fields -->
     <script>
       const coursesByDepartment = @json($coursesByDepartment);
-      const designationsData = @json($designations);
+      const organizationsData = @json($organizations);
       const positionsData = @json($positions);
       console.log('Courses by department data:', coursesByDepartment);
       console.log('Total departments:', Object.keys(coursesByDepartment).length);
 
-      // Store all designation and position options at page load
-      let allDesignationOptions = [];
+      // Store all organization and position options at page load
+      let allOrganizationOptions = [];
       let allPositionOptions = [];
 
       // Function to toggle account type specific fields
@@ -212,7 +212,7 @@
         const psgFields = document.getElementById('psg-fields');
         const studentFields = document.getElementById('student-fields');
         const courseDropdown = document.getElementById('course-dropdown-main');
-        const designationInput = document.getElementById('designation_id');
+        const organizationInput = document.getElementById('organization_id');
         const positionInput = document.getElementById('position_id');
         const yearLevelInput = document.getElementById('year_level_main');
 
@@ -224,18 +224,18 @@
         courseDropdown.style.display = 'none';
 
         // Clear requirements
-        if (designationInput) designationInput.required = false;
+        if (organizationInput) organizationInput.required = false;
         if (positionInput) positionInput.required = false;
         if (yearLevelInput) yearLevelInput.required = false;
 
         // Clear values
-        if (designationInput) designationInput.value = '';
+        if (organizationInput) organizationInput.value = '';
         if (positionInput) positionInput.value = '';
         if (yearLevelInput) yearLevelInput.value = '';
 
         if (accountType === 'psg_officer') {
           psgFields.style.display = 'block';
-          if (designationInput) designationInput.required = true;
+          if (organizationInput) organizationInput.required = true;
           if (positionInput) positionInput.required = true;
         } else if (accountType === 'student') {
           console.log('Student account type selected');
@@ -262,9 +262,9 @@
       }
 
       document.addEventListener('DOMContentLoaded', function() {
-        // Store all designation options
-        const designationSelect = document.getElementById('designation_id');
-        allDesignationOptions = Array.from(designationSelect.querySelectorAll('option')).filter(opt => opt.value);
+        // Store all organization options
+        const organizationSelect = document.getElementById('organization_id');
+        allOrganizationOptions = Array.from(organizationSelect.querySelectorAll('option')).filter(opt => opt.value);
         
         // Store all position options
         const positionSelect = document.getElementById('position_id');
@@ -293,11 +293,11 @@
           }
         });
 
-        // Designation change handler for PSG Officers
-        document.getElementById('designation_id').addEventListener('change', function() {
-          const designationId = this.value;
-          console.log('Designation changed:', designationId);
-          filterPositionsByDesignation(designationId);
+        // Organization change handler for PSG Officers
+        document.getElementById('organization_id').addEventListener('change', function() {
+          const organizationId = this.value;
+          console.log('Organization changed:', organizationId);
+          filterPositionsByOrganization(organizationId);
         });
 
         // Check if all elements are found
@@ -348,11 +348,11 @@
             }
 
             if (accountType === 'psg_officer') {
-              const designation = document.getElementById('designation_id').value;
+              const organization = document.getElementById('organization_id').value;
               const position = document.getElementById('position_id').value;
 
-              if (!designation || !position) {
-                alert('Please select your designation and position.');
+              if (!organization || !position) {
+                alert('Please select your organization and position.');
                 e.preventDefault();
                 return false;
               }
@@ -386,52 +386,52 @@
         }
       }
 
-      // Function to filter designations based on selected department
-      function filterDesignationsByDepartment(departmentCode) {
-        const designationSelect = document.getElementById('designation_id');
+      // Function to filter organizations based on selected department
+      function filterOrganizationsByDepartment(departmentCode) {
+        const organizationSelect = document.getElementById('organization_id');
         
         // Clear current options
-        designationSelect.innerHTML = '<option value="">Select Designation</option>';
+        organizationSelect.innerHTML = '<option value="">Select Organization</option>';
         
         if (!departmentCode) {
-          designationSelect.innerHTML = '<option value="">Select Department First</option>';
+          organizationSelect.innerHTML = '<option value="">Select Department First</option>';
           return;
         }
 
-        // Filter and add matching designations
+        // Filter and add matching organizations
         let hasOptions = false;
-        allDesignationOptions.forEach(option => {
+        allOrganizationOptions.forEach(option => {
           if (option.dataset.deptCode == departmentCode) {
             const newOption = option.cloneNode(true);
-            designationSelect.appendChild(newOption);
+            organizationSelect.appendChild(newOption);
             hasOptions = true;
           }
         });
 
         if (!hasOptions) {
-          designationSelect.innerHTML = '<option value="">No designations available for this department</option>';
+          organizationSelect.innerHTML = '<option value="">No organizations available for this department</option>';
         }
 
-        // Reset position dropdown when designation changes
-        filterPositionsByDesignation('');
+        // Reset position dropdown when organization changes
+        filterPositionsByOrganization('');
       }
 
-      // Function to filter positions based on selected designation
-      function filterPositionsByDesignation(designationId) {
+      // Function to filter positions based on selected organization
+      function filterPositionsByOrganization(organizationId) {
         const positionSelect = document.getElementById('position_id');
         
         // Clear current options
         positionSelect.innerHTML = '<option value="">Select Position</option>';
         
-        if (!designationId) {
-          positionSelect.innerHTML = '<option value="">Select Designation First</option>';
+        if (!organizationId) {
+          positionSelect.innerHTML = '<option value="">Select Organization First</option>';
           return;
         }
 
         // Filter and add matching positions
         let hasOptions = false;
         allPositionOptions.forEach(option => {
-          if (option.dataset.dsnId == designationId) {
+          if (option.dataset.dsnId == organizationId) {
             const newOption = option.cloneNode(true);
             positionSelect.appendChild(newOption);
             hasOptions = true;
@@ -439,7 +439,7 @@
         });
 
         if (!hasOptions) {
-          positionSelect.innerHTML = '<option value="">No positions available for this designation</option>';
+          positionSelect.innerHTML = '<option value="">No positions available for this organization</option>';
         }
       }
 

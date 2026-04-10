@@ -2,14 +2,14 @@
 
 namespace Database\Seeders;
 
-use App\Models\Designation;
+use App\Models\Organization;
 use Illuminate\Database\Seeder;
 
-class DesignationSeeder extends Seeder
+class OrganizationSeeder extends Seeder
 {
     public function run(): void
     {
-        $designations = [
+        $organizations = [
             'PSG Uniwide',
             'PSG SASTE',
             'PSG SBAHM',
@@ -18,8 +18,8 @@ class DesignationSeeder extends Seeder
 
         ];
 
-        foreach ($designations as $description) {
-            Designation::firstOrCreate(
+        foreach ($organizations as $description) {
+            Organization::firstOrCreate(
                 ['description' => $description],
             );
         }

@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Designation extends Model
+class Organization extends Model
 {
     protected $fillable = [
         'department_id',
@@ -12,7 +12,7 @@ class Designation extends Model
     ];
 
     /**
-     * Get the department that owns the designation.
+     * Get the department that owns the organization.
      */
     public function department()
     {
@@ -20,11 +20,11 @@ class Designation extends Model
     }
 
     /**
-     * Get the positions under this designation.
+     * Get the positions under this organization.
      */
     public function positions()
     {
-        return $this->hasMany(Position::class, 'designation_id');
+        return $this->hasMany(Position::class, 'organization_id');
     }
 
 }

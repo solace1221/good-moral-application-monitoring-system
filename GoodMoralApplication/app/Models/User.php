@@ -27,20 +27,8 @@ class User extends Authenticatable
         'lastname',
         'middlename',
         'suffix_name',
-        'employee_id',
         'role',
         'status',
-        'department_id',
-        'designation_id',
-        'position_id',
-        'course_id',
-        'picture',
-        'password_changed_at',
-        'failed_login_attempts',
-        'locked_until',
-        'last_login_at',
-        'last_login_ip',
-        'force_password_change',
     ];
 
     /**
@@ -61,13 +49,8 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at'      => 'datetime',
-            'password'               => 'hashed',
-            'locked_until'           => 'datetime',
-            'last_login_at'          => 'datetime',
-            'password_changed_at'    => 'datetime',
-            'force_password_change'  => 'boolean',
-            'failed_login_attempts'  => 'integer',
+            'email_verified_at' => 'datetime',
+            'password'          => 'hashed',
         ];
     }
 
@@ -133,105 +116,6 @@ class User extends Authenticatable
     public function getExtensionAttribute()
     {
         return $this->suffix_name;
-    }
-
-    /**
-     * Get student info relation (for backward compatibility)
-     */
-    public function studentInfo()
-    {
-        return $this->belongsTo(StudentRegistration::class, 'student_id', 'student_id');
-    }
-
-    /**
-     * Get the good moral applications for this student
-     */
-    public function goodMoralApplications()
-    {
-        return $this->hasMany(GoodMoralApplication::class, 'student_id', 'student_id');
-    }
-
-    /**
-     * Get the designation for PSG Officer
-     */
-    public function designation()
-    {
-        return $this->belongsTo(Designation::class, 'designation_id');
-    }
-
-    // =========================================================
-    // General Relationships
-    // =========================================================
-
-    /**
-     * Get the department this user belongs to
-     */
-    public function department()
-    {
-        return $this->belongsTo(Department::class, 'department_id');
-    }
-
-    /**
-     * Get courses this user coordinates
-     */
-    public function coordinatedCourses()
-    {
-        return $this->hasMany(Course::class, 'coordinator_id', 'id');
-    }
-
-    // =========================================================
-    // Security / Account Lockout Methods
-    // =========================================================
-
-    public function isLocked(): bool
-    {
-        return $this->locked_until && $this->locked_until->isFuture();
-    }
-
-    public function getRemainingLockoutTime(): int
-    {
-        return $this->isLocked() ? (int) $this->locked_until->diffInSeconds(now()) : 0;
-    }
-
-    public function needsPasswordChange(): bool
-    {
-        return $this->force_password_change || ! $this->password_changed_at;
-    }
-
-    public function incrementFailedAttempts(): void
-    {
-        $this->increment('failed_login_attempts');
-        $this->refresh();
-        if ($this->failed_login_attempts >= 5) {
-            $this->update(['locked_until' => now()->addMinutes(30)]);
-        }
-    }
-
-    public function resetFailedAttempts(): void
-    {
-        $this->update(['failed_login_attempts' => 0, 'locked_until' => null]);
-    }
-
-    /** Alias for resetFailedAttempts */
-    public function clearFailedAttempts(): void
-    {
-        $this->resetFailedAttempts();
-    }
-
-    /** Alias for incrementFailedAttempts */
-    public function recordFailedAttempt(): void
-    {
-        $this->incrementFailedAttempts();
-    }
-
-    public function recordLogin(?string $ipAddress = null): void
-    {
-        $this->update([
-            'last_login_at'         => now(),
-            'last_login_ip'         => $ipAddress,
-            'failed_login_attempts' => 0,
-            'locked_until'          => null,
-        ]);
     }
 }
 

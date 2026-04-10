@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Shared;
 use App\Http\Controllers\Controller;
 
 use App\Models\Position;
-use App\Models\Designation;
+use App\Models\Organization;
 use Illuminate\Http\Request;
 use App\Http\Requests\StorePositionRequest;
 
@@ -15,7 +15,7 @@ class PositionController extends Controller
      */
     public function index()
     {
-        $positions = Position::with('designation.department')->paginate(10);
+        $positions = Position::with('organization.department')->paginate(10);
         return view('positions.index', compact('positions'));
     }
 
@@ -24,8 +24,8 @@ class PositionController extends Controller
      */
     public function create()
     {
-        $designations = Designation::with('department')->get();
-        return view('positions.create', compact('designations'));
+        $organizations = Organization::with('department')->get();
+        return view('positions.create', compact('organizations'));
     }
 
     /**
@@ -46,7 +46,7 @@ class PositionController extends Controller
      */
     public function show(string $id)
     {
-        $position = Position::with('designation.department')->findOrFail($id);
+        $position = Position::with('organization.department')->findOrFail($id);
         return view('positions.show', compact('position'));
     }
 
@@ -56,8 +56,8 @@ class PositionController extends Controller
     public function edit(string $id)
     {
         $position = Position::findOrFail($id);
-        $designations = Designation::with('department')->get();
-        return view('positions.edit', compact('position', 'designations'));
+        $organizations = Organization::with('department')->get();
+        return view('positions.edit', compact('position', 'organizations'));
     }
 
     /**

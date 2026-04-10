@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\StudentRegistration;
 use App\Models\RoleAccount;
-use App\Models\Designation;
+use App\Models\Organization;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -46,7 +46,7 @@ class RegisteredAccountController extends Controller
 
     $students = $query->orderBy('fullname', 'asc')->paginate(10)->appends($request->query());
 
-    $organizations = Designation::orderBy('description')->get();
+    $organizations = Organization::orderBy('description')->get();
 
     return view('admin.add-account', compact('students', 'organizations'));
   }

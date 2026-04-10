@@ -33,12 +33,12 @@
         @csrf
 
         <div style="margin-top: 24px;">
-          <label for="dsn_id" style="display: block; margin-bottom: 8px; font-weight: 500; color: #374151;">Designation</label>
-          <select name="dsn_id" id="dsn_id" required style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
-            <option value="">Select Designation</option>
-            @foreach($designations as $designation)
-            <option value="{{ $designation->id }}" {{ old('dsn_id') == $designation->id ? 'selected' : '' }}>
-              {{ $designation->description }} ({{ $designation->department ? $designation->department->department_name : 'N/A' }})
+          <label for="organization_id" style="display: block; margin-bottom: 8px; font-weight: 500; color: #374151;">Organization</label>
+          <select name="organization_id" id="organization_id" required style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
+            <option value="">Select Organization</option>
+            @foreach($organizations as $organization)
+            <option value="{{ $organization->id }}" {{ old('organization_id') == $organization->id ? 'selected' : '' }}>
+              {{ $organization->description }} ({{ $organization->department ? $organization->department->department_name : 'N/A' }})
             </option>
             @endforeach
           </select>

@@ -9,8 +9,8 @@ use Illuminate\Support\Facades\Schema;
  *
  * 1. receipt → receipts (plural table name)
  * 2. student_year_level_history → student_year_level_histories (plural table name)
- * 3. designations.dsn_id → designations.id (standard primary key name)
- * 4. designations.dept_id → designations.department_id (standard foreign key name)
+ * 3. organizations.dsn_id → organizations.id (standard primary key name)
+ * 4. organizations.dept_id → organizations.department_id (standard foreign key name)
  */
 return new class extends Migration
 {
@@ -42,28 +42,28 @@ return new class extends Migration
         Schema::rename('student_year_level_history', 'student_year_level_histories');
 
         // -------------------------------------------------------
-        // 3. Rename designations.dsn_id → designations.id
+        // 3. Rename organizations.dsn_id → organizations.id
         // -------------------------------------------------------
 
-        Schema::table('designations', function (Blueprint $table) {
+        Schema::table('organizations', function (Blueprint $table) {
             $table->renameColumn('dsn_id', 'id');
         });
 
         // -------------------------------------------------------
-        // 4. Rename designations.dept_id → designations.department_id
+        // 4. Rename organizations.dept_id → organizations.department_id
         // -------------------------------------------------------
 
         // Drop FK added by previous migration before renaming
-        Schema::table('designations', function (Blueprint $table) {
+        Schema::table('organizations', function (Blueprint $table) {
             $table->dropForeign(['dept_id']);
         });
 
-        Schema::table('designations', function (Blueprint $table) {
+        Schema::table('organizations', function (Blueprint $table) {
             $table->renameColumn('dept_id', 'department_id');
         });
 
         // Re-add FK with new column name
-        Schema::table('designations', function (Blueprint $table) {
+        Schema::table('organizations', function (Blueprint $table) {
             $table->foreign('department_id')
                 ->references('id')
                 ->on('departments')
@@ -73,24 +73,24 @@ return new class extends Migration
 
     public function down(): void
     {
-        // 4. Revert designations.department_id → dept_id
-        Schema::table('designations', function (Blueprint $table) {
+        // 4. Revert organizations.department_id → dept_id
+        Schema::table('organizations', function (Blueprint $table) {
             $table->dropForeign(['department_id']);
         });
 
-        Schema::table('designations', function (Blueprint $table) {
+        Schema::table('organizations', function (Blueprint $table) {
             $table->renameColumn('department_id', 'dept_id');
         });
 
-        Schema::table('designations', function (Blueprint $table) {
+        Schema::table('organizations', function (Blueprint $table) {
             $table->foreign('dept_id')
                 ->references('id')
                 ->on('departments')
                 ->nullOnDelete();
         });
 
-        // 3. Revert designations.id → dsn_id
-        Schema::table('designations', function (Blueprint $table) {
+        // 3. Revert organizations.id → dsn_id
+        Schema::table('organizations', function (Blueprint $table) {
             $table->renameColumn('id', 'dsn_id');
         });
 

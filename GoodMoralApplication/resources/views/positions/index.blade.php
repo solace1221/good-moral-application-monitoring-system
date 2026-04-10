@@ -10,7 +10,7 @@
     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
       <div>
         <h1 class="role-title">Position Management</h1>
-        <p class="welcome-text">Manage positions for designations</p>
+        <p class="welcome-text">Manage positions for organizations</p>
         <div class="accent-line"></div>
       </div>
       <div style="display: flex; gap: 12px; align-items: center;">
@@ -43,7 +43,7 @@
             <thead class="bg-gray-50">
               <tr>
                 <th class="px-6 py-3 text-left text-sm font-medium text-gray-500">Position Title</th>
-                <th class="px-6 py-3 text-left text-sm font-medium text-gray-500">Designation</th>
+                <th class="px-6 py-3 text-left text-sm font-medium text-gray-500">Organization</th>
                 <th class="px-6 py-3 text-left text-sm font-medium text-gray-500">Department</th>
                 <th class="px-6 py-3 text-left text-sm font-medium text-gray-500">Created At</th>
                 <th class="px-6 py-3 text-left text-sm font-medium text-gray-500">Actions</th>
@@ -53,8 +53,8 @@
               @foreach($positions as $position)
               <tr class="border-b hover:bg-gray-50">
                 <td class="px-6 py-4 text-sm text-gray-600">{{ $position->position_title }}</td>
-                <td class="px-6 py-4 text-sm text-gray-600">{{ $position->designation ? $position->designation->description : 'N/A' }}</td>
-                <td class="px-6 py-4 text-sm text-gray-600">{{ $position->designation && $position->designation->department ? $position->designation->department->department_name : 'N/A' }}</td>
+                <td class="px-6 py-4 text-sm text-gray-600">{{ $position->organization ? $position->organization->description : 'N/A' }}</td>
+                <td class="px-6 py-4 text-sm text-gray-600">{{ $position->organization && $position->organization->department ? $position->organization->department->department_name : 'N/A' }}</td>
                 <td class="px-6 py-4 text-sm text-gray-600">{{ $position->created_at->format('Y-m-d H:i') }}</td>
                 <td class="px-6 py-4 text-sm text-gray-600">
                   <div class="flex gap-2">

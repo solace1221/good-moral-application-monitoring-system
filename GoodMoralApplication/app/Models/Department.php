@@ -18,14 +18,6 @@ class Department extends Model
     ];
 
     /**
-     * Get users in this department
-     */
-    public function users()
-    {
-        return $this->hasMany(User::class, 'department_id', 'id');
-    }
-
-    /**
      * Get role accounts in this department
      */
     public function roleAccounts()
@@ -34,11 +26,11 @@ class Department extends Model
     }
 
     /**
-     * Get designations in this department
+     * Get organizations in this department
      */
-    public function designations()
+    public function organizations()
     {
-        return $this->hasMany(Designation::class, 'department_id');
+        return $this->hasMany(Organization::class, 'department_id');
     }
 
     /**
