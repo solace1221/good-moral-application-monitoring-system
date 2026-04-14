@@ -26,31 +26,34 @@
 
         @include('shared.alerts.flash')
 
-        <!-- Enhanced Navigation Bar -->
+        <!-- Tab Navigation -->
         <div class="mb-8">
-          <nav class="flex space-x-4 items-center" style="background: #f8f9fa; padding: 8px; border-radius: 12px; display: inline-flex;">
-            <!-- Pending Button -->
-            <a href="{{ route('admin.psgApplication', ['status' => 'pending']) }}" 
-               style="padding: 12px 20px; border-radius: 8px; font-weight: 600; text-decoration: none; transition: all 0.3s ease; display: flex; align-items: center; gap: 8px; {{ $status == 'pending' ? 'background: #3b82f6; color: white; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);' : 'background: white; color: #3b82f6; border: 2px solid #3b82f6;' }}">
-              <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <nav style="display: flex; border-bottom: 2px solid #e5e7eb; margin-bottom: 20px;">
+            <!-- Pending Tab -->
+            <a href="{{ route('admin.psgApplication', ['status' => 'pending']) }}"
+               class="tab-link {{ $status == 'pending' ? 'active' : '' }}"
+               style="padding: 14px 24px; text-decoration: none; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 8px; border-bottom: 3px solid {{ $status == 'pending' ? 'var(--primary-green)' : 'transparent' }}; color: {{ $status == 'pending' ? 'var(--primary-green)' : '#6c757d' }}; margin-bottom: -2px; transition: all 0.2s ease; background: {{ $status == 'pending' ? '#f0fdf4' : 'transparent' }}; border-radius: 6px 6px 0 0;">
+              <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
               </svg>
               Pending
             </a>
 
-            <!-- Approved Button -->
-            <a href="{{ route('admin.psgApplication', ['status' => 'approved']) }}" 
-               style="padding: 12px 20px; border-radius: 8px; font-weight: 600; text-decoration: none; transition: all 0.3s ease; display: flex; align-items: center; gap: 8px; {{ $status == 'approved' ? 'background: #10b981; color: white; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);' : 'background: white; color: #10b981; border: 2px solid #10b981;' }}">
-              <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <!-- Approved Tab -->
+            <a href="{{ route('admin.psgApplication', ['status' => 'approved']) }}"
+               class="tab-link {{ $status == 'approved' ? 'active' : '' }}"
+               style="padding: 14px 24px; text-decoration: none; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 8px; border-bottom: 3px solid {{ $status == 'approved' ? 'var(--primary-green)' : 'transparent' }}; color: {{ $status == 'approved' ? 'var(--primary-green)' : '#6c757d' }}; margin-bottom: -2px; transition: all 0.2s ease; background: {{ $status == 'approved' ? '#f0fdf4' : 'transparent' }}; border-radius: 6px 6px 0 0;">
+              <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
               </svg>
               Approved
             </a>
 
-            <!-- Rejected Button -->
-            <a href="{{ route('admin.psgApplication', ['status' => 'rejected']) }}" 
-               style="padding: 12px 20px; border-radius: 8px; font-weight: 600; text-decoration: none; transition: all 0.3s ease; display: flex; align-items: center; gap: 8px; {{ $status == 'rejected' ? 'background: #ef4444; color: white; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);' : 'background: white; color: #ef4444; border: 2px solid #ef4444;' }}">
-              <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <!-- Rejected Tab -->
+            <a href="{{ route('admin.psgApplication', ['status' => 'rejected']) }}"
+               class="tab-link {{ $status == 'rejected' ? 'active' : '' }}"
+               style="padding: 14px 24px; text-decoration: none; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 8px; border-bottom: 3px solid {{ $status == 'rejected' ? 'var(--primary-green)' : 'transparent' }}; color: {{ $status == 'rejected' ? 'var(--primary-green)' : '#6c757d' }}; margin-bottom: -2px; transition: all 0.2s ease; background: {{ $status == 'rejected' ? '#f0fdf4' : 'transparent' }}; border-radius: 6px 6px 0 0;">
+              <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
               Rejected
