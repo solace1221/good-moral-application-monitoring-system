@@ -1,4 +1,10 @@
 <x-dashboard-layout>
+  <x-slot name="roleTitle">Secretary OSA</x-slot>
+
+  <x-slot name="navigation">
+    <x-sec-osa-navigation />
+  </x-slot>
+
   <div style="padding: 24px; background: #f8f9fa; min-height: 100vh;">
     <!-- Header Section -->
     <div style="background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 24px; margin-bottom: 24px;">

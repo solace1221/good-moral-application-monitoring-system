@@ -3,14 +3,16 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreMultipleViolatorsRequest;
+use App\Http\Requests\StoreViolatorRequest;
 use App\Traits\ViolationEscalationTrait;
 use Illuminate\Http\Request;
 
 use App\Models\Violation;
 use App\Models\StudentViolation;
-use App\Models\ViolationNotif;
 use App\Models\RoleAccount;
-use App\Helpers\ViolationHelper;
+use App\Helpers\CourseHelper;
+use App\Services\ViolationService;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -20,50 +22,55 @@ class ViolatorController extends Controller
 {
   use ViolationEscalationTrait;
 
+  public function __construct(
+    private ViolationService $violationService
+  ) {}
+
+  /**
+   * Generate a unique reference number in the format VIO-YYYY-XXXX
+   */
+  private function generateReferenceNumber(): string
+  {
+    $year = date('Y');
+    $prefix = "VIO-{$year}-";
+
+    $latest = StudentViolation::where('ref_num', 'LIKE', "{$prefix}%")
+      ->orderByRaw('CAST(SUBSTRING(ref_num, ' . (strlen($prefix) + 1) . ') AS UNSIGNED) DESC')
+      ->value('ref_num');
+
+    if ($latest) {
+      $lastSequence = (int) substr($latest, strlen($prefix));
+      $nextSequence = $lastSequence + 1;
+    } else {
+      $nextSequence = 1;
+    }
+
+    return $prefix . str_pad($nextSequence, 4, '0', STR_PAD_LEFT);
+  }
+
   public function AddViolatorDashboard()
   {
-    $violations = Violation::get();
+    $violations = Violation::active()->get();
 
-    $coursesByDepartment = [
-      'SITE' => ['BSIT', 'BLIS', 'BS ENSE', 'BS CpE', 'BSCE'],
-      'SBAHM' => ['BSA', 'BSE', 'BSBAMM', 'BSBA MFM', 'BSBA MOP', 'BSMA', 'BSHM', 'BSTM', 'BSPDMI'],
-      'SASTE' => ['BAELS', 'BS Psych', 'BS Bio', 'BSSW', 'BSPA', 'BS Bio MB', 'BSEd', 'BEEd', 'BPEd'],
-      'SNAHS' => ['BSN', 'BSPh', 'BSMT', 'BSPT', 'BSRT'],
-      'SOM' => ['MD', 'BS Med'],
-      'GRADSCH' => ['MBA', 'MPA', 'MEd', 'MS', 'MA', 'PhD', 'EdD'],
-    ];
+    $coursesByDepartment = CourseHelper::getCoursesByDepartment();
 
     return view('admin.add-violator', compact('violations', 'coursesByDepartment'));
   }
 
-  public function storeViolator(Request $request)
+  public function storeViolator(StoreViolatorRequest $request)
   {
-    try {
-      // Check if this is a multiple students or multiple violations submission
-      $multipleStudentsData = $request->input('multiple_students_data');
-      $multipleViolationsData = $request->input('multiple_violations_data');
-
-      if ($multipleStudentsData || $multipleViolationsData) {
-        return $this->addMultipleViolators($request, $multipleStudentsData, $multipleViolationsData);
-      }
-    } catch (\Exception $e) {
-      return redirect()->route('admin.AddViolator')->with('error', 'An error occurred: ' . $e->getMessage());
-    }
-
-    // Single student validation
-    $validated = $request->validate([
-      'first_name' => ['required', 'string', 'max:255'],
-      'last_name' => ['required', 'string', 'max:255'],
-      'student_id' => ['required', 'string', 'max:255'],
-      'department' => ['required', 'string', 'max:255'],
-      'course' => ['required', 'string', 'max:255'],
-      'offense_type' => ['required', 'in:minor,major'],
-      'violation' => ['required', 'string'],
-      'ref_num' => ['nullable', 'string', 'max:255'],
+    Log::info('storeViolator called', [
+      'all_input' => $request->except('_token'),
+      'method' => $request->method(),
     ]);
+
+    $validated = $request->validated();
 
     // Generate unique ID
     $uniqueID = uniqid();
+
+    // Generate reference number
+    $referenceNumber = $this->generateReferenceNumber();
 
     // Get current user name
     $userName = Auth::user()->fullname ?? 'Admin';
@@ -76,32 +83,25 @@ class ViolatorController extends Controller
       'course' => $validated['course'],
       'offense_type' => $validated['offense_type'],
       'violation' => $validated['violation'],
-      'ref_num' => $validated['ref_num'],
+      'ref_num' => $referenceNumber,
       'added_by' => $userName,
       'status' => '0', // Pending status
       'unique_id' => $uniqueID,
+      'case_type' => 'single',
+      'group_size' => 1,
     ]);
 
-    // Get the violation details to find article reference
-    $violationRecord = Violation::where('description', $violation->violation)->first();
-    $article = $violationRecord ? $violationRecord->article : null;
+    Log::info('StudentViolation created', ['id' => $violation->id, 'student_id' => $violation->student_id]);
 
-    // Create notification for the student about the violation using new format
-    $offenseType = (string) $violation->offense_type;
-    $description = (string) $violation->violation;
-    $addedBy = (string) ($violation->added_by ?? 'Admin');
-
-    ViolationNotif::create([
-        'ref_num' => $violation->ref_num ?? 'VIOLATION-' . $violation->id,
-        'student_id' => $violation->student_id,
-        'status' => 0,
-        'notif' => ViolationHelper::generateViolationNotification(
-            $offenseType,
-            $description,
-            $article,
-            $addedBy
-        ),
-    ]);
+    // Create notification for the student about the violation
+    try {
+      $this->violationService->createViolationNotification($violation);
+    } catch (\Exception $e) {
+      Log::error('Failed to create violation notification', [
+        'violation_id' => $violation->id,
+        'error' => $e->getMessage(),
+      ]);
+    }
 
     $successMessage = 'Violator added successfully!';
 
@@ -121,14 +121,14 @@ class ViolatorController extends Controller
    */
   public function addMultipleViolatorsForm()
   {
-    $violations = Violation::all();
+    $violations = Violation::active()->get();
     return view('admin.add-multiple-violators', compact('violations'));
   }
 
   /**
    * Store multiple violators
    */
-  public function storeMultipleViolators(Request $request)
+  public function storeMultipleViolators(StoreMultipleViolatorsRequest $request)
   {
     // Prevent duplicate submissions within 10 seconds
     $cacheKey = 'multiple_violators_' . Auth::id() . '_' . md5(json_encode($request->all()));
@@ -159,37 +159,8 @@ class ViolatorController extends Controller
       'request_url' => $request->url(),
     ]);
 
-    // Add immediate response for debugging
-    if ($request->has('debug_mode')) {
-      return response()->json([
-        'status' => 'debug',
-        'message' => 'Multiple violators endpoint reached successfully',
-        'data' => $request->all()
-      ]);
-    }
-
-    // Custom validation logic based on whether it's multiple violations or single violation
-    $hasMultipleViolations = !empty($request->input('multiple_violations_data'));
-
-    if ($hasMultipleViolations) {
-      // For multiple violations, violation field can be empty
-      $validated = $request->validate([
-        'offense_type' => ['required', 'in:minor,major'],
-        'multiple_violations_data' => ['required', 'string'],
-        'student_ids' => ['required', 'array', 'min:1'],
-        'student_ids.*' => ['required', 'string'],
-        'ref_num' => ['nullable', 'string', 'max:255'],
-      ]);
-    } else {
-      // For single violation, violation field is required
-      $validated = $request->validate([
-        'offense_type' => ['required', 'in:minor,major'],
-        'violation' => ['required', 'string'],
-        'student_ids' => ['required', 'array', 'min:1'],
-        'student_ids.*' => ['required', 'string'],
-        'ref_num' => ['nullable', 'string', 'max:255'],
-      ]);
-    }
+    $validated = $request->validated();
+    $hasMultipleViolations = !empty($validated['multiple_violations_data']);
 
     Log::info('Validated Data:', $validated);
     Log::info('Has Multiple Violations:', ['value' => $hasMultipleViolations]);
@@ -225,10 +196,17 @@ class ViolatorController extends Controller
     $userName = Auth::user()->fullname ?? 'Admin';
     $createdViolations = [];
     $escalationMessages = [];
+    $groupSize = count($validated['student_ids']);
+    $referenceNumber = $this->generateReferenceNumber();
+
+    // Pre-fetch all students in a single query
+    $students = RoleAccount::whereIn('student_id', $validated['student_ids'])
+      ->get()
+      ->keyBy('student_id');
 
     foreach ($validated['student_ids'] as $studentId) {
-      // Find student info
-      $student = RoleAccount::where('student_id', $studentId)->first();
+      // Find student info from pre-fetched collection
+      $student = $students->get($studentId);
       if (!$student) continue;
 
       // Parse name
@@ -246,27 +224,20 @@ class ViolatorController extends Controller
           'course' => $student->course ?? 'N/A',
           'offense_type' => $validated['offense_type'],
           'violation' => $violationData['description'],
-          'ref_num' => $validated['ref_num'],
+          'ref_num' => $referenceNumber,
           'added_by' => $userName,
           'status' => '0',
           'unique_id' => uniqid(),
+          'case_type' => $groupSize > 1 ? 'group' : 'single',
+          'group_size' => $groupSize,
         ]);
 
         // Create notification
-        $violationRecord = Violation::where('description', $violation->violation)->first();
-        $article = $violationRecord ? $violationRecord->article : null;
-
-        ViolationNotif::create([
-            'ref_num' => $violation->ref_num ?? 'VIOLATION-' . $violation->id,
-            'student_id' => $violation->student_id,
-            'status' => 0,
-            'notif' => ViolationHelper::generateViolationNotification(
-                $violation->offense_type,
-                (string) $violation->violation,
-                $article,
-                $violation->added_by
-            ),
-        ]);
+        try {
+          $this->violationService->createViolationNotification($violation);
+        } catch (\Exception $e) {
+          Log::error('Failed to create violation notification', ['violation_id' => $violation->id, 'error' => $e->getMessage()]);
+        }
       }
 
       // Check for escalation (only once per student)
@@ -296,151 +267,6 @@ class ViolatorController extends Controller
   }
 
   /**
-   * Add multiple violators and/or multiple violations
-   */
-  private function addMultipleViolators(Request $request, $multipleStudentsData, $multipleViolationsData)
-  {
-    try {
-      // Determine what type of multiple submission this is
-      $hasMultipleStudents = !empty($multipleStudentsData);
-      $hasMultipleViolations = !empty($multipleViolationsData);
-
-      if ($hasMultipleViolations) {
-        // Validate for multiple violations
-        $validated = $request->validate([
-          'offense_type' => ['required', 'in:minor,major'],
-          'multiple_violations_data' => ['required', 'string'],
-          'student_ids' => ['required', 'array'],
-          'student_ids.*' => ['required', 'string'],
-          'ref_num' => ['nullable', 'string', 'max:255'],
-        ]);
-      } else {
-        // Validate for single violation
-        $validated = $request->validate([
-          'offense_type' => ['required', 'in:minor,major'],
-          'violation' => ['required', 'string'],
-          'student_ids' => ['required', 'array'],
-          'student_ids.*' => ['required', 'string'],
-          'ref_num' => ['nullable', 'string', 'max:255'],
-        ]);
-      }
-
-      // Handle students data
-      $students = [];
-      if ($hasMultipleStudents) {
-        $students = json_decode($multipleStudentsData, true);
-        if (!$students || !is_array($students) || empty($students)) {
-          return redirect()->route('admin.AddViolator')->with('error', 'No students data provided.');
-        }
-      } else {
-        // Single student from form fields
-        $students = [[
-          'student_id' => $request->input('student_id'),
-          'first_name' => $request->input('first_name'),
-          'last_name' => $request->input('last_name'),
-          'department' => $request->input('department'),
-          'course' => $request->input('course'),
-        ]];
-      }
-
-      // Handle violations data
-      $violations = [];
-      if ($hasMultipleViolations) {
-        $violations = json_decode($multipleViolationsData, true);
-        if (!$violations || !is_array($violations) || empty($violations)) {
-          return redirect()->route('admin.AddViolator')->with('error', 'No violations data provided.');
-        }
-      } else {
-        // Single violation from form field
-        $violations = [['description' => $validated['violation']]];
-      }
-
-      // Get current user name
-      $userName = Auth::user()->fullname ?? 'Admin';
-      $createdViolations = [];
-      $escalationMessages = [];
-
-      // Create violations for each student-violation combination
-      foreach ($students as $student) {
-        // Validate each student's data
-        if (!isset($student['student_id']) || !isset($student['first_name']) || !isset($student['last_name'])) {
-          continue; // Skip invalid student data
-        }
-
-        foreach ($violations as $violationData) {
-          // Generate unique ID for each violation
-          $uniqueID = uniqid();
-
-          $violation = StudentViolation::create([
-            'first_name' => $student['first_name'],
-            'last_name' => $student['last_name'],
-            'student_id' => $student['student_id'],
-            'department' => $student['department'] ?? '',
-            'course' => $student['course'] ?? '',
-            'offense_type' => $validated['offense_type'],
-            'violation' => $violationData['description'],
-            'ref_num' => $validated['ref_num'],
-            'added_by' => $userName,
-            'status' => '0', // Pending status
-            'unique_id' => $uniqueID,
-          ]);
-
-          $createdViolations[] = $violation;
-
-          // Get the violation details to find article reference
-          $violationRecord = Violation::where('description', $violation->violation)->first();
-          $article = $violationRecord ? $violationRecord->article : null;
-
-          // Create notification for each violation
-          ViolationNotif::create([
-            'ref_num' => $violation->ref_num ?? 'VIOLATION-' . $violation->id,
-            'student_id' => $violation->student_id,
-            'status' => 0,
-            'notif' => ViolationHelper::generateViolationNotification(
-                $violation->offense_type,
-                (string) $violation->violation,
-                $article,
-                $violation->added_by
-            ),
-          ]);
-        }
-
-        // Check for escalation if this is a minor violation (only once per student)
-        if ($validated['offense_type'] === 'minor') {
-          $escalated = $this->checkMinorViolationEscalation($student['student_id']);
-          if ($escalated) {
-            $escalationMessages[] = $student['first_name'] . ' ' . $student['last_name'];
-          }
-        }
-      }
-
-      // Create success message based on what was added
-      $studentCount = count($students);
-      $violationCount = count($violations);
-      $totalRecords = count($createdViolations);
-
-      if ($hasMultipleStudents && $hasMultipleViolations) {
-        $successMessage = "Successfully added {$violationCount} violations for {$studentCount} students ({$totalRecords} total violation records created)!";
-      } elseif ($hasMultipleStudents) {
-        $successMessage = "Successfully added violation for {$studentCount} students!";
-      } elseif ($hasMultipleViolations) {
-        $successMessage = "Successfully added {$violationCount} violations for the student!";
-      } else {
-        $successMessage = 'Violator added successfully!';
-      }
-
-      if (!empty($escalationMessages)) {
-        $escalatedNames = implode(', ', $escalationMessages);
-        $successMessage .= ' 🚨 AUTOMATIC ESCALATION: The following students now have 3 minor violations and MAJOR VIOLATIONS have been automatically created: ' . $escalatedNames;
-      }
-
-      return redirect()->route('admin.AddViolator')->with('success', $successMessage);
-    } catch (\Exception $e) {
-      return redirect()->route('admin.AddViolator')->with('error', 'An error occurred while adding violators: ' . $e->getMessage());
-    }
-  }
-
-  /**
    * Search students for violator forms (API endpoint)
    */
   public function searchStudents(Request $request)
@@ -454,9 +280,11 @@ class ViolatorController extends Controller
     // Search in Good Moral system tables (role_account)
     $students = RoleAccount::where(function($q) use ($query) {
         $q->where('student_id', 'LIKE', "%{$query}%")
-          ->orWhere('fullname', 'LIKE', "%{$query}%");
+          ->orWhere('fullname', 'LIKE', "%{$query}%")
+          ->orWhere('email', 'LIKE', "%{$query}%");
       })
-      ->where('status', '1') // Only active students
+      ->where('account_type', 'student')
+      ->where('status', 'active')
       ->select('student_id', 'fullname', 'department', 'course', 'year_level')
       ->limit(10)
       ->get()

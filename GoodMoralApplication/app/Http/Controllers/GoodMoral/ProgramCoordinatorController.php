@@ -4,28 +4,21 @@ namespace App\Http\Controllers\GoodMoral;
 use App\Http\Controllers\Controller;
 
 use Illuminate\Http\Request;
-use App\Models\DeanApplication;
-use App\Models\SecOSAApplication;
-use App\Models\GoodMoralApplication;
-use App\Models\NotifArchive;
-use App\Models\ViolationNotif;
 use App\Models\RoleAccount;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use App\Traits\RoleCheck;
 use App\Models\StudentViolation;
-use App\Models\Violation;
-use App\Models\HeadOSAApplication;
-use Illuminate\Support\Str;
+use App\Services\ViolationService;
 
 class ProgramCoordinatorController extends Controller
 {
   use RoleCheck;
 
-  public function __construct()
-  {
-    // Temporarily disable role check to fix authentication
-    // $this->checkRole(['prog_coor']);
+  public function __construct(
+    private ViolationService $violationService
+  ) {
+    $this->checkRole(['prog_coor']);
   }
 
   // Dashboard and minor violations removed - Program Coordinators only view major violations from their department
@@ -63,20 +56,7 @@ class ProgramCoordinatorController extends Controller
       ->paginate(10);
 
     // Count violations by status for dashboard stats
-    $pendingCount = StudentViolation::where('department', $userDepartment)
-      ->where('offense_type', 'major')
-      ->where('status', '0')
-      ->count();
-
-    $proceedingsUploadedCount = StudentViolation::where('department', $userDepartment)
-      ->where('offense_type', 'major')
-      ->where('status', '1')
-      ->count();
-
-    $closedCount = StudentViolation::where('department', $userDepartment)
-      ->where('offense_type', 'major')
-      ->where('status', '2')
-      ->count();
+    extract($this->violationService->getMajorStatusCounts([$userDepartment]));
 
     return view('prog_coor.major', compact('students', 'pendingCount', 'proceedingsUploadedCount', 'closedCount'));
   }
@@ -100,20 +80,7 @@ class ProgramCoordinatorController extends Controller
     $students = $query->paginate(10);
 
     // Count violations by status for dashboard stats
-    $pendingCount = StudentViolation::where('department', $userDepartment)
-      ->where('offense_type', 'major')
-      ->where('status', '0')
-      ->count();
-
-    $proceedingsUploadedCount = StudentViolation::where('department', $userDepartment)
-      ->where('offense_type', 'major')
-      ->where('status', '1')
-      ->count();
-
-    $closedCount = StudentViolation::where('department', $userDepartment)
-      ->where('offense_type', 'major')
-      ->where('status', '2')
-      ->count();
+    extract($this->violationService->getMajorStatusCounts([$userDepartment]));
 
     return view('prog_coor.major', compact('students', 'pendingCount', 'proceedingsUploadedCount', 'closedCount'));
   }
@@ -135,6 +102,6 @@ class ProgramCoordinatorController extends Controller
       return redirect()->back()->with('error', 'Proceedings document not found.');
     }
 
-    return Storage::disk('public')->download($violation->document_path);
+    return response()->download(Storage::disk('public')->path($violation->document_path));
   }
 }

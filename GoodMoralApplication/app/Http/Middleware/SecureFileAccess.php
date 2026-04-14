@@ -28,7 +28,8 @@ class SecureFileAccess
             'uploaded_receipts/',
             'payment_notices/',
             'violations_documents/',
-            'proceedings_documents/'
+            'proceedings_documents/',
+            'violation_proceedings/',
         ];
 
         $isAllowed = false;
@@ -49,7 +50,7 @@ class SecureFileAccess
         }
 
         // Validate file type
-        $allowedExtensions = ['pdf', 'jpg', 'jpeg', 'png'];
+        $allowedExtensions = ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx'];
         $extension = strtolower(pathinfo($fullPath, PATHINFO_EXTENSION));
         
         if (!in_array($extension, $allowedExtensions)) {

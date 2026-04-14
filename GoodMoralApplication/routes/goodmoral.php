@@ -11,9 +11,14 @@ use App\Http\Controllers\Admin\PsgController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\ViolationController;
 use App\Http\Controllers\Admin\ViolatorController;
-use App\Http\Controllers\GoodMoral\DeanController;
-use App\Http\Controllers\GoodMoral\HeadOSAController;
-use App\Http\Controllers\GoodMoral\SecOSAController;
+use App\Http\Controllers\Dean\DashboardController as DeanDashboardController;
+use App\Http\Controllers\Dean\ApplicationController as DeanApplicationController;
+use App\Http\Controllers\Dean\NotificationController as DeanNotificationController;
+use App\Http\Controllers\SecOSA\DashboardController as SecOSADashboardController;
+use App\Http\Controllers\SecOSA\ViolationController as SecOSAViolationController;
+use App\Http\Controllers\SecOSA\CertificateController as SecOSACertificateController;
+use App\Http\Controllers\SecOSA\NotificationController as SecOSANotificationController;
+use App\Http\Controllers\GoodMoral\PsgApplicationController;
 use App\Http\Controllers\GoodMoral\PsgOfficerController;
 use App\Http\Controllers\GoodMoral\RegistrarController;
 use App\Http\Controllers\GoodMoral\ProgramCoordinatorController;
@@ -27,11 +32,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/notification', [ApplicationController::class, 'notification'])->name('notification');
     Route::get('/notificationViolation', [ApplicationController::class, 'notificationViolation'])->name('notificationViolation');
     Route::get('/student/notification-counts', [ApplicationController::class, 'getNotificationCounts'])->name('student.notification.counts');
-    Route::get('/student/profile', [ApplicationController::class, 'profile'])->name('student.profile');
-    Route::patch('/student/profile/password', [ApplicationController::class, 'updatePassword'])->name('student.profile.password.update');
-    Route::patch('/student/profile/email', [ApplicationController::class, 'updateEmail'])->name('student.profile.email.update');
-    Route::patch('/student/profile', [ApplicationController::class, 'updateProfile'])->name('student.profile.update');
     Route::post('/apply/good-moral-certificate', [ApplicationController::class, 'applyForGoodMoralCertificate'])->name('apply.good_moral_certificate');
+    Route::post('/receipt/upload', [ApplicationController::class, 'upload'])->name('receipt.upload');
+
+});
+
+// ─── PSG Officer Application (students only) ─────────────────────────────────
+Route::middleware(['auth', 'verified', 'role:student'])->group(function () {
+    Route::get('/student/apply-psg', [PsgApplicationController::class, 'showForm'])->name('student.applyPsg');
+    Route::post('/student/apply-psg', [PsgApplicationController::class, 'apply'])->name('student.submitPsgApplication');
+    Route::get('/student/psg-positions/{organizationId}', [PsgApplicationController::class, 'getPositions'])->name('student.psgPositions');
 });
 
 // ─── Admin ────────────────────────────────────────────────────────────────────
@@ -42,6 +52,7 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::get('/admin/ready-for-print', [AdminApplicationController::class, 'readyForPrintApplications'])->name('admin.readyForPrintApplications');
     Route::post('/admin/print-certificate/{id}', [AdminApplicationController::class, 'printCertificate'])->name('admin.printCertificate');
     Route::get('/admin/download-certificate/{id}', [AdminApplicationController::class, 'downloadCertificate'])->name('admin.downloadCertificate');
+    Route::post('/admin/certificate/{id}/mark-claimed', [AdminApplicationController::class, 'markAsClaimed'])->name('admin.markAsClaimed');
     Route::patch('/admin/good-moral/{id}/approve', [AdminApplicationController::class, 'approveGoodMoralApplication'])->name('admin.approveGoodMoralApplication');
     Route::patch('/admin/good-moral/{id}/reject', [AdminApplicationController::class, 'rejectGoodMoralApplication'])->name('admin.rejectGoodMoralApplication');
     Route::get('/admin/psgApplication', [PsgController::class, 'psgApplication'])->name('admin.psgApplication');
@@ -49,22 +60,27 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::get('/admin/reports', [ReportController::class, 'reportsPage'])->name('admin.reports');
     Route::get('/admin/reports/history', [ReportController::class, 'reportsHistory'])->name('admin.reports.history');
     Route::post('/admin/generate-selected-report', [ReportController::class, 'generateSelectedReport'])->name('admin.generateSelectedReport');
-    Route::patch('/admin/psgApplication/{student_id}/approve', [PsgController::class, 'approvepsg'])->name('admin.approvepsg');
-    Route::delete('/admin/psgApplication/{student_id}/reject', [PsgController::class, 'rejectpsg'])->name('admin.rejectpsg');
-    Route::patch('/admin/psgApplication/{student_id}/revoke', [PsgController::class, 'revokePsg'])->name('admin.revokepsg');
-    Route::patch('/admin/psgApplication/{student_id}/reconsider', [PsgController::class, 'reconsiderPsg'])->name('admin.reconsiderpsg');
+    Route::patch('/admin/psgApplication/{id}/approve', [PsgController::class, 'approvepsg'])->name('admin.approvepsg');
+    Route::delete('/admin/psgApplication/{id}/reject', [PsgController::class, 'rejectpsg'])->name('admin.rejectpsg');
+    Route::patch('/admin/psgApplication/{id}/revoke', [PsgController::class, 'revokePsg'])->name('admin.revokepsg');
+    Route::patch('/admin/psgApplication/{id}/reconsider', [PsgController::class, 'reconsiderPsg'])->name('admin.reconsiderpsg');
+    Route::post('/admin/AddViolation', [ViolationController::class, 'create'])->name('admin.storeViolation');
     Route::delete('/admin/Addviolation/{id}/delete', [ViolationController::class, 'deleteViolation'])->name('admin.deleteViolation');
+    Route::patch('/admin/violation/{id}/archive', [ViolationController::class, 'archiveViolation'])->name('admin.archiveViolation');
+    Route::patch('/admin/violation/{id}/restore', [ViolationController::class, 'restoreViolation'])->name('admin.restoreViolation');
     Route::patch('/admin/violation/update/{id}', [ViolationController::class, 'updateViolation'])->name('admin.updateViolation');
     Route::get('/admin/GMAApporvedByRegistrar', [AdminApplicationController::class, 'GMAApporvedByRegistrar'])->name('admin.GMAApporvedByRegistrar');
     Route::post('/admin/import-users', [AccountController::class, 'importUsers'])->name('admin.importUsers');
     Route::get('/admin/account/{id}/edit', [AccountController::class, 'editAccount'])->name('admin.editAccount');
     Route::put('/admin/account/{id}/update', [AccountController::class, 'updateAccount'])->name('admin.updateAccount');
     Route::delete('/admin/account/{id}/delete', [AccountController::class, 'deleteAccount'])->name('admin.deleteAccount');
+    Route::post('/admin/account/{id}/convert-to-alumni', [AccountController::class, 'convertToAlumni'])->name('admin.convertToAlumni');
     Route::get('/admin/download-template', [AccountController::class, 'downloadTemplate'])->name('admin.downloadTemplate');
     Route::get('/admin/violation', [ViolationController::class, 'violation'])->name('admin.violation');
     Route::get('/admin/violation/search', [ViolationController::class, 'violationsearch'])->name('admin.violationsearch');
     Route::post('/admin/violation/{id}/close-case', [ViolationController::class, 'closeCase'])->name('violations.closeCase');
     Route::post('/admin/violation/{id}/mark-downloaded', [ViolationController::class, 'markDownloaded'])->name('violations.markDownloaded');
+    Route::get('/admin/violation/{id}/download-proceedings', [ViolationController::class, 'downloadProceedings'])->name('admin.downloadProceedings');
     Route::get('/admin/violation-details/{id}', [ViolationController::class, 'getViolationDetails'])->name('admin.violationDetails');
     Route::post('/admin/notification/{id}/mark-read', [EscalationController::class, 'markNotificationAsRead'])->name('admin.markNotificationAsRead');
     Route::patch('/admin/application/{id}/approve', [AdminApplicationController::class, 'approveGMA'])->name('admin.approveGMA');
@@ -106,54 +122,55 @@ Route::middleware(['auth', 'verified', 'role:registrar'])->group(function () {
     Route::get('/registrar/notification-counts', [RegistrarController::class, 'getNotificationCounts'])->name('registrar.notificationCounts');
 });
 
-// ─── Head OSA ─────────────────────────────────────────────────────────────────
-Route::middleware(['auth', 'verified', 'role:head_osa'])->group(function () {
-    Route::get('/head_osa/dashboard', [HeadOSAController::class, 'dashboard'])->name('head_osa.dashboard');
-    Route::patch('/head_osa/application/{id}/approve', [HeadOSAController::class, 'approve'])->name('head_osa.approve');
-    Route::delete('/head_osa/application/{id}/reject', [HeadOSAController::class, 'reject'])->name('head_osa.reject');
+// ─── Sec OSA ──────────────────────────────────────────────────────────────────
+// Certificate printing routes (admin + sec_osa)
+Route::middleware(['auth', 'verified', 'role:admin,sec_osa'])->group(function () {
+    Route::post('/moderator/print-certificate/{id}', [SecOSACertificateController::class, 'printCertificate'])->name('moderator.printCertificate');
+    Route::get('/moderator/download-certificate/{id}', [SecOSACertificateController::class, 'downloadCertificate'])->name('moderator.downloadCertificate');
+    Route::post('/moderator/certificate/{id}/mark-claimed', [SecOSACertificateController::class, 'markAsClaimed'])->name('moderator.markAsClaimed');
 });
 
-// ─── Sec OSA ──────────────────────────────────────────────────────────────────
 Route::middleware(['auth', 'verified', 'role:sec_osa'])->group(function () {
-    Route::get('/sec_osa/dashboard', [SecOSAController::class, 'dashboard'])->name('sec_osa.dashboard');
-    Route::get('/sec_osa/application', [SecOSAController::class, 'application'])->name('sec_osa.application');
-    Route::patch('/application/{id}/approve', [SecOSAController::class, 'approve'])->name('sec_osa.approve');
-    Route::delete('/sec_osa/application/{id}/reject', [SecOSAController::class, 'reject'])->name('sec_osa.reject');
-    Route::get('/sec_osa/minor', [SecOSAController::class, 'minor'])->name('sec_osa.minor');
-    Route::get('/sec_osa/major', [SecOSAController::class, 'major'])->name('sec_osa.major');
-    Route::get('/sec_osa/escalation-notifications', [SecOSAController::class, 'escalationNotifications'])->name('sec_osa.escalationNotifications');
-    Route::get('/sec_osa/notification-counts', [SecOSAController::class, 'getNotificationCounts'])->name('sec_osa.notificationCounts');
-    Route::post('/sec_osa/upload/{id}', [SecOSAController::class, 'uploadDocument'])->name('sec_osa.document');
-    Route::post('/sec_osa/major/{id}/forward-to-admin', [SecOSAController::class, 'forwardToAdmin'])->name('sec_osa.forwardToAdmin');
-    Route::post('/moderator/print-certificate/{id}', [SecOSAController::class, 'printCertificate'])->name('moderator.printCertificate');
-    Route::get('/moderator/download-certificate/{id}', [SecOSAController::class, 'downloadCertificate'])->name('moderator.downloadCertificate');
-    Route::get('/sec_osa/department/{department}/violations', [SecOSAController::class, 'viewDepartmentViolations'])->name('sec_osa.viewDepartmentViolations');
-    Route::get('/sec_osa/violations', [SecOSAController::class, 'violation'])->name('sec_osa.violation');
-    Route::get('/sec_osa/profile', [SecOSAController::class, 'profile'])->name('sec_osa.profile');
-    Route::patch('/sec_osa/profile', [SecOSAController::class, 'updateProfile'])->name('sec_osa.profile.update');
-    Route::patch('/sec_osa/profile/email', [SecOSAController::class, 'updateEmail'])->name('sec_osa.profile.email.update');
-    Route::patch('/sec_osa/profile/password', [SecOSAController::class, 'updatePassword'])->name('sec_osa.profile.password.update');
-    Route::get('/sec_osa/major/{id}/upload-proceedings', [SecOSAController::class, 'showUploadProceedings'])->name('sec_osa.showUploadProceedings');
-    Route::post('/sec_osa/major/{id}/upload-proceedings', [SecOSAController::class, 'uploadProceedings'])->name('sec_osa.uploadProceedings');
-    Route::get('/sec_osa/major/{id}/download-proceedings', [SecOSAController::class, 'downloadProceedings'])->name('sec_osa.downloadProceedings');
-    Route::get('/sec_osa/minor/search', [SecOSAController::class, 'searchMinor'])->name('sec_osa.searchMinor');
-    Route::get('/sec_osa/major/search', [SecOSAController::class, 'searchMajor'])->name('sec_osa.searchMajor');
+    // Dashboard
+    Route::get('/sec_osa/dashboard', [SecOSADashboardController::class, 'dashboard'])->name('sec_osa.dashboard');
+
+    // Certificates & Applications
+    Route::get('/sec_osa/application', [SecOSACertificateController::class, 'application'])->name('sec_osa.application');
+    Route::patch('/application/{id}/approve', [SecOSACertificateController::class, 'approve'])->name('sec_osa.approve');
+    Route::delete('/sec_osa/application/{id}/reject', [SecOSACertificateController::class, 'reject'])->name('sec_osa.reject');
+
+    // Violations
+    Route::get('/sec_osa/minor', [SecOSAViolationController::class, 'minor'])->name('sec_osa.minor');
+    Route::get('/sec_osa/major', [SecOSAViolationController::class, 'major'])->name('sec_osa.major');
+    Route::get('/sec_osa/violations', [SecOSAViolationController::class, 'violation'])->name('sec_osa.violation');
+    Route::get('/sec_osa/department/{department}/violations', [SecOSAViolationController::class, 'viewDepartmentViolations'])->name('sec_osa.viewDepartmentViolations');
+    Route::get('/sec_osa/escalation-notifications', [SecOSAViolationController::class, 'escalationNotifications'])->name('sec_osa.escalationNotifications');
+    Route::post('/sec_osa/upload/{id}', [SecOSAViolationController::class, 'uploadDocument'])->name('sec_osa.document');
+    Route::post('/sec_osa/major/{id}/forward-to-admin', [SecOSAViolationController::class, 'forwardToAdmin'])->name('sec_osa.forwardToAdmin');
+    Route::get('/sec_osa/major/{id}/upload-proceedings', [SecOSAViolationController::class, 'showUploadProceedings'])->name('sec_osa.showUploadProceedings');
+    Route::post('/sec_osa/major/{id}/upload-proceedings', [SecOSAViolationController::class, 'uploadProceedings'])->name('sec_osa.uploadProceedings');
+    Route::get('/sec_osa/major/{id}/download-proceedings', [SecOSAViolationController::class, 'downloadProceedings'])->name('sec_osa.downloadProceedings');
+    Route::get('/sec_osa/minor/search', [SecOSAViolationController::class, 'searchMinor'])->name('sec_osa.searchMinor');
+    Route::get('/sec_osa/major/search', [SecOSAViolationController::class, 'searchMajor'])->name('sec_osa.searchMajor');
+
+    // Notifications
+    Route::get('/sec_osa/notification-counts', [SecOSANotificationController::class, 'getNotificationCounts'])->name('sec_osa.notificationCounts');
 });
 
 // ─── Dean ─────────────────────────────────────────────────────────────────────
 Route::prefix('dean')->name('dean.')->middleware(['auth', 'verified', 'role:dean,deansom,deangradsch'])->group(function () {
-    Route::get('/dashboard', [DeanController::class, 'dashboard'])->name('dashboard');
-    Route::get('/application', [DeanController::class, 'application'])->name('application');
-    Route::patch('/application/{id}/approve', [DeanController::class, 'approve'])->name('approve');
-    Route::delete('/application/{id}/reject', [DeanController::class, 'reject'])->name('reject');
-    Route::get('/notification-counts', [DeanController::class, 'getNotificationCounts'])->name('notificationCounts');
-    Route::patch('/good-moral/{id}/approve', [DeanController::class, 'approveGoodMoral'])->name('approveGoodMoral');
-    Route::patch('/good-moral/{id}/reject', [DeanController::class, 'rejectGoodMoral'])->name('rejectGoodMoral');
-    Route::patch('/reconsider/{id}', [DeanController::class, 'reconsider'])->name('reconsider');
-    Route::get('/application/{id}/details', [DeanController::class, 'getApplicationDetails'])->name('application.details');
-    Route::get('/major', [DeanController::class, 'major'])->name('major');
-    Route::get('/minor', [DeanController::class, 'minor'])->name('minor');
-    Route::post('/violation/{id}/approve', [DeanController::class, 'deanviolationapprove'])->name('violation.approve');
+    Route::get('/dashboard', [DeanDashboardController::class, 'dashboard'])->name('dashboard');
+    Route::get('/application', [DeanApplicationController::class, 'application'])->name('application');
+    Route::patch('/application/{id}/approve', [DeanApplicationController::class, 'approve'])->name('approve');
+    Route::delete('/application/{id}/reject', [DeanApplicationController::class, 'reject'])->name('reject');
+    Route::get('/notification-counts', [DeanNotificationController::class, 'getNotificationCounts'])->name('notificationCounts');
+    Route::patch('/good-moral/{id}/approve', [DeanApplicationController::class, 'approveGoodMoral'])->name('approveGoodMoral');
+    Route::patch('/good-moral/{id}/reject', [DeanApplicationController::class, 'rejectGoodMoral'])->name('rejectGoodMoral');
+    Route::patch('/reconsider/{id}', [DeanApplicationController::class, 'reconsider'])->name('reconsider');
+    Route::get('/application/{id}/details', [DeanApplicationController::class, 'getApplicationDetails'])->name('application.details');
+    Route::get('/major', [DeanDashboardController::class, 'major'])->name('major');
+    Route::get('/minor', [DeanDashboardController::class, 'minor'])->name('minor');
+    Route::post('/violation/{id}/approve', [DeanApplicationController::class, 'deanviolationapprove'])->name('violation.approve');
 });
 
 // ─── Program Coordinator ──────────────────────────────────────────────────────

@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::create('good_moral_applications', function (Blueprint $table) {
             $table->id();
-            $table->string('reference_number');
+            $table->string('reference_number')->unique();
             $table->unsignedBigInteger('receipt_id')->nullable()->index();
-            $table->string('number_of_copies');
+            $table->unsignedSmallInteger('number_of_copies');
             $table->string('student_id')->index();
-            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
+            $table->enum('status', ['pending', 'approved', 'rejected', 'waiting_for_payment', 'receipt_uploaded'])->default('pending')->index();
             $table->string('fullname');
             $table->enum('gender', ['male', 'female']);
             $table->string('department');
@@ -36,7 +36,7 @@ return new class extends Migration
             $table->string('last_semester_sy')->nullable();
             $table->timestamps();
 
-            $table->foreign('receipt_id')->references('id')->on('receipt')->nullOnDelete();
+            $table->foreign('receipt_id')->references('id')->on('receipts')->nullOnDelete();
         });
     }
 

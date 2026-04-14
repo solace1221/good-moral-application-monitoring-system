@@ -64,7 +64,7 @@ class DefaultUsersSeeder extends Seeder
                         'password' => $hashedPassword,
                         'account_type' => 'dean',
                         'department' => $dean['dept'],
-                        'status' => '1',
+                        'status' => 'active',
                     ]);
                 }
             });

@@ -13,6 +13,7 @@ use App\Traits\ViolationEscalationTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class ViolationController extends Controller
 {
@@ -33,13 +34,12 @@ class ViolationController extends Controller
       'offense_type' => $validated['offense_type'],
       'description' => $validated['description'],
       'article' => $validated['article'],
+      'status' => 'active',
     ]);
-    $violations = Violation::paginate(10);
     return redirect()->back()->with('success', 'Violation successfully recorded.');
   }
   public function AddViolationDashboard()
   {
-
     $violations = Violation::get();
     $violationpage = Violation::paginate(10);
     return view('admin.add-violation', compact('violations', 'violationpage'));
@@ -47,15 +47,37 @@ class ViolationController extends Controller
 
   public function deleteViolation($id)
   {
-    // Retrieve the application from the RoleAccount table
-    $application = Violation::where('id', $id)->firstOrFail();
-    // Delete the original application from the RoleAccount table
-    $application->delete();
-    $violations = Violation::get();
-    $violationpage = Violation::paginate(10);
-    $status = 'Violation Deleted Successfully.';
-    // Redirect with a success message
-    return redirect()->route('admin.AddViolation')->with(compact('violations', 'violationpage', 'status'));
+    $violation = Violation::findOrFail($id);
+
+    // If it's in use, archive instead of delete
+    if ($violation->isInUse()) {
+      $violation->update(['status' => 'inactive']);
+      return redirect()->route('admin.AddViolation')
+        ->with('success', 'Violation type has been archived because it is referenced by existing student records.');
+    }
+
+    // Not in use — allow permanent deletion
+    $violation->delete();
+    return redirect()->route('admin.AddViolation')
+      ->with('success', 'Violation type deleted successfully.');
+  }
+
+  public function archiveViolation($id)
+  {
+    $violation = Violation::findOrFail($id);
+    $violation->update(['status' => 'inactive']);
+
+    return redirect()->route('admin.AddViolation')
+      ->with('success', 'Violation type has been archived.');
+  }
+
+  public function restoreViolation($id)
+  {
+    $violation = Violation::findOrFail($id);
+    $violation->update(['status' => 'active']);
+
+    return redirect()->route('admin.AddViolation')
+      ->with('success', 'Violation type has been restored.');
   }
   public function updateViolation(StoreViolationTypeRequest $request, $id)
   {
@@ -225,6 +247,20 @@ class ViolationController extends Controller
 
       return back()->with('success', "Major violation case {$violation->ref_num} has been successfully closed.");
     }
+  }
+
+  /**
+   * Download proceedings document for a violation (Admin has access to all)
+   */
+  public function downloadProceedings($id)
+  {
+    $violation = StudentViolation::findOrFail($id);
+
+    if (!$violation->document_path || !Storage::disk('public')->exists($violation->document_path)) {
+      return redirect()->back()->with('error', 'Proceedings document not found.');
+    }
+
+    return response()->download(Storage::disk('public')->path($violation->document_path));
   }
 
   public function violationsearch(Request $request)

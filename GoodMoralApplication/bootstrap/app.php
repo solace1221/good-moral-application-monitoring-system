@@ -15,7 +15,6 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
             'admin' => \App\Http\Middleware\AdminOnly::class,
-            'moderator' => \App\Http\Middleware\CheckModeratorRole::class,
             'secure.file' => \App\Http\Middleware\SecureFileAccess::class,
         ]);
 
@@ -30,7 +29,6 @@ return Application::configure(basePath: dirname(__DIR__))
             return match ($user->account_type) {
                 'admin' => '/admin/dashboard',
                 'dean' => '/dean/dashboard',
-                'head_osa' => '/head_osa/dashboard',
                 'sec_osa' => '/sec_osa/dashboard',
                 'psg_officer' => '/PsgOfficer/dashboard',
                 'registrar' => '/registrar/goodMoralApplication',

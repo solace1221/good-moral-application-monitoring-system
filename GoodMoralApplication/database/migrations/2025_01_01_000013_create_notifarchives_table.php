@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('notifarchives', function (Blueprint $table) {
             $table->id();
-            $table->string('reference_number');
+            $table->string('reference_number')->index();
             $table->string('number_of_copies');
-            $table->string('student_id');
+            $table->string('student_id')->index();
             $table->string('status');
             $table->string('fullname', 200);
             $table->enum('gender', ['male', 'female'])->nullable();

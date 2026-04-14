@@ -12,7 +12,6 @@ class HeadOSAApplication extends Model
   protected $table = 'head_osa_applications'; // ✅ Explicit table name
 
   protected $fillable = [
-    'application_id',
     'reference_number',
     'number_of_copies',
     'student_id',
@@ -25,6 +24,12 @@ class HeadOSAApplication extends Model
     'last_course_year_level', // New field
     'last_semester_sy',   // New field
     'status',
+  ];
+
+  protected $casts = [
+    'graduation_date' => 'date',
+    'is_undergraduate' => 'boolean',
+    'number_of_copies' => 'integer',
   ];
 
   public function student()

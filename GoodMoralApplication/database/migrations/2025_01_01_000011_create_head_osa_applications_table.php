@@ -14,12 +14,12 @@ return new class extends Migration
         Schema::create('head_osa_applications', function (Blueprint $table) {
             $table->id();
             $table->string('student_id')->index();
-            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
+            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending')->index();
             $table->string('department');
             $table->string('fullname');
-            $table->string('reason');
-            $table->string('reference_number');
-            $table->string('number_of_copies');
+            $table->text('reason');
+            $table->string('reference_number')->unique();
+            $table->unsignedSmallInteger('number_of_copies');
             $table->string('course_completed')->nullable();
             $table->date('graduation_date')->nullable();
             $table->boolean('is_undergraduate')->default(false);

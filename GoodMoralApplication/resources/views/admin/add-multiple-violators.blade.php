@@ -37,11 +37,7 @@
     </div>
     @endif
 
-    @if (session('success'))
-    <div style="background: #efe; border: 1px solid #cfc; color: #363; padding: 16px; border-radius: 8px; margin-bottom: 24px;">
-      {{ session('success') }}
-    </div>
-    @endif
+    @include('shared.alerts.flash')
 
     @if (session('warning'))
     <div style="background: #fff3cd; border: 1px solid #ffecb5; color: #856404; padding: 16px; border-radius: 8px; margin-bottom: 24px;">
@@ -159,9 +155,10 @@
           </label>
 
           <div>
-            <label for="ref_num" style="display: block; margin-bottom: 8px; font-weight: 500; color: #333;">Reference Number (Optional)</label>
-            <input id="ref_num" type="text" name="ref_num" value="{{ old('ref_num') }}" placeholder="Enter reference number"
-                   style="width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #333;">Reference Number</label>
+            <div style="width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px; background: #f9fafb; color: #6b7280;">
+              Will be auto-generated (e.g. VIO-{{ date('Y') }}-0001)
+            </div>
           </div>
         </div>
 
@@ -301,14 +298,21 @@
         method: 'GET',
         headers: {
           'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json',
           'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}'
-        }
+        },
+        credentials: 'same-origin'
       })
-      .then(response => response.json())
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+        }
+        return response.json();
+      })
       .then(students => displaySearchResults(students))
       .catch(error => {
         console.error('Search error:', error);
-        container.innerHTML = '<p style="color: #dc3545; margin: 0;">Error searching students. Please try again.</p>';
+        container.innerHTML = '<p style="color: #dc3545; margin: 0;">Error searching students: ' + error.message + '. Please try again.</p>';
       });
     }
 
@@ -480,8 +484,5 @@
       margin-bottom: 8px;
     }
 
-    :root {
-      --primary-green: #10B981;
-    }
   </style>
 </x-dashboard-layout>

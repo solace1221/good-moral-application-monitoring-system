@@ -16,7 +16,10 @@ return new class extends Migration
             $table->text('offense_type');
             $table->text('description');
             $table->string('article')->nullable();
+            $table->string('status', 10)->default('active');
             $table->timestamps();
+
+            $table->unique(['offense_type', 'description'], 'violations_offense_description_unique');
         });
 
         Schema::create('student_violations', function (Blueprint $table) {
@@ -26,7 +29,7 @@ return new class extends Migration
             $table->text('violation');
             $table->text('status');
             $table->text('offense_type');
-            $table->string('student_id');
+            $table->string('student_id')->index();
             $table->string('added_by', 200);
             $table->string('unique_id');
             $table->unsignedBigInteger('violation_id')->nullable()->index();
@@ -41,7 +44,9 @@ return new class extends Migration
             $table->string('forwarded_by', 200)->nullable();
             $table->string('closed_by', 200)->nullable();
             $table->timestamp('closed_at')->nullable();
-            $table->string('ref_num')->nullable();
+            $table->string('ref_num');
+            $table->string('case_type', 10)->default('single');
+            $table->unsignedInteger('group_size')->default(1);
             $table->timestamps();
             $table->boolean('downloaded')->default(false);
 
@@ -51,7 +56,7 @@ return new class extends Migration
         Schema::create('violation_notifs', function (Blueprint $table) {
             $table->id();
             $table->string('ref_num');
-            $table->string('student_id');
+            $table->string('student_id')->index();
             $table->string('status');
             $table->text('notif');
             $table->timestamps();

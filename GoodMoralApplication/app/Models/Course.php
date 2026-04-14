@@ -14,13 +14,7 @@ class Course extends Model
         'course_name',
         'department',
         'department_name',
-        'is_active',
-        'description',
         'sort_order',
-    ];
-
-    protected $casts = [
-        'is_active' => 'boolean',
     ];
 
     /**
@@ -29,14 +23,6 @@ class Course extends Model
     public function departmentModel()
     {
         return $this->belongsTo(Department::class, 'department', 'department_code');
-    }
-
-    /**
-     * Scope: only active courses
-     */
-    public function scopeActive($query)
-    {
-        return $query->where('is_active', true);
     }
 
     /**
@@ -68,8 +54,7 @@ class Course extends Model
      */
     public static function getByDepartment()
     {
-        return self::active()
-            ->ordered()
+        return self::ordered()
             ->get()
             ->groupBy('department')
             ->map(function ($courses) {
@@ -82,8 +67,7 @@ class Course extends Model
      */
     public static function getAllCourses()
     {
-        return self::active()
-            ->ordered()
+        return self::ordered()
             ->pluck('course_name', 'course_code')
             ->toArray();
     }

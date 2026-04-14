@@ -34,11 +34,12 @@ class PsgOfficerController extends Controller
 
         $user = Auth::user();
         
-        // Get PSG officer's student record
-        $student = RoleAccount::where('id', $user->id)->first();
+        // Get PSG officer's student record by email (users.id ≠ role_account.id)
+        $student = RoleAccount::where('email', $user->email)->first();
         
         if (!$student) {
-            return redirect()->back()->with('error', 'PSG Officer record not found.');
+            Auth::logout();
+            return redirect()->route('login')->with('error', 'PSG Officer record not found. Please contact the administrator.');
         }
 
         $studentId = $student->student_id;
@@ -85,10 +86,11 @@ class PsgOfficerController extends Controller
         }
 
         $user = Auth::user();
-        $student = RoleAccount::where('id', $user->id)->first();
+        $student = RoleAccount::where('email', $user->email)->first();
         
         if (!$student) {
-            return redirect()->back()->with('error', 'PSG Officer record not found.');
+            Auth::logout();
+            return redirect()->route('login')->with('error', 'PSG Officer record not found. Please contact the administrator.');
         }
 
         $studentId = $student->student_id;
@@ -134,10 +136,11 @@ class PsgOfficerController extends Controller
         $referenceNumber = $prefix . '-' . $timestamp . '-' . $randomString;
 
         // Get PSG officer's information
-        $student = RoleAccount::where('id', $user->id)->first();
+        $student = RoleAccount::where('email', $user->email)->first();
         
         if (!$student) {
-            return redirect()->back()->with('error', 'PSG Officer record not found.');
+            Auth::logout();
+            return redirect()->route('login')->with('error', 'PSG Officer record not found. Please contact the administrator.');
         }
 
         $studentId = $student->student_id;
@@ -187,10 +190,11 @@ class PsgOfficerController extends Controller
         }
 
         $user = Auth::user();
-        $student = RoleAccount::where('id', $user->id)->first();
+        $student = RoleAccount::where('email', $user->email)->first();
         
         if (!$student) {
-            return redirect()->back()->with('error', 'PSG Officer record not found.');
+            Auth::logout();
+            return redirect()->route('login')->with('error', 'PSG Officer record not found. Please contact the administrator.');
         }
 
         $studentId = $student->student_id;
@@ -214,10 +218,11 @@ class PsgOfficerController extends Controller
         }
 
         $user = Auth::user();
-        $student = RoleAccount::where('id', $user->id)->first();
+        $student = RoleAccount::where('email', $user->email)->first();
         
         if (!$student) {
-            return redirect()->back()->with('error', 'PSG Officer record not found.');
+            Auth::logout();
+            return redirect()->route('login')->with('error', 'PSG Officer record not found. Please contact the administrator.');
         }
 
         $studentId = $student->student_id;

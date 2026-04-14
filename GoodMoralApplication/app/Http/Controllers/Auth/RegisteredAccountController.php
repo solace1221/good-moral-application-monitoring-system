@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\StudentRegistration;
 use App\Models\RoleAccount;
 use App\Models\Organization;
+use App\Models\Course;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -48,7 +49,9 @@ class RegisteredAccountController extends Controller
 
     $organizations = Organization::orderBy('description')->get();
 
-    return view('admin.add-account', compact('students', 'organizations'));
+    $courses = Course::ordered()->get();
+
+    return view('admin.add-account', compact('students', 'organizations', 'courses'));
   }
 
   /**
@@ -71,15 +74,22 @@ class RegisteredAccountController extends Controller
       'admin'       => 'admin',
       'dean'        => 'dean',
       'registrar'   => 'registrar',
-      'head_osa'    => 'head_osa',
       'sec_osa'     => 'sec_osa',
-      'psg_officer' => 'psg_officer',
       'prog_coor'   => 'prog_coor',
     ];
 
     $userRole = $roleMap[$request->account_type] ?? $request->account_type;
 
+    try {
     DB::transaction(function () use ($request, $nameParts, $hashedPassword, $userRole) {
+      // Resolve course_id to course_code for backward-compat text column
+      $courseCode = null;
+      $courseId = $request->course_id;
+      if ($courseId) {
+        $course = Course::find($courseId);
+        $courseCode = $course?->course_code;
+      }
+
       // 1. Always create login record in users table
       User::create([
         'name' => strtolower(trim($nameParts['firstname'] . '.' . $nameParts['lastname'], '.')),
@@ -90,20 +100,26 @@ class RegisteredAccountController extends Controller
         'email' => $request->email,
         'password' => $hashedPassword,
         'role' => $userRole,
-        'status' => $request->account_type === 'psg_officer' ? 'inactive' : 'active',
+        'status' => 'active',
       ]);
 
       // 2. Always create profile in role_account
+      // Only student accounts get academic fields (course_id, course, year_level)
+      $isStudent = $request->account_type === 'student';
+      $staffRoles = ['admin', 'dean', 'registrar', 'sec_osa', 'prog_coor', 'psg_officer'];
+      $isStaff = in_array($request->account_type, $staffRoles);
+
       RoleAccount::create([
         'fullname' => $request->fullname,
         'email' => $request->email,
         'department' => $request->department,
         'password' => $hashedPassword,
-        'student_id' => $request->student_id,
-        'course' => $request->course,
-        'year_level' => $request->year_level,
+        'student_id' => $isStaff ? null : $request->student_id,
+        'course_id' => $isStudent ? $courseId : null,
+        'course' => $isStudent ? $courseCode : null,
+        'year_level' => $isStudent ? $request->year_level : null,
         'organization' => $request->organization,
-        'status' => $request->account_type === 'psg_officer' ? '5' : '1',
+        'status' => 'active',
         'account_type' => $request->account_type,
       ]);
 
@@ -116,10 +132,11 @@ class RegisteredAccountController extends Controller
           'extension' => $nameParts['extension'],
           'email' => $request->email,
           'department' => $request->department,
-          'course' => $request->course,
+          'course_id' => $courseId,
+          'course' => $courseCode,
           'password' => $hashedPassword,
           'student_id' => $request->student_id,
-          'status' => '1',
+          'status' => 'active',
           'account_type' => $request->account_type,
           'year_level' => $request->year_level,
         ]);
@@ -127,6 +144,15 @@ class RegisteredAccountController extends Controller
     });
 
     return redirect()->route('admin.AddAccount')->with('success', 'Account successfully created!');
+    } catch (\Exception $e) {
+      Log::error('Account creation failed', [
+        'email' => $request->email,
+        'account_type' => $request->account_type,
+        'error' => $e->getMessage(),
+      ]);
+
+      return redirect()->route('admin.AddAccount')->with('error', 'Failed to create account. Please try again.');
+    }
   }
 
   /**

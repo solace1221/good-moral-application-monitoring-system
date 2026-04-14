@@ -17,8 +17,6 @@ return new class extends Migration
             $table->string('course_name', 300);
             $table->string('department', 10)->index();
             $table->string('department_name', 200);
-            $table->boolean('is_active')->default(true)->index();
-            $table->text('description')->nullable();
             $table->integer('sort_order')->default(0);
             $table->timestamps();
         });

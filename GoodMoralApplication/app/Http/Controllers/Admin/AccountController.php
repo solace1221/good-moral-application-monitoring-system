@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\ImportUsersRequest;
 use App\Http\Requests\UpdateAccountRequest;
 use App\Models\RoleAccount;
+use App\Models\User;
+use App\Models\Course;
 use App\Services\AccountManagementService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -88,8 +90,33 @@ class AccountController extends Controller
 
       $validated = $request->validated();
 
+      // Only student accounts have academic fields
+      if ($validated['account_type'] === 'student' && !empty($validated['course_id'])) {
+        $course = Course::find($validated['course_id']);
+        $validated['course'] = $course?->course_code;
+      } else {
+        $validated['course'] = null;
+      }
+
+      // Non-student roles: force academic fields to null
+      if ($validated['account_type'] !== 'student') {
+        $validated['course_id'] = null;
+        $validated['year_level'] = null;
+      }
+
+      // Staff roles: also force student_id to null
+      $staffRoles = ['admin', 'dean', 'registrar', 'sec_osa', 'prog_coor', 'psg_officer'];
+      if (in_array($validated['account_type'], $staffRoles)) {
+        $validated['student_id'] = null;
+      }
+
       // Update the account
       $account->update($validated);
+
+      // Sync status to users table
+      User::where('email', $account->email)->update([
+        'status' => $validated['status'],
+      ]);
 
       return redirect()->route('admin.AddAccount')
         ->with('success', 'Account updated successfully!');
@@ -203,5 +230,42 @@ class AccountController extends Controller
     };
 
     return response()->stream($callback, 200, $headers);
+  }
+
+  /**
+   * Convert a student account to alumni
+   */
+  public function convertToAlumni($id)
+  {
+    try {
+      $account = RoleAccount::findOrFail($id);
+
+      if ($account->account_type !== 'student') {
+        return redirect()->route('admin.AddAccount', ['tab' => 'list'])
+          ->with('error', 'Only student accounts can be converted to alumni.');
+      }
+
+      $accountName = $account->fullname;
+
+      // Update role_account table - clear academic fields since alumni don't have them
+      $account->update([
+        'account_type' => 'alumni',
+        'course_id' => null,
+        'course' => null,
+        'year_level' => null,
+      ]);
+
+      // Sync the users table role
+      User::where('email', $account->email)->update([
+        'role' => 'alumni',
+      ]);
+
+      return redirect()->route('admin.AddAccount', ['tab' => 'list'])
+        ->with('success', "Account for '{$accountName}' has been converted to Alumni successfully.");
+
+    } catch (\Exception $e) {
+      return redirect()->route('admin.AddAccount', ['tab' => 'list'])
+        ->with('error', 'Error converting account: ' . $e->getMessage());
+    }
   }
 }

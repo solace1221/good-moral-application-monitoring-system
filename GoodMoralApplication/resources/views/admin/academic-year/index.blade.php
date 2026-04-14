@@ -239,7 +239,7 @@
                     @csrf
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Academic Year Name</label>
-                        <input type="text" name="year_name" placeholder="e.g., 2024-2025" required
+                        <input type="text" name="academic_year" placeholder="e.g., 2024-2025" required
                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
 

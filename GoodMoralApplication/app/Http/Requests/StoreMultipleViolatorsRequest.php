@@ -18,8 +18,14 @@ class StoreMultipleViolatorsRequest extends FormRequest
             'violation' => ['required_without:multiple_violations_data', 'nullable', 'string'],
             'multiple_violations_data' => ['nullable', 'string'],
             'student_ids' => ['required', 'array', 'min:1'],
-            'student_ids.*' => ['required', 'string'],
-            'ref_num' => ['nullable', 'string', 'max:255'],
+            'student_ids.*' => ['required', 'string', 'exists:role_account,student_id'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'student_ids.*.exists' => 'One or more selected student IDs do not exist in the system.',
         ];
     }
 }

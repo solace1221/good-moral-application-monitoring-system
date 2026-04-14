@@ -76,8 +76,8 @@ Route::middleware('auth')->group(function () {
     ->middleware('role:admin,sec_osa');
 });
 
-// Route to serve storage files (outside of auth middleware)
-Route::get('/storage/{path}', function ($path) {
+// Route to serve storage files (requires authentication)
+Route::get('/files/{path}', function ($path) {
     $file = storage_path('app/public/' . $path);
 
     if (!file_exists($file)) {
@@ -92,4 +92,4 @@ Route::get('/storage/{path}', function ($path) {
         'Content-Type' => $mimeType,
         'Cache-Control' => 'public, max-age=3600',
     ]);
-})->where('path', '.*')->name('storage.file');
+})->middleware(['auth', 'verified', 'secure.file'])->where('path', '.*')->name('files.serve');

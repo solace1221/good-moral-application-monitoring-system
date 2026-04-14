@@ -23,8 +23,9 @@ class RegisterUserRequest extends FormRequest
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:student_registrations,email'],
             'password' => ['required', 'confirmed', Password::defaults()],
             'department' => ['required', 'string', 'in:SITE,SBAHM,SASTE,SNAHS,SOM,GRADSCH'],
-            'student_id' => ['required', 'string', 'max:20', 'unique:student_registrations'],
+            'student_id' => ['nullable', 'string', 'max:20', 'unique:student_registrations'],
             'account_type' => ['required', 'string', 'in:student,alumni,psg_officer'],
+            'course_id' => ['nullable', 'integer', 'exists:courses,id'],
             'year_level' => ['nullable', 'string', 'max:50'],
             'organization' => ['nullable', 'string', 'max:255'],
             'position' => ['nullable', 'string', 'max:255'],
@@ -34,7 +35,9 @@ class RegisterUserRequest extends FormRequest
             $rules['organization'] = ['required', 'string', 'max:255'];
             $rules['position'] = ['required', 'string', 'max:255'];
         } elseif ($this->input('account_type') === 'student') {
-            $rules['year_level'] = ['required', 'string', 'max:50'];
+            $rules['student_id'] = ['required', 'string', 'max:20', 'unique:student_registrations'];
+            $rules['course_id'] = ['required', 'integer', 'exists:courses,id'];
+            $rules['year_level'] = ['required', 'string', 'in:1st Year,2nd Year,3rd Year,4th Year,5th Year'];
         }
 
         return $rules;

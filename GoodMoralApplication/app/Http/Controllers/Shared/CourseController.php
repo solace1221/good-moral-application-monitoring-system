@@ -7,8 +7,6 @@ use Illuminate\Http\Request;
 use App\Models\Course;
 use App\Models\Department;
 use App\Helpers\CourseHelper;
-use Illuminate\Support\Facades\Storage;
-use App\Http\Requests\UploadCourseCsvRequest;
 
 class CourseController extends Controller
 {
@@ -25,9 +23,8 @@ class CourseController extends Controller
 
         $departments = Course::getDepartments();
         $totalCourses = Course::count();
-        $activeCourses = Course::active()->count();
 
-        return view('admin.courses.index', compact('courses', 'departments', 'totalCourses', 'activeCourses'));
+        return view('admin.courses.index', compact('courses', 'departments', 'totalCourses'));
     }
 
     /**
@@ -39,12 +36,10 @@ class CourseController extends Controller
             'course_code' => 'required|string|max:20|unique:courses,course_code',
             'course_name' => 'required|string|max:300',
             'department' => 'required|string|max:10|exists:departments,department_code',
-            'description' => 'nullable|string',
         ]);
 
         $dept = Department::where('department_code', $validated['department'])->first();
         $validated['department_name'] = $dept->department_name;
-        $validated['is_active'] = true;
         $validated['sort_order'] = Course::where('department', $validated['department'])->max('sort_order') + 1;
 
         Course::create($validated);
@@ -61,7 +56,6 @@ class CourseController extends Controller
             'course_code' => 'required|string|max:20|unique:courses,course_code,' . $course->id,
             'course_name' => 'required|string|max:300',
             'department' => 'required|string|max:10|exists:departments,department_code',
-            'description' => 'nullable|string',
         ]);
 
         $dept = Department::where('department_code', $validated['department'])->first();
@@ -70,85 +64,6 @@ class CourseController extends Controller
         $course->update($validated);
 
         return back()->with('success', "Course {$validated['course_code']} updated successfully.");
-    }
-
-    /**
-     * Show the course upload form
-     */
-    public function uploadForm()
-    {
-        return view('admin.courses.upload');
-    }
-
-    /**
-     * Handle CSV file upload and import courses
-     */
-    public function uploadCsv(UploadCourseCsvRequest $request)
-    {
-        try {
-            $file = $request->file('csv_file');
-            $filename = 'courses_' . time() . '.csv';
-            $path = $file->storeAs('courses', $filename);
-            $fullPath = storage_path('app/' . $path);
-
-            // Clear existing courses if requested
-            if ($request->boolean('clear_existing')) {
-                Course::truncate();
-            }
-
-            // Import courses from CSV
-            $result = CourseHelper::importFromCsv($fullPath);
-
-            if ($result['success']) {
-                return back()->with('success', $result['message'])
-                    ->with('import_details', [
-                        'success_count' => $result['success_count'],
-                        'error_count' => $result['error_count'],
-                        'errors' => $result['errors'] ?? []
-                    ]);
-            } else {
-                return back()->with('error', $result['message']);
-            }
-
-        } catch (\Exception $e) {
-            return back()->with('error', 'Error uploading file: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * Download sample CSV template
-     */
-    public function downloadTemplate()
-    {
-        $samplePath = storage_path('app/sample_courses.csv');
-
-        if (file_exists($samplePath)) {
-            return response()->download($samplePath, 'course_template.csv');
-        }
-
-        // Create a simple template if sample doesn't exist
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="course_template.csv"',
-        ];
-
-        $template = "course_code,course_name,department,department_name,description,sort_order\n";
-        $template .= "BSIT,Bachelor of Science in Information Technology,SITE,School of Information Technology and Engineering,IT program,1\n";
-        $template .= "BSN,Bachelor of Science in Nursing,SNAHS,School of Nursing and Allied Health Sciences,Nursing program,1\n";
-
-        return response($template, 200, $headers);
-    }
-
-    /**
-     * Toggle course active status
-     */
-    public function toggleStatus(Course $course)
-    {
-        $course->is_active = !$course->is_active;
-        $course->save();
-
-        $status = $course->is_active ? 'activated' : 'deactivated';
-        return back()->with('success', "Course {$course->course_code} has been {$status}.");
     }
 
     /**
@@ -168,7 +83,6 @@ class CourseController extends Controller
     public function apiGetCourses(Request $request)
     {
         $department = $request->get('department');
-        $activeOnly = $request->boolean('active_only', true);
 
         if ($department) {
             $courses = CourseHelper::getCoursesForDepartment($department);

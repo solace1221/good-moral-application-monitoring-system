@@ -18,6 +18,7 @@ use App\Models\NotifArchive;
 use App\Models\SecOSAApplication;
 use App\Models\AcademicYear;
 use App\Models\GeneratedReport;
+use App\Services\DashboardStatsService;
 
 class DatabaseSummaryController extends Controller
 {
@@ -42,19 +43,30 @@ class DatabaseSummaryController extends Controller
 
     // 2. STUDENT REGISTRATIONS
     $totalStudents = StudentRegistration::count();
-    $departments = ['SITE', 'SASTE', 'SBAHM', 'SNAHS', 'SOM', 'GRADSCH'];
+    $departments = DashboardStatsService::DEPARTMENTS;
+
+    // Aggregate student registrations by department and gender in a single query
+    $studentAggregates = StudentRegistration::select(
+        'department',
+        DB::raw('COUNT(*) as total'),
+        DB::raw("SUM(CASE WHEN gender = 'Male' THEN 1 ELSE 0 END) as male"),
+        DB::raw("SUM(CASE WHEN gender = 'Female' THEN 1 ELSE 0 END) as female")
+      )
+      ->whereIn('department', $departments)
+      ->groupBy('department')
+      ->get()
+      ->keyBy('department');
+
     $studentsByDepartment = [];
     $totalStudentCount = 0;
 
     foreach ($departments as $dept) {
-      $total = StudentRegistration::where('department', $dept)->count();
-      $male = StudentRegistration::where('department', $dept)->where('gender', 'Male')->count();
-      $female = StudentRegistration::where('department', $dept)->where('gender', 'Female')->count();
-      
+      $row = $studentAggregates->get($dept);
+      $total = $row ? (int) $row->total : 0;
       $studentsByDepartment[$dept] = [
         'total' => $total,
-        'male' => $male,
-        'female' => $female,
+        'male' => $row ? (int) $row->male : 0,
+        'female' => $row ? (int) $row->female : 0,
         'percentage' => 0 // Will calculate after
       ];
       $totalStudentCount += $total;
@@ -73,15 +85,29 @@ class DatabaseSummaryController extends Controller
       ->toArray();
 
     $applicationsByDepartment = [];
+
+    // Aggregate applications by department and status in a single query
+    $appAggregates = GoodMoralApplication::select(
+        'department',
+        DB::raw('COUNT(*) as total'),
+        DB::raw("SUM(CASE WHEN status = 'Pending' THEN 1 ELSE 0 END) as pending"),
+        DB::raw("SUM(CASE WHEN status = 'Approved by Administrator' THEN 1 ELSE 0 END) as approved"),
+        DB::raw("SUM(CASE WHEN status IN ('Rejected by SEC-OSA', 'Rejected by HEAD-OSA', 'Rejected by DEAN', 'Rejected by Administrator') THEN 1 ELSE 0 END) as rejected"),
+        DB::raw("SUM(CASE WHEN status = 'Ready for Pickup' THEN 1 ELSE 0 END) as ready")
+      )
+      ->whereIn('department', $departments)
+      ->groupBy('department')
+      ->get()
+      ->keyBy('department');
+
     foreach ($departments as $dept) {
+      $row = $appAggregates->get($dept);
       $applicationsByDepartment[$dept] = [
-        'total' => GoodMoralApplication::where('department', $dept)->count(),
-        'pending' => GoodMoralApplication::where('department', $dept)->where('status', 'Pending')->count(),
-        'approved' => GoodMoralApplication::where('department', $dept)
-          ->where('status', 'Approved by Administrator')->count(),
-        'rejected' => GoodMoralApplication::where('department', $dept)
-          ->whereIn('status', ['Rejected by SEC-OSA', 'Rejected by HEAD-OSA', 'Rejected by DEAN', 'Rejected by Administrator'])->count(),
-        'ready' => GoodMoralApplication::where('department', $dept)->where('status', 'Ready for Pickup')->count(),
+        'total' => $row ? (int) $row->total : 0,
+        'pending' => $row ? (int) $row->pending : 0,
+        'approved' => $row ? (int) $row->approved : 0,
+        'rejected' => $row ? (int) $row->rejected : 0,
+        'ready' => $row ? (int) $row->ready : 0,
       ];
     }
 
@@ -98,13 +124,29 @@ class DatabaseSummaryController extends Controller
     ];
 
     $violationsByDepartment = [];
+
+    // Aggregate violations by department, type, and status in a single query
+    $violAggregates = StudentViolation::select(
+        'department',
+        DB::raw('COUNT(*) as total'),
+        DB::raw("SUM(CASE WHEN offense_type = 'minor' THEN 1 ELSE 0 END) as minor"),
+        DB::raw("SUM(CASE WHEN offense_type = 'major' THEN 1 ELSE 0 END) as major"),
+        DB::raw("SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) as resolved"),
+        DB::raw("SUM(CASE WHEN status != 2 THEN 1 ELSE 0 END) as pending")
+      )
+      ->whereIn('department', $departments)
+      ->groupBy('department')
+      ->get()
+      ->keyBy('department');
+
     foreach ($departments as $dept) {
+      $row = $violAggregates->get($dept);
       $violationsByDepartment[$dept] = [
-        'total' => StudentViolation::where('department', $dept)->count(),
-        'minor' => StudentViolation::where('department', $dept)->where('offense_type', 'minor')->count(),
-        'major' => StudentViolation::where('department', $dept)->where('offense_type', 'major')->count(),
-        'resolved' => StudentViolation::where('department', $dept)->where('status', 2)->count(),
-        'pending' => StudentViolation::where('department', $dept)->where('status', '!=', 2)->count(),
+        'total' => $row ? (int) $row->total : 0,
+        'minor' => $row ? (int) $row->minor : 0,
+        'major' => $row ? (int) $row->major : 0,
+        'resolved' => $row ? (int) $row->resolved : 0,
+        'pending' => $row ? (int) $row->pending : 0,
       ];
     }
 

@@ -36,11 +36,7 @@
     </div>
   </div>
   <!-- Status Messages -->
-  @if(session('success'))
-  <div style="margin-bottom: 24px; padding: 16px; background: #d4edda; color: #155724; border: 1px solid #c3e6cb; border-radius: 8px;">
-    {{ session('success') }}
-  </div>
-  @endif
+  @include('shared.alerts.flash')
 
   <!-- Enhanced Search and Filter Form -->
   <div style="background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow: hidden; margin-top: 24px;">

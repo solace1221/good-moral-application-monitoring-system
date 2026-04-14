@@ -14,12 +14,6 @@
         <div class="accent-line"></div>
       </div>
       <div style="display: flex; gap: 12px; align-items: center;">
-        <a href="{{ route('admin.courses.upload.form') }}" class="btn-secondary" style="padding: 10px 16px; font-size: 14px; text-decoration: none; display: flex; align-items: center; gap: 8px;">
-          <svg xmlns="http://www.w3.org/2000/svg" style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-          </svg>
-          Upload CSV
-        </a>
         <button onclick="openCreateModal()" class="btn-primary" style="padding: 10px 16px; font-size: 14px; display: flex; align-items: center; gap: 8px;">
           <svg xmlns="http://www.w3.org/2000/svg" style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -38,10 +32,6 @@
         <p style="font-size: 28px; font-weight: 700; color: #333;">{{ $totalCourses }}</p>
       </div>
       <div class="card" style="padding: 20px; text-align: center;">
-        <p style="font-size: 14px; color: #666; margin-bottom: 4px;">Active Courses</p>
-        <p style="font-size: 28px; font-weight: 700; color: #22c55e;">{{ $activeCourses }}</p>
-      </div>
-      <div class="card" style="padding: 20px; text-align: center;">
         <p style="font-size: 14px; color: #666; margin-bottom: 4px;">Departments</p>
         <p style="font-size: 28px; font-weight: 700; color: #3b82f6;">{{ count($departments) }}</p>
       </div>
@@ -51,21 +41,11 @@
   <!-- Main Content -->
   <div class="content-section">
     <div class="card">
-      @if(session('success'))
-        <div class="alert alert-success" style="margin-bottom: 20px;">
-          {{ session('success') }}
-        </div>
-      @endif
-
-      @if(session('error'))
-        <div class="alert alert-error" style="margin-bottom: 20px;">
-          {{ session('error') }}
-        </div>
-      @endif
+      @include('shared.alerts.flash')
 
       @if($courses->isEmpty())
         <div style="text-align: center; padding: 40px 20px; color: #666;">
-          <p>No courses found. Add courses manually or upload a CSV file.</p>
+          <p>No courses found. Click "Add Course" to create one.</p>
         </div>
       @else
         @foreach($courses as $deptCode => $deptCourses)
@@ -80,7 +60,6 @@
                   <tr>
                     <th class="px-6 py-3 text-left text-sm font-medium text-gray-500">Code</th>
                     <th class="px-6 py-3 text-left text-sm font-medium text-gray-500">Course Name</th>
-                    <th class="px-6 py-3 text-left text-sm font-medium text-gray-500">Status</th>
                     <th class="px-6 py-3 text-left text-sm font-medium text-gray-500">Actions</th>
                   </tr>
                 </thead>
@@ -90,24 +69,10 @@
                       <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ $course->course_code }}</td>
                       <td class="px-6 py-4 text-sm text-gray-600">{{ $course->course_name }}</td>
                       <td class="px-6 py-4 text-sm">
-                        @if($course->is_active)
-                          <span class="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">Active</span>
-                        @else
-                          <span class="px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">Inactive</span>
-                        @endif
-                      </td>
-                      <td class="px-6 py-4 text-sm">
                         <div class="flex gap-2">
                           <button onclick="openEditModal({{ json_encode($course) }})" class="bg-blue-500 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-xs">
                             Edit
                           </button>
-                          <form action="{{ route('admin.courses.toggle', $course) }}" method="POST" style="display:inline;">
-                            @csrf
-                            @method('PATCH')
-                            <button type="submit" class="{{ $course->is_active ? 'bg-yellow-500 hover:bg-yellow-700' : 'bg-green-500 hover:bg-green-700' }} text-white px-3 py-1 rounded-md text-xs">
-                              {{ $course->is_active ? 'Deactivate' : 'Activate' }}
-                            </button>
-                          </form>
                           <form action="{{ route('admin.courses.destroy', $course) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this course?');">
                             @csrf
                             @method('DELETE')
@@ -151,10 +116,6 @@
             @endforeach
           </select>
         </div>
-        <div style="margin-bottom:20px;">
-          <label style="display:block; font-weight:500; margin-bottom:4px;">Description (optional)</label>
-          <textarea name="description" rows="2" style="width:100%; padding:8px 12px; border:1px solid #d1d5db; border-radius:6px;"></textarea>
-        </div>
         <div style="display:flex; gap:12px; justify-content:flex-end;">
           <button type="button" onclick="closeCreateModal()" class="btn-secondary" style="padding:8px 20px;">Cancel</button>
           <button type="submit" class="btn-primary" style="padding:8px 20px;">Create Course</button>
@@ -187,10 +148,6 @@
             @endforeach
           </select>
         </div>
-        <div style="margin-bottom:20px;">
-          <label style="display:block; font-weight:500; margin-bottom:4px;">Description (optional)</label>
-          <textarea name="description" id="edit_description" rows="2" style="width:100%; padding:8px 12px; border:1px solid #d1d5db; border-radius:6px;"></textarea>
-        </div>
         <div style="display:flex; gap:12px; justify-content:flex-end;">
           <button type="button" onclick="closeEditModal()" class="btn-secondary" style="padding:8px 20px;">Cancel</button>
           <button type="submit" class="btn-primary" style="padding:8px 20px;">Update Course</button>
@@ -210,7 +167,6 @@
       document.getElementById('edit_course_code').value = course.course_code;
       document.getElementById('edit_course_name').value = course.course_name;
       document.getElementById('edit_department').value = course.department;
-      document.getElementById('edit_description').value = course.description || '';
       document.getElementById('editForm').action = '/admin/courses/' + course.id;
       document.getElementById('editModal').style.display = 'flex';
     }

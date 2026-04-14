@@ -7,25 +7,29 @@ use App\Models\GoodMoralApplication;
 use App\Models\HeadOSAApplication;
 use App\Services\CertificateService;
 use App\Services\GoodMoralWorkflowService;
+use App\Services\NotificationArchiveService;
 use Illuminate\Http\Request;
 
 class ApplicationController extends Controller
 {
   protected CertificateService $certificateService;
   protected GoodMoralWorkflowService $workflowService;
+  protected NotificationArchiveService $notifService;
 
   public function __construct(
     CertificateService $certificateService,
-    GoodMoralWorkflowService $workflowService
+    GoodMoralWorkflowService $workflowService,
+    NotificationArchiveService $notifService
   ) {
     $this->certificateService = $certificateService;
     $this->workflowService = $workflowService;
+    $this->notifService = $notifService;
   }
 
   public function applicationDashboard()
   {
-    // Only show applications that have been approved by the dean
-    $applications = GoodMoralApplication::where('application_status', 'LIKE', 'Approved by Dean:%')
+    // Only show applications where receipt has been uploaded (ready for admin review)
+    $applications = GoodMoralApplication::where('application_status', 'LIKE', 'Receipt Uploaded%')
       ->whereNotIn('application_status', ['Approved by Administrator', 'Rejected by Administrator'])
       ->get();
 
@@ -62,13 +66,13 @@ class ApplicationController extends Controller
   {
     $application = GoodMoralApplication::findOrFail($id);
 
-    if (!str_contains($application->application_status, 'Approved by Dean:')) {
-      return redirect()->route('admin.GMAApporvedByRegistrar')->with('error', 'Application must be approved by Dean first.');
+    if (!str_contains($application->application_status, 'Receipt Uploaded')) {
+      return redirect()->route('admin.GMAApporvedByRegistrar')->with('error', 'Student must upload payment receipt first.');
     }
 
-    $result = $this->workflowService->approveByAdmin($application);
+    $this->workflowService->approveByAdmin($application);
 
-    return redirect()->route('admin.GMAApporvedByRegistrar')->with('status', "Application approved! Payment notice {$result['receipt_number']} has been generated for {$result['formatted_payment']}. The student will be notified to upload the receipt.");
+    return redirect()->route('admin.GMAApporvedByRegistrar')->with('status', 'Application approved! The student will be notified.');
   }
 
   /**
@@ -78,8 +82,8 @@ class ApplicationController extends Controller
   {
     $application = GoodMoralApplication::findOrFail($id);
 
-    if (!str_contains($application->application_status, 'Approved by Dean:')) {
-      return redirect()->route('admin.GMAApporvedByRegistrar')->with('error', 'Application must be approved by Dean first.');
+    if (!str_contains($application->application_status, 'Receipt Uploaded')) {
+      return redirect()->route('admin.GMAApporvedByRegistrar')->with('error', 'Student must upload payment receipt first.');
     }
 
     $this->workflowService->rejectByAdmin($application);
@@ -89,11 +93,11 @@ class ApplicationController extends Controller
 
   public function readyForPrintApplications(Request $request)
   {
-    // Get base query for applications that have been approved by admin
+    // Get base query for applications that are ready for printing
     $baseQuery = GoodMoralApplication::whereIn('application_status', [
-      'Approved by Administrator',
       'Ready for Moderator Print',
-      'Ready for Pickup'
+      'Ready for Pickup',
+      'Claimed',
     ])->orderBy('updated_at', 'desc');
 
     // Get all approved applications (don't filter by receipt - show all approved)
@@ -151,7 +155,7 @@ class ApplicationController extends Controller
     return $this->certificateService->generateCertificate(
       $id,
       'download',
-      ['Approved by Administrator', 'Ready for Moderator Print', 'Ready for Pickup'],
+      ['Ready for Moderator Print', 'Ready for Pickup'],
       'admin.readyForPrintApplications',
       true
     );
@@ -165,18 +169,39 @@ class ApplicationController extends Controller
     return $this->certificateService->generateCertificate(
       $id,
       'download',
-      ['Ready for Pickup', 'Approved by Administrator', 'Ready for Moderator Print'],
+      ['Ready for Pickup', 'Ready for Moderator Print'],
       'admin.readyForPrintApplications',
       false
     );
+  }
+
+  /**
+   * Mark a certificate as claimed by the student.
+   */
+  public function markAsClaimed($id)
+  {
+    $application = GoodMoralApplication::findOrFail($id);
+
+    if ($application->application_status !== 'Ready for Pickup') {
+      return redirect()->route('admin.readyForPrintApplications')->with('error', 'Only printed certificates can be marked as claimed.');
+    }
+
+    $application->application_status = 'Claimed';
+    $application->claimed_at = now();
+    $application->claimed_by = \Illuminate\Support\Facades\Auth::id();
+    $application->save();
+
+    $this->notifService->createFromApplication($application, '6');
+
+    return redirect()->route('admin.readyForPrintApplications')->with('status', 'Certificate marked as claimed successfully.');
   }
 
   public function approveApplication($id)
   {
     $application = GoodMoralApplication::findOrFail($id);
 
-    if (!str_contains($application->application_status, 'Approved by Dean:')) {
-      return redirect()->route('admin.Application')->with('error', 'Application must be approved by Dean first!');
+    if (!str_contains($application->application_status, 'Receipt Uploaded')) {
+      return redirect()->route('admin.Application')->with('error', 'Student must upload payment receipt first!');
     }
 
     if (str_contains($application->application_status, 'Approved by Administrator') ||
@@ -184,17 +209,17 @@ class ApplicationController extends Controller
       return redirect()->route('admin.Application')->with('error', 'Application has already been processed!');
     }
 
-    $result = $this->workflowService->approveByAdmin($application);
+    $this->workflowService->approveByAdmin($application);
 
-    return redirect()->route('admin.Application')->with('status', "Application approved successfully! Payment notice {$result['receipt_number']} has been generated for {$result['formatted_payment']}. The student will be notified to upload the receipt.");
+    return redirect()->route('admin.Application')->with('status', 'Application approved successfully! The student will be notified.');
   }
 
   public function rejectApplication($id)
   {
     $application = GoodMoralApplication::findOrFail($id);
 
-    if (!str_contains($application->application_status, 'Approved by Dean:')) {
-      return redirect()->route('admin.Application')->with('error', 'Application must be approved by Dean first!');
+    if (!str_contains($application->application_status, 'Receipt Uploaded')) {
+      return redirect()->route('admin.Application')->with('error', 'Student must upload payment receipt first!');
     }
 
     if (str_contains($application->application_status, 'Approved by Administrator') ||
@@ -209,8 +234,8 @@ class ApplicationController extends Controller
 
   public function search(Request $request)
   {
-    // Start with dean-approved applications only
-    $query = GoodMoralApplication::where('application_status', 'LIKE', 'Approved by Dean:%')
+    // Start with receipt-uploaded applications only (ready for admin review)
+    $query = GoodMoralApplication::where('application_status', 'LIKE', 'Receipt Uploaded%')
       ->whereNotIn('application_status', ['Approved by Administrator', 'Rejected by Administrator']);
 
     if ($request->filled('department')) {
@@ -231,8 +256,8 @@ class ApplicationController extends Controller
     // Fetch legacy applications (HeadOSAApplication)
     $legacyApplications = HeadOSAApplication::where('status', 'pending')->get();
 
-    // Fetch applications that have been approved by the dean
-    $deanApprovedApplications = GoodMoralApplication::where('application_status', 'like', 'Approved by Dean:%')
+    // Fetch applications where receipt has been uploaded (ready for admin review)
+    $deanApprovedApplications = GoodMoralApplication::where('application_status', 'like', 'Receipt Uploaded%')
       ->orderBy('updated_at', 'desc')
       ->get();
 

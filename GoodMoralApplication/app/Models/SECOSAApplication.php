@@ -12,7 +12,6 @@ class SecOSAApplication extends Model
   protected $table = 'sec_osa_applications'; // ✅ Explicit table name
 
   protected $fillable = [
-    'application_id',
     'reference_number',
     'number_of_copies',
     'student_id',
@@ -26,6 +25,13 @@ class SecOSAApplication extends Model
     'last_semester_sy',   // New field
     'status',
   ];
+
+  protected $casts = [
+    'graduation_date' => 'date',
+    'is_undergraduate' => 'boolean',
+    'number_of_copies' => 'integer',
+  ];
+
   public function receipt()
   {
     return $this->hasOne(Receipt::class, 'reference_num', 'reference_number');

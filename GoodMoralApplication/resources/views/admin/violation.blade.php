@@ -64,18 +64,7 @@
   <div class="header-section">
 
 
-    <!-- Status Messages -->
-    @if(session('success'))
-    <div style="margin-bottom: 24px; padding: 16px; background: #d4edda; color: #155724; border: 1px solid #c3e6cb; border-radius: 8px;">
-      {{ session('success') }}
-    </div>
-    @endif
-
-    @if(session('error'))
-    <div style="margin-bottom: 24px; padding: 16px; background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 8px;">
-      {{ session('error') }}
-    </div>
-    @endif
+    @include('shared.alerts.flash')
 
     <!-- Search Form -->
     <form method="GET" action="{{ route('admin.violationsearch') }}" style="margin-bottom: 0; padding: 24px; background: white; border-radius: 0 0 12px 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-top: 1px solid #e9ecef;">
@@ -441,13 +430,20 @@
             ${violation.document_path ? `
               <div style="margin-bottom: 24px;">
                 <h4 style="margin: 0 0 12px; color: #374151; font-size: 1rem; font-weight: 600;">Documents</h4>
-                <div style="background: #f9fafb; padding: 16px; border-radius: 8px; border: 1px solid #e5e7eb;">
+                <div style="background: #f9fafb; padding: 16px; border-radius: 8px; border: 1px solid #e5e7eb; display: flex; gap: 16px; flex-wrap: wrap;">
                   <a href="/files/${violation.document_path}" target="_blank" 
                      style="display: inline-flex; align-items: center; gap: 8px; color: #3b82f6; text-decoration: none; font-weight: 500;">
                     <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
                     </svg>
                     View Proceedings Document
+                  </a>
+                  <a href="/admin/violation/${violation.id}/download-proceedings" 
+                     style="display: inline-flex; align-items: center; gap: 8px; color: #059669; text-decoration: none; font-weight: 500;">
+                    <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                    </svg>
+                    Download
                   </a>
                 </div>
               </div>
@@ -583,10 +579,6 @@
 </script>
 
 <style>
-  :root {
-    --primary-green: #10B981;
-  }
-
   .btn-primary {
     background: var(--primary-green);
     color: white;

@@ -21,7 +21,6 @@ class CourseSeeder extends Seeder
                         'course_name' => $courseName,
                         'department' => $deptCode,
                         'department_name' => $dept['name'],
-                        'is_active' => true,
                         'sort_order' => $sortOrder++,
                         'created_at' => now(),
                         'updated_at' => now(),

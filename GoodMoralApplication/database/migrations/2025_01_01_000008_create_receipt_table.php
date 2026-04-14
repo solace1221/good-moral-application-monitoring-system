@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('receipt', function (Blueprint $table) {
+        Schema::create('receipts', function (Blueprint $table) {
             $table->id();
             $table->string('receipt_number', 100)->nullable();
-            $table->string('student_id')->nullable();
+            $table->string('student_id')->nullable()->index();
             $table->decimal('amount', 10, 2)->nullable();
             $table->string('payment_method')->nullable();
             $table->string('status')->default('pending');
@@ -31,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('receipt');
+        Schema::dropIfExists('receipts');
     }
 };

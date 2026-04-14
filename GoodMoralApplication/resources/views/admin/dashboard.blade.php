@@ -68,53 +68,6 @@
     </div>
   </div>
 
-  <!-- Escalation Alerts -->
-  @if($escalationNotifications->count() > 0)
-  <div class="header-section" style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; margin-bottom: 24px;">
-    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
-      <div style="background: #e17055; color: white; padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; min-width: 40px; min-height: 40px;">
-        <svg style="width: 24px; height: 24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
-        </svg>
-      </div>
-      <div style="flex: 1; min-width: 200px;">
-        <h3 style="color: #856404; margin: 0; font-size: 1.2rem; font-weight: 600;">⚠️ Escalation Alerts</h3>
-        <p style="color: #856404; margin: 4px 0 0; font-size: 14px;">Students with 3 minor violations (equivalent to 1 major violation)</p>
-      </div>
-    </div>
-
-    <div style="display: grid; gap: 12px;">
-      @foreach($escalationNotifications as $notification)
-      <div style="background: white; padding: 16px; border-radius: 8px; border-left: 4px solid #e17055;">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap;">
-          <div style="flex: 1; min-width: 200px;">
-            <p style="margin: 0; color: #333; font-weight: 500; line-height: 1.5;">{{ $notification->notif }}</p>
-            <p style="margin: 8px 0 0; color: #666; font-size: 12px;">{{ $notification->created_at->format('M j, Y g:i A') }}</p>
-          </div>
-          <div style="display: flex; gap: 8px; flex-wrap: wrap; min-width: 200px;">
-            <button onclick="markAsRead({{ $notification->id }})"
-                    style="padding: 8px 12px; background: var(--primary-green); color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer; min-height: 36px; flex: 1; font-weight: 600; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(0, 176, 80, 0.3);" 
-                    onmouseover="this.style.background='var(--dark-green)'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(0, 176, 80, 0.4)'"
-                    onmouseout="this.style.background='var(--primary-green)'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0, 176, 80, 0.3)'"
-                    onfocus="this.style.outline='none'; this.style.border='2px solid #fff'; this.style.boxShadow='0 0 0 3px rgba(0, 176, 80, 0.5)'"
-                    onblur="this.style.border='none'; this.style.boxShadow='0 2px 8px rgba(0, 176, 80, 0.3)'">
-              Mark as Read
-            </button>
-            <a href="{{ route('admin.violation') }}"
-               style="padding: 8px 12px; background: #e17055; color: white; text-decoration: none; border-radius: 4px; font-size: 12px; display: flex; align-items: center; justify-content: center; min-height: 36px; flex: 1; font-weight: 600; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(225, 112, 85, 0.3); border: 2px solid transparent;"
-               onmouseover="this.style.background='#c0392b'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(225, 112, 85, 0.4)'"
-               onmouseout="this.style.background='#e17055'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(225, 112, 85, 0.3)'"
-               onfocus="this.style.outline='none'; this.style.border='2px solid #fff'; this.style.boxShadow='0 0 0 3px rgba(225, 112, 85, 0.5)'"
-               onblur="this.style.border='2px solid transparent'; this.style.boxShadow='0 2px 8px rgba(225, 112, 85, 0.3)'">
-              View Violations
-            </a>
-          </div>
-        </div>
-      </div>
-      @endforeach
-    </div>
-  </div>
-  @endif
 
   <!-- Statistics Grid -->
   <div class="stats-grid">

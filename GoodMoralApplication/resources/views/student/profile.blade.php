@@ -7,47 +7,7 @@
   <x-slot name="roleTitle">{{ $roleTitle }}</x-slot>
 
   <x-slot name="navigation">
-    <a href="{{ route('dashboard') }}"
-       class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="nav-icon">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" />
-      </svg>
-      <span>Application</span>
-    </a>
-
-    <a href="{{ route('notification') }}"
-       class="nav-link {{ request()->routeIs('notification') ? 'active' : '' }}">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="nav-icon">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
-      </svg>
-      <span>Application Notifications</span>
-    </a>
-
-    <a href="{{ route('notificationViolation') }}"
-       class="nav-link {{ request()->routeIs('notificationViolation') ? 'active' : '' }}">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="nav-icon">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-      </svg>
-      <span>Violation Notifications</span>
-    </a>
-
-    <a href="{{ route('student.profile') }}"
-       class="nav-link {{ request()->routeIs('student.profile') ? 'active' : '' }}">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="nav-icon">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-      </svg>
-      <span>Profile</span>
-    </a>
-
-    <form method="POST" action="{{ route('logout') }}" class="nav-logout-form">
-      @csrf
-      <button type="submit" class="nav-link nav-logout">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="nav-icon">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
-        </svg>
-        <span>Logout</span>
-      </button>
-    </form>
+    <x-student-navigation />
   </x-slot>
 
   <!-- Header Section -->
@@ -66,11 +26,7 @@
     </div>
   </div>
 
-  @if(session('status'))
-  <div style="background: #d4edda; color: #155724; padding: 16px; border-radius: 8px; margin-bottom: 24px; border-left: 4px solid #28a745;">
-    <strong>Success!</strong> {{ session('status') }}
-  </div>
-  @endif
+  @include('shared.alerts.flash')
 
   @if($errors->any())
   <div style="background: #f8d7da; color: #721c24; padding: 16px; border-radius: 8px; margin-bottom: 24px; border-left: 4px solid #dc3545;">
@@ -153,7 +109,7 @@
         <div>
           <label style="font-weight: 600; color: #333; font-size: 14px; margin-bottom: 8px; display: block;">Course</label>
           <div style="padding: 12px 16px; background: #f8f9fa; border-radius: 8px; color: #666; border: 2px solid #e1e5e9;">
-            {{ $student->course ?: 'Not specified' }}
+            {{ $student->courseRecord?->course_name ?? $student->course ?: 'Not specified' }}
           </div>
         </div>
 
@@ -193,7 +149,7 @@
 
       <!-- Profile Edit Mode -->
       <div id="profile-edit-form" style="display: none;">
-        <form method="POST" action="{{ route('student.profile.update') }}">
+        <form method="POST" action="{{ route('profile.update') }}">
           @csrf
           @method('PATCH')
 
@@ -291,7 +247,7 @@
                 <div>
                   <label style="font-weight: 600; color: #6c757d; font-size: 14px; margin-bottom: 8px; display: block;">Course</label>
                   <div style="padding: 12px 16px; background: #e9ecef; border-radius: 8px; color: #495057; border: 2px solid #dee2e6; font-weight: 500;">
-                    {{ $student->course ?: 'Not specified' }}
+                    {{ $student->courseRecord?->course_name ?? $student->course ?: 'Not specified' }}
                   </div>
                 </div>
 
@@ -349,7 +305,7 @@
       <div style="background: #e8f5e8; padding: 16px; border-radius: 8px; margin-top: 20px; border-left: 4px solid var(--primary-green);">
         <p style="color: #333; margin: 0; font-size: 14px;">
           <strong>Profile Update Policy:</strong> You can edit contact information and personal details. 
-          <strong>Name changes</strong> require formal request to Registrar/OSA. 
+          <strong>Name changes</strong> require formal request to Office of Student Affairs. 
           <strong>Academic information</strong> (course, year level) is managed by the Registrar based on official enrollment records.
         </p>
       </div>
@@ -463,7 +419,7 @@
     </h3>
 
     <div style="background: white; border-radius: 8px; padding: 24px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
-      <form method="POST" action="{{ route('student.profile.password.update') }}" style="display: grid; gap: 20px;">
+      <form method="POST" action="{{ route('password.update') }}" style="display: grid; gap: 20px;">
         @csrf
         @method('PATCH')
 

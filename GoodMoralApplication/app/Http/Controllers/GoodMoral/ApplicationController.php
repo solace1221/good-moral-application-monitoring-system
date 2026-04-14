@@ -8,7 +8,6 @@ use App\Models\Receipt;
 use Illuminate\Support\Str;
 use App\Models\GoodMoralApplication;
 use App\Models\RoleAccount;
-use App\Models\StudentRegistration;
 use App\Models\NotifArchive;
 use App\Models\StudentViolation;
 use App\Services\ReceiptValidationService;
@@ -17,14 +16,10 @@ use App\Helpers\CourseHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Validation\Rules;
 use App\Traits\RoleCheck;
 use App\Http\Requests\ApplyGoodMoralRequest;
 use App\Http\Requests\UploadReceiptRequest;
-use App\Http\Requests\StudentUpdatePasswordRequest;
-use App\Http\Requests\StudentUpdateEmailRequest;
 
 class ApplicationController extends Controller
 {
@@ -49,7 +44,6 @@ class ApplicationController extends Controller
       return redirect(match ($accountType) {
         'admin' => route('admin.dashboard'),
         'dean' => route('dean.dashboard'),
-        'head_osa' => route('head_osa.dashboard'),
         'sec_osa' => route('sec_osa.dashboard'),
         'psg_officer' => route('PsgOfficer.dashboard'),
         'registrar' => route('registrar.goodMoralApplication'),
@@ -64,7 +58,8 @@ class ApplicationController extends Controller
     $student = RoleAccount::where('email', $user->email)->first();
 
     if (!$student) {
-      return redirect()->back()->with('error', 'Student record not found.');
+      Auth::logout();
+      return redirect()->route('login')->with('error', 'Student record not found. Please contact the administrator.');
     }
 
     $studentId = $student->student_id;
@@ -158,7 +153,8 @@ class ApplicationController extends Controller
     $roleAccount = RoleAccount::where('email', $user->email)->first();
 
     if (!$roleAccount) {
-      return redirect()->back()->with('error', 'Student record not found. Please contact the administrator.');
+      Auth::logout();
+      return redirect()->route('login')->with('error', 'Student record not found. Please contact the administrator.');
     }
 
     $studentId = $roleAccount->student_id;
@@ -225,7 +221,8 @@ class ApplicationController extends Controller
     $roleAccount = RoleAccount::where('email', $user->email)->first();
 
     if (!$roleAccount) {
-      return redirect()->back()->with('error', 'Student record not found.');
+      Auth::logout();
+      return redirect()->route('login')->with('error', 'Student record not found. Please contact the administrator.');
     }
 
     // Fetch notifications for the authenticated user using the student_id
@@ -264,7 +261,8 @@ class ApplicationController extends Controller
     $roleAccount = RoleAccount::where('email', $user->email)->first();
 
     if (!$roleAccount) {
-      return redirect()->back()->with('error', 'Student record not found.');
+      Auth::logout();
+      return redirect()->route('login')->with('error', 'Student record not found. Please contact the administrator.');
     }
 
     $studentId = $roleAccount->student_id;
@@ -390,21 +388,19 @@ class ApplicationController extends Controller
       ]);
     }
 
-    // Find the application to get student details
+    // Find the application and delegate workflow to service
     $application = GoodMoralApplication::where('reference_number', $request->reference_num)->first();
 
-    if ($application) {
-      // Update application status to Ready for Moderator Print when receipt is uploaded
-      if ($application->application_status === 'Approved by Administrator') {
-        $application->application_status = 'Ready for Moderator Print';
-        $application->save();
-      }
+    if ($application && str_contains($application->application_status, 'Waiting for Payment')) {
+      // Get the receipt record we just created/updated
+      $receipt = Receipt::where('reference_num', $request->reference_num)->first();
 
-      // Create notification for student - receipt uploaded, ready for printing
-      $this->notifService->createFromApplication($application, '4');
+      // Delegate to workflow service
+      $workflowService = app(\App\Services\GoodMoralWorkflowService::class);
+      $workflowService->handleReceiptUpload($application, $receipt);
     }
 
-    return back()->with('status', 'Official receipt uploaded successfully! Your application is now ready for certificate printing.');
+    return back()->with('status', 'Official receipt uploaded successfully! Your application is now pending admin review.');
   }
 
 
@@ -490,213 +486,4 @@ class ApplicationController extends Controller
       ];
     }
   }
-
-  /**
-   * Serve storage files with proper headers
-   */
-  public function serveFile($path)
-  {
-    $file = storage_path('app/public/' . $path);
-
-    if (!file_exists($file)) {
-      abort(404, 'File not found');
-    }
-
-    // Check if file is readable
-    if (!is_readable($file)) {
-      abort(403, 'File access forbidden');
-    }
-
-    // Get the file's MIME type
-    $mimeType = mime_content_type($file) ?: 'application/octet-stream';
-
-    // Return the file with proper headers
-    return response()->file($file, [
-      'Content-Type' => $mimeType,
-      'Cache-Control' => 'public, max-age=3600',
-      'X-Content-Type-Options' => 'nosniff',
-    ]);
-  }
-
-  /**
-   * Show the student profile page
-   */
-  public function profile()
-  {
-    // Check if user is student or alumni
-    if (!in_array(Auth::user()->account_type, ['student', 'alumni'])) {
-      abort(403, 'Unauthorized access.');
-    }
-
-    $user = Auth::user();
-
-    // Get the student record tied to this user (use email, not id)
-    $student = RoleAccount::where('email', $user->email)->first();
-
-    if (!$student) {
-      return redirect()->back()->with('error', 'Student record not found.');
-    }
-
-    return view('student.profile', compact('student'));
-  }
-
-  /**
-   * Update the student's password
-   */
-  public function updatePassword(StudentUpdatePasswordRequest $request)
-  {
-    // Check if user is student or alumni
-    if (!in_array(Auth::user()->account_type, ['student', 'alumni'])) {
-      abort(403, 'Unauthorized access.');
-    }
-
-    $user = Auth::user();
-    $oldEmail = $user->email;
-
-    // Update the password
-    /** @var \App\Models\User $user */
-    $user = Auth::user();
-
-    $user->update([
-      'password' => Hash::make($request->password),
-    ]);
-
-    return redirect()->route('student.profile')->with('status', 'Password updated successfully!');
-  }
-
-  /**
-   * Update the student's email address
-   */
-  public function updateEmail(StudentUpdateEmailRequest $request)
-  {
-    // Check if user is student or alumni
-    if (!in_array(Auth::user()->account_type, ['student', 'alumni'])) {
-      abort(403, 'Unauthorized access.');
-    }
-
-    $user = Auth::user();
-    $oldEmail = $user->email;
-
-    // Update the email
-    /** @var \App\Models\User $user */
-    $user->update([
-      'email' => $request->email,
-    ]);
-
-    return redirect()->route('student.profile')->with('status', 'Email updated successfully!');
-  }
-
-  /**
-   * Update the student's profile information
-   */
-  public function updateProfile(Request $request)
-  {
-    // Check if user is student, alumni, or PSG officer
-    if (!in_array(Auth::user()->account_type, ['student', 'alumni', 'psg_officer'])) {
-      abort(403, 'Unauthorized access.');
-    }
-
-    /** @var \App\Models\User $user */
-    $user = Auth::user();
-    $oldEmail = $user->email;
-
-    // Find the matching role_account record
-    $roleAccount = RoleAccount::where('email', $oldEmail)->first();
-    if (!$roleAccount) {
-      return redirect()->route('student.profile')->with('error', 'Account record not found.');
-    }
-
-    if (in_array($user->account_type, ['student', 'alumni'])) {
-      // Students and alumni can only update email and gender
-      $rules = [
-        'email' => ['required', 'email', 'max:255', 'unique:role_account,email,' . $roleAccount->id],
-        'gender' => ['required', 'string', 'in:male,female'],
-      ];
-
-      $request->validate($rules);
-
-      // Log attempted unauthorized changes for security monitoring
-      $restrictedFields = ['first_name', 'middle_name', 'last_name', 'extension', 'course', 'year_level'];
-      $attemptedChanges = array_intersect(array_keys($request->all()), $restrictedFields);
-
-      if (!empty($attemptedChanges)) {
-        Log::warning('Unauthorized profile update attempt', [
-          'user_id' => $user->id,
-          'student_id' => $roleAccount->student_id,
-          'attempted_fields' => $attemptedChanges,
-          'ip_address' => $request->ip(),
-        ]);
-      }
-
-      DB::transaction(function () use ($user, $roleAccount, $request, $oldEmail) {
-        // 1. Update users table (email only — gender not in User $fillable)
-        $user->update([
-          'email' => $request->email,
-        ]);
-
-        // 2. Update role_account table (email + gender)
-        $roleAccount->update([
-          'email' => $request->email,
-          'gender' => $request->gender,
-        ]);
-
-        // 3. Sync student_registrations if student/alumni and email changed
-        if ($request->email !== $oldEmail) {
-          StudentRegistration::where('email', $oldEmail)->update([
-            'email' => $request->email,
-          ]);
-        }
-      });
-
-      $successMessage = 'Profile updated successfully! Note: Name changes require formal request to Registrar/OSA. Academic information is managed by the Registrar.';
-
-    } else if ($user->account_type === 'psg_officer') {
-      // PSG officers can update more fields including name and organizational info
-      $rules = [
-        'first_name' => ['required', 'string', 'max:255', 'regex:/^[A-Za-z\s]+$/'],
-        'middle_name' => ['nullable', 'string', 'max:255', 'regex:/^[A-Za-z\s]*$/'],
-        'last_name' => ['required', 'string', 'max:255', 'regex:/^[A-Za-z\s]+$/'],
-        'extension' => ['nullable', 'string', 'max:10', 'regex:/^[A-Za-z\s]*$/'],
-        'email' => ['required', 'email', 'max:255', 'unique:role_account,email,' . $roleAccount->id],
-        'gender' => ['required', 'string', 'in:male,female'],
-        'organization' => ['required', 'string', 'max:255'],
-        'position' => ['required', 'string', 'max:255'],
-      ];
-
-      $request->validate($rules);
-
-      // Create fullname from parts
-      $fullname = $request->last_name . ', ' . $request->first_name;
-      if ($request->middle_name) {
-        $fullname .= ' ' . $request->middle_name;
-      }
-
-      DB::transaction(function () use ($user, $roleAccount, $request, $oldEmail, $fullname) {
-        // 1. Update users table (fields that exist in User $fillable)
-        $user->update([
-          'firstname' => $request->first_name,
-          'lastname' => $request->last_name,
-          'middlename' => $request->middle_name,
-          'suffix_name' => $request->extension,
-          'email' => $request->email,
-        ]);
-
-        // 2. Update role_account table (all profile fields)
-        $roleAccount->update([
-          'fullname' => $fullname,
-          'mname' => $request->middle_name,
-          'extension' => $request->extension,
-          'email' => $request->email,
-          'gender' => $request->gender,
-          'organization' => $request->organization,
-          'position' => $request->position,
-        ]);
-      });
-
-      $successMessage = 'Profile updated successfully!';
-    }
-
-    return redirect()->route('student.profile')->with('status', $successMessage);
-  }
 }
-

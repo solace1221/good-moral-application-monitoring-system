@@ -21,18 +21,7 @@
     </div>
   </div>
 
-  <!-- Status Messages -->
-  @if(session('status'))
-  <div style="margin-bottom: 24px; padding: 16px; background: #d4edda; color: #155724; border: 1px solid #c3e6cb; border-radius: 8px;">
-    {{ session('status') }}
-  </div>
-  @endif
-
-  @if(session('error'))
-  <div style="margin-bottom: 24px; padding: 16px; background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 8px;">
-    {{ session('error') }}
-  </div>
-  @endif
+  @include('shared.alerts.flash')
 
   <!-- Filter Tabs -->
   <div style="background: white; border-radius: 12px 12px 0 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 0;">
@@ -116,7 +105,7 @@
                   View
                 </button>
 
-                @if(str_contains($application->application_status, 'Approved by Dean:'))
+                @if(str_contains($application->application_status, 'Receipt Uploaded') || str_contains($application->application_status, 'Approved by Dean:'))
                   <!-- Approve Button -->
                   <form action="{{ route('admin.approveGoodMoralApplication', $application->id) }}" method="POST" style="display: inline;">
                     @csrf

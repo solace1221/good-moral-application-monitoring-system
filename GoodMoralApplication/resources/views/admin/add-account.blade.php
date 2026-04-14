@@ -19,24 +19,7 @@
     </div>
   </div>
 
-  <!-- Success/Error Messages -->
-  @if(session('success'))
-  <div style="background: #d4edda; color: #155724; padding: 16px; border-radius: 8px; border-left: 4px solid #28a745; margin-bottom: 24px; display: flex; align-items: center; gap: 12px;">
-    <svg style="width: 20px; height: 20px; flex-shrink: 0;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-    </svg>
-    <span style="font-weight: 500;">{{ session('success') }}</span>
-  </div>
-  @endif
-
-  @if(session('error'))
-  <div style="background: #f8d7da; color: #721c24; padding: 16px; border-radius: 8px; border-left: 4px solid #dc3545; margin-bottom: 24px; display: flex; align-items: center; gap: 12px;">
-    <svg style="width: 20px; height: 20px; flex-shrink: 0;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
-    </svg>
-    <span style="font-weight: 500;">{{ session('error') }}</span>
-  </div>
-  @endif
+  @include('shared.alerts.flash')
 
   @if($errors->any())
   <div style="background: #fff3cd; color: #856404; padding: 16px; border-radius: 8px; border-left: 4px solid #ffc107; margin-bottom: 24px;">
@@ -83,19 +66,6 @@
 
   <!-- Main Content -->
   <div class="header-section">
-    <!-- Status Messages -->
-    @if (session('success'))
-    <div style="margin-bottom: 24px; padding: 16px; background: #d4edda; color: #155724; border: 1px solid #c3e6cb; border-radius: 8px;">
-      {{ session('success') }}
-    </div>
-    @endif
-
-    @if (session('error'))
-    <div style="margin-bottom: 24px; padding: 16px; background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 8px;">
-      {{ session('error') }}
-    </div>
-    @endif
-
     @if (session('import_result'))
     <div style="margin-bottom: 24px; padding: 16px; background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; border-radius: 8px;">
       {{ session('import_result') }}
@@ -203,24 +173,17 @@
           <x-input-error :messages="$errors->get('email')" class="mt-1" />
         </div>
 
-        <!-- Course -->
+        <!-- Course (filtered by department) -->
         <div id="course_field">
-          <label for="course" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Course <span style="color: #dc3545;">*</span></label>
+          <label for="course_id" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Course <span style="color: #dc3545;">*</span></label>
           <select
-            id="course"
-            name="course"
+            id="course_id"
+            name="course_id"
+            disabled
             style="width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px; transition: border-color 0.3s ease; background: white;">
-            <option value="">Select Course</option>
-            <option value="BS Information Technology" {{ old('course') == 'BS Information Technology' ? 'selected' : '' }}>BS Information Technology</option>
-            <option value="BS Computer Science" {{ old('course') == 'BS Computer Science' ? 'selected' : '' }}>BS Computer Science</option>
-            <option value="BS Business Administration" {{ old('course') == 'BS Business Administration' ? 'selected' : '' }}>BS Business Administration</option>
-            <option value="BS Accountancy" {{ old('course') == 'BS Accountancy' ? 'selected' : '' }}>BS Accountancy</option>
-            <option value="BS Psychology" {{ old('course') == 'BS Psychology' ? 'selected' : '' }}>BS Psychology</option>
-            <option value="BS Education" {{ old('course') == 'BS Education' ? 'selected' : '' }}>BS Education</option>
-            <option value="BS Nursing" {{ old('course') == 'BS Nursing' ? 'selected' : '' }}>BS Nursing</option>
-            <option value="BS Engineering" {{ old('course') == 'BS Engineering' ? 'selected' : '' }}>BS Engineering</option>
+            <option value="">Select a department first</option>
           </select>
-          <x-input-error :messages="$errors->get('course')" class="mt-1" />
+          <x-input-error :messages="$errors->get('course_id')" class="mt-1" />
         </div>
 
         <!-- Year Level -->
@@ -396,44 +359,6 @@
         </div>
       </form>
 
-      <!-- Academic Year Management & Student Promotion -->
-      <div style="background: #e8f5e8; padding: 20px; border-radius: 8px; border-left: 4px solid var(--primary-green); margin-bottom: 24px;">
-        <h4 style="margin: 0 0 16px 0; color: var(--primary-green); font-weight: 600; display: flex; align-items: center; gap: 8px;">
-          <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443a55.381 55.381 0 0 1 5.25 2.882V15" />
-          </svg>
-          Academic Year & Student Promotion
-        </h4>
-        <p style="margin: 0 0 16px 0; color: #495057; font-size: 14px; line-height: 1.5;">
-          Set the current academic year and trigger student promotion to automatically update year levels for eligible students.
-        </p>
-        <div style="display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: end;">
-          <div>
-            <label for="current_academic_year" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Academic Year (Format: 2024-2025):</label>
-            <input
-              type="text"
-              id="current_academic_year"
-              name="current_academic_year"
-              placeholder="e.g., 2025-2026"
-              pattern="[0-9]{4}-[0-9]{4}"
-              title="Please enter academic year in format: YYYY-YYYY (e.g., 2025-2026)"
-              style="width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px; transition: border-color 0.3s ease;"
-              value="{{ old('current_academic_year', '2025-2026') }}" />
-            <small style="color: #495057; font-size: 12px; margin-top: 4px; display: block;">
-              This will trigger student promotion and update year levels system-wide.
-            </small>
-          </div>
-          <button type="button" onclick="triggerStudentPromotion()" 
-                  style="padding: 12px 24px; background: #28a745; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 8px;">
-            <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-            </svg>
-            Trigger Promotion
-          </button>
-        </div>
-        <div id="promotion-status" style="margin-top: 12px; padding: 8px 12px; border-radius: 4px; font-size: 14px; display: none;"></div>
-      </div>
-
       <div style="overflow-x: auto;">
         <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
           <thead>
@@ -456,10 +381,14 @@
                 onmouseout="this.style.backgroundColor='transparent'">
               <td style="padding: 16px; color: #495057; font-size: 14px; font-weight: 500;">{{ $student->fullname }}</td>
               <td style="padding: 16px; color: #495057; font-size: 14px;">
-                @if($student->student_id)
-                  <span style="font-family: monospace; background: #e9ecef; padding: 2px 6px; border-radius: 4px; font-size: 13px;">{{ $student->student_id }}</span>
+                @if(in_array($student->account_type, ['student', 'alumni']))
+                  @if($student->student_id)
+                    <span style="font-family: monospace; background: #e9ecef; padding: 2px 6px; border-radius: 4px; font-size: 13px;">{{ $student->student_id }}</span>
+                  @else
+                    <span style="color: #6c757d; font-style: italic; font-size: 12px;">Not set</span>
+                  @endif
                 @else
-                  <span style="color: #6c757d; font-style: italic;">N/A</span>
+                  <span style="color: #6c757d; font-style: italic; font-size: 12px;">N/A</span>
                 @endif
               </td>
               <td style="padding: 16px; color: #495057; font-size: 14px;">{{ $student->email }}</td>
@@ -482,21 +411,29 @@
                 </span>
               </td>
               <td style="padding: 16px; color: #495057; font-size: 14px;">
-                @if($student->course)
-                  <span style="display: inline-block; padding: 4px 8px; background: #e8f5e8; color: #2e7d32; border-radius: 4px; font-size: 12px; font-weight: 500;">
-                    {{ $student->course }}
-                  </span>
+                @if($student->account_type === 'student')
+                  @if($student->course)
+                    <span style="display: inline-block; padding: 4px 8px; background: #e8f5e8; color: #2e7d32; border-radius: 4px; font-size: 12px; font-weight: 500;">
+                      {{ $student->course }}
+                    </span>
+                  @else
+                    <span style="color: #6c757d; font-style: italic; font-size: 12px;">Not set</span>
+                  @endif
                 @else
-                  <span style="color: #6c757d; font-style: italic; font-size: 12px;">Not set</span>
+                  <span style="color: #6c757d; font-style: italic; font-size: 12px;">N/A</span>
                 @endif
               </td>
               <td style="padding: 16px; color: #495057; font-size: 14px;">
-                @if($student->year_level)
-                  <span style="display: inline-block; padding: 4px 8px; background: #f3e5f5; color: #7b1fa2; border-radius: 4px; font-size: 12px; font-weight: 500;">
-                    {{ $student->year_level }}
-                  </span>
+                @if($student->account_type === 'student')
+                  @if($student->year_level)
+                    <span style="display: inline-block; padding: 4px 8px; background: #f3e5f5; color: #7b1fa2; border-radius: 4px; font-size: 12px; font-weight: 500;">
+                      {{ $student->year_level }}
+                    </span>
+                  @else
+                    <span style="color: #6c757d; font-style: italic; font-size: 12px;">Not set</span>
+                  @endif
                 @else
-                  <span style="color: #6c757d; font-style: italic; font-size: 12px;">Not set</span>
+                  <span style="color: #6c757d; font-style: italic; font-size: 12px;">N/A</span>
                 @endif
               </td>
               <td style="padding: 16px; color: #495057; font-size: 14px;">
@@ -518,7 +455,7 @@
                 </span>
               </td>
               <td style="padding: 16px; color: #495057; font-size: 14px;">
-                @if($student->status == 1)
+                @if($student->status === 'active')
                   <span style="display: inline-flex; align-items: center; padding: 6px 12px; background: #28a745; color: #ffffff !important; border-radius: 20px; font-size: 12px; font-weight: 500;">
                     <svg style="width: 14px; height: 14px; margin-right: 4px; color: #ffffff;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
@@ -526,16 +463,16 @@
                     <span style="color: #ffffff !important;">Active</span>
                   </span>
                 @else
-                  <span style="display: inline-flex; align-items: center; padding: 6px 12px; background: #ffc107; color: #ffffff !important; border-radius: 20px; font-size: 12px; font-weight: 500;">
+                  <span style="display: inline-flex; align-items: center; padding: 6px 12px; background: #dc3545; color: #ffffff !important; border-radius: 20px; font-size: 12px; font-weight: 500;">
                     <svg style="width: 14px; height: 14px; margin-right: 4px; color: #ffffff;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636" />
                     </svg>
-                    <span style="color: #ffffff !important;">Pending</span>
+                    <span style="color: #ffffff !important;">Inactive</span>
                   </span>
                 @endif
               </td>
               <td style="padding: 16px; text-align: center;">
-                <div style="display: flex; gap: 8px; justify-content: center; align-items: center;">
+                <div style="display: flex; gap: 8px; justify-content: center; align-items: center; flex-wrap: wrap;">
                   <!-- Edit Button -->
                   <button onclick="editAccount({{ $student->id }})"
                           style="padding: 8px 14px; background: var(--primary-green); color: #ffffff !important; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(0, 176, 80, 0.3);"
@@ -547,6 +484,20 @@
                     </svg>
                     <span style="color: #ffffff !important;">Edit</span>
                   </button>
+
+                  @if($student->account_type === 'student')
+                  <!-- Convert to Alumni Button -->
+                  <button onclick="convertToAlumni({{ $student->id }}, '{{ addslashes($student->fullname) }}')"
+                          style="padding: 8px 14px; background: #6610f2; color: #ffffff !important; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(102, 16, 242, 0.3);"
+                          onmouseover="this.style.background='#520dc2'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(102, 16, 242, 0.4)'; this.style.color='#ffffff'"
+                          onmouseout="this.style.background='#6610f2'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(102, 16, 242, 0.3)'; this.style.color='#ffffff'"
+                          title="Convert to Alumni">
+                    <svg style="width: 16px; height: 16px; color: #ffffff;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5" />
+                    </svg>
+                    <span style="color: #ffffff !important;">Alumni</span>
+                  </button>
+                  @endif
 
                   <!-- Delete Button -->
                   <button onclick="deleteAccount({{ $student->id }}, '{{ $student->fullname }}')"
@@ -621,7 +572,7 @@
                  onblur="this.style.borderColor='#e1e5e9'">
         </div>
 
-        <div>
+        <div id="edit_student_id_field">
           <label for="edit_student_id" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Student ID</label>
           <input type="text" id="edit_student_id" name="student_id"
                  style="width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px; transition: border-color 0.3s ease;"
@@ -653,18 +604,20 @@
           </select>
         </div>
 
-        <div>
-          <label for="edit_course" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Course</label>
-          <select id="edit_course" name="course"
+        <div id="edit_course_field">
+          <label for="edit_course_id" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Course</label>
+          <select id="edit_course_id" name="course_id"
                   style="width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px; transition: border-color 0.3s ease;"
                   onfocus="this.style.borderColor='var(--primary-green)'"
                   onblur="this.style.borderColor='#e1e5e9'">
             <option value="">Select Course</option>
-            <!-- Course options will be populated by JavaScript based on department -->
+            @foreach ($courses as $course)
+              <option value="{{ $course->id }}">{{ $course->course_code }} - {{ $course->course_name }}</option>
+            @endforeach
           </select>
         </div>
 
-        <div>
+        <div id="edit_year_level_field">
           <label for="edit_year_level" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Year Level</label>
           <select id="edit_year_level" name="year_level"
                   style="width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px; transition: border-color 0.3s ease;"
@@ -704,8 +657,8 @@
                   style="width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px; transition: border-color 0.3s ease;"
                   onfocus="this.style.borderColor='var(--primary-green)'"
                   onblur="this.style.borderColor='#e1e5e9'">
-            <option value="1">Active</option>
-            <option value="0">Pending</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
           </select>
         </div>
 
@@ -729,141 +682,81 @@
     </div>
   </div>
 
-  <!-- Student Promotion Confirmation Modal Styles -->
-  <style>
-    @media (max-width: 640px) {
-      #promotionModal .modal-content {
-        width: 95% !important;
-        max-width: none !important;
-        margin: 10px !important;
-        border-radius: 12px !important;
-      }
-      #promotionModal .modal-header {
-        padding: 20px 16px 12px !important;
-      }
-      #promotionModal .modal-body {
-        padding: 16px !important;
-      }
-      #promotionModal .modal-buttons {
-        flex-direction: column !important;
-        gap: 8px !important;
-      }
-      #promotionModal .modal-buttons button {
-        width: 100% !important;
-        justify-content: center !important;
-      }
-    }
-  </style>
-
-  <!-- Student Promotion Confirmation Modal -->
-  <div id="promotionModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 10000; backdrop-filter: blur(2px);">
-    <div class="modal-content" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 16px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15); max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; margin: 20px;">
-      
-      <!-- Modal Header -->
-      <div class="modal-header" style="padding: 24px 24px 16px; border-bottom: 1px solid #e5e7eb;">
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-          <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #22c55e, #16a34a); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-            <svg style="width: 20px; height: 20px; color: white;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-            </svg>
-          </div>
-          <h3 style="margin: 0; font-size: 20px; font-weight: 700; color: #111827;">Confirm Student Promotion</h3>
-        </div>
-      </div>
-
-      <!-- Modal Body -->
-      <div class="modal-body" style="padding: 24px;">
-        <div style="margin-bottom: 20px;">
-          <p style="margin: 0 0 16px; font-size: 16px; color: #374151; line-height: 1.5;">
-            Are you sure you want to trigger student promotion for Academic Year <strong id="modalAcademicYear">2025–2026</strong>?
-          </p>
-        </div>
-
-        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
-          <h4 style="margin: 0 0 12px; font-size: 14px; font-weight: 600; color: #475569;">This action will:</h4>
-          <ul style="margin: 0; padding-left: 20px; list-style: none;">
-            <li style="margin-bottom: 8px; color: #64748b; font-size: 14px; display: flex; align-items: flex-start; gap: 8px;">
-              <span style="color: #22c55e; font-weight: bold;">•</span>
-              <span>Set the academic year as current</span>
-            </li>
-            <li style="margin-bottom: 8px; color: #64748b; font-size: 14px; display: flex; align-items: flex-start; gap: 8px;">
-              <span style="color: #22c55e; font-weight: bold;">•</span>
-              <span>Automatically promote eligible students to the next year level</span>
-            </li>
-            <li style="margin-bottom: 0; color: #64748b; font-size: 14px; display: flex; align-items: flex-start; gap: 8px;">
-              <span style="color: #22c55e; font-weight: bold;">•</span>
-              <span>Update student records system-wide</span>
-            </li>
-          </ul>
-        </div>
-
-        <div style="background: #fef3cd; border: 1px solid #fbbf24; border-radius: 8px; padding: 12px; margin-bottom: 24px; display: flex; align-items: flex-start; gap: 8px;">
-          <svg style="width: 20px; height: 20px; color: #f59e0b; flex-shrink: 0; margin-top: 1px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
-          </svg>
-          <div>
-            <p style="margin: 0; font-size: 14px; font-weight: 600; color: #92400e;">Note:</p>
-            <p style="margin: 2px 0 0; font-size: 13px; color: #92400e;">This action cannot be undone.</p>
-          </div>
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="modal-buttons" style="display: flex; gap: 12px; justify-content: flex-end;">
-          <button type="button" onclick="closePromotionModal()" 
-                  style="padding: 12px 24px; background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center;"
-                  onmouseover="this.style.background='#f1f5f9'; this.style.borderColor='#cbd5e1'"
-                  onmouseout="this.style.background='#f8fafc'; this.style.borderColor='#e2e8f0'">
-            Cancel
-          </button>
-          <button type="button" onclick="confirmStudentPromotion()" 
-                  style="padding: 12px 24px; background: linear-gradient(135deg, #22c55e, #16a34a); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(34, 197, 94, 0.2); display: flex; align-items: center;"
-                  onmouseover="this.style.background='linear-gradient(135deg, #16a34a, #15803d)'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 8px rgba(34, 197, 94, 0.3)'"
-                  onmouseout="this.style.background='linear-gradient(135deg, #22c55e, #16a34a)'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(34, 197, 94, 0.2)'">
-            <svg style="width: 16px; height: 16px; margin-right: 6px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-            </svg>
-            Confirm
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
+  @php
+    $courseData = $courses->map(fn($c) => ['id' => $c->id, 'code' => $c->course_code, 'name' => $c->course_name, 'department' => $c->department]);
+  @endphp
   <script>
-    // Course data by department
-    const coursesByDepartment = {
-      'SITE': ['BSIT', 'BLIS', 'BS ENSE', 'BS CpE', 'BSCE'],
-      'SBAHM': ['BSA', 'BSE', 'BSBAMM', 'BSBA MFM', 'BSBA MOP', 'BSMA', 'BSHM', 'BSTM', 'BSPDMI'],
-      'SASTE': ['BAELS', 'BS Psych', 'BS Bio', 'BSSW', 'BSPA', 'BS Bio MB', 'BSEd', 'BEEd', 'BPEd'],
-      'SNAHS': ['BSN', 'BSPh', 'BSMT', 'BSPT', 'BSRT'],
-      'SOM': ['MD', 'BS Med'],
-      'GRADSCH': ['MBA', 'MPA', 'MEd', 'MS', 'MA', 'PhD', 'EdD']
-    };
+    // Course data from database
+    const allCourses = @json($courseData);
 
-    function populateCourseDropdown(department, selectedCourse = '') {
-      const courseSelect = document.getElementById('edit_course');
+    function populateCourseDropdown(department, selectedCourseId = '') {
+      const courseSelect = document.getElementById('edit_course_id');
       courseSelect.innerHTML = '<option value="">Select Course</option>';
 
-      if (department && coursesByDepartment[department]) {
-        coursesByDepartment[department].forEach(course => {
+      allCourses.forEach(course => {
+        if (!department || course.department === department) {
           const option = document.createElement('option');
-          option.value = course;
-          option.textContent = course;
-          if (course === selectedCourse) {
+          option.value = course.id;
+          option.textContent = `${course.code} - ${course.name}`;
+          if (String(course.id) === String(selectedCourseId)) {
             option.selected = true;
           }
           courseSelect.appendChild(option);
-        });
-      }
+        }
+      });
     }
 
-    // Add event listener for department change
+    // ── Create form: filter courses by department ──
+    function populateCreateCourseDropdown(department, selectedCourseId = '') {
+      const courseSelect = document.getElementById('course_id');
+      courseSelect.innerHTML = '<option value="">Select Course</option>';
+
+      if (!department || department === 'Others') {
+        courseSelect.disabled = true;
+        courseSelect.innerHTML = '<option value="">Select a department first</option>';
+        return;
+      }
+
+      const filtered = allCourses.filter(c => c.department === department);
+      if (filtered.length === 0) {
+        courseSelect.disabled = true;
+        courseSelect.innerHTML = '<option value="">No courses for this department</option>';
+        return;
+      }
+
+      courseSelect.disabled = false;
+      filtered.forEach(course => {
+        const option = document.createElement('option');
+        option.value = course.id;
+        option.textContent = `${course.code} - ${course.name}`;
+        if (String(course.id) === String(selectedCourseId)) {
+          option.selected = true;
+        }
+        courseSelect.appendChild(option);
+      });
+    }
+
+    // Add event listeners for department change on both forms
     document.addEventListener('DOMContentLoaded', function() {
-      const departmentSelect = document.getElementById('edit_department');
-      if (departmentSelect) {
-        departmentSelect.addEventListener('change', function() {
+      // Edit modal department listener
+      const editDepartmentSelect = document.getElementById('edit_department');
+      if (editDepartmentSelect) {
+        editDepartmentSelect.addEventListener('change', function() {
           populateCourseDropdown(this.value);
         });
+      }
+
+      // Create form department listener
+      const createDepartmentSelect = document.getElementById('department');
+      if (createDepartmentSelect) {
+        createDepartmentSelect.addEventListener('change', function() {
+          populateCreateCourseDropdown(this.value);
+        });
+
+        // If department was pre-selected (e.g. validation error redirect), populate courses
+        if (createDepartmentSelect.value) {
+          populateCreateCourseDropdown(createDepartmentSelect.value, '{{ old("course_id", "") }}');
+        }
       }
     });
 
@@ -935,13 +828,39 @@
             document.getElementById('edit_student_id').value = data.account.student_id || '';
             document.getElementById('edit_email').value = data.account.email || '';
             document.getElementById('edit_department').value = data.account.department || '';
-            document.getElementById('edit_course').value = data.account.course || '';
             document.getElementById('edit_year_level').value = data.account.year_level || '';
             document.getElementById('edit_account_type').value = data.account.account_type || '';
+
+            // Toggle field visibility based on account type
+            const editStudentIdField = document.getElementById('edit_student_id_field');
+            const editCourseField = document.getElementById('edit_course_field');
+            const editYearLevelField = document.getElementById('edit_year_level_field');
+
+            if (data.account.account_type === 'student') {
+              // Students: show all academic fields
+              editStudentIdField.style.display = 'block';
+              editCourseField.style.display = 'block';
+              editYearLevelField.style.display = 'block';
+            } else if (data.account.account_type === 'alumni') {
+              // Alumni: show student ID only
+              editStudentIdField.style.display = 'block';
+              editCourseField.style.display = 'none';
+              editYearLevelField.style.display = 'none';
+              document.getElementById('edit_course_id').value = '';
+              document.getElementById('edit_year_level').value = '';
+            } else {
+              // Staff: hide all academic fields
+              editStudentIdField.style.display = 'none';
+              editCourseField.style.display = 'none';
+              editYearLevelField.style.display = 'none';
+              document.getElementById('edit_student_id').value = '';
+              document.getElementById('edit_course_id').value = '';
+              document.getElementById('edit_year_level').value = '';
+            }
             document.getElementById('edit_status').value = data.account.status || '';
 
-            // Populate course dropdown based on department
-            populateCourseDropdown(data.account.department, data.account.course);
+            // Populate course dropdown based on department, select current course_id
+            populateCourseDropdown(data.account.department, data.account.course_id);
 
             // Set form action
             document.getElementById('editAccountForm').action = `/admin/account/${accountId}/update`;
@@ -971,7 +890,7 @@
       document.getElementById('deleteAccountName').textContent = accountName;
       
       // Show modal
-      document.getElementById('deleteConfirmModal').style.display = 'block';
+      document.getElementById('deleteConfirmModal').style.display = 'flex';
       document.body.style.overflow = 'hidden'; // Prevent background scrolling
     }
 
@@ -1070,151 +989,134 @@
       });
     });
 
-    // Academic Year Management & Student Promotion Function
-    function triggerStudentPromotion() {
-      const input = document.getElementById('current_academic_year');
-      const statusDiv = document.getElementById('promotion-status');
-      const academicYear = input.value.trim();
-
-      // Validate format
-      const yearPattern = /^[0-9]{4}-[0-9]{4}$/;
-      if (!academicYear || !yearPattern.test(academicYear)) {
-        statusDiv.style.display = 'block';
-        statusDiv.style.background = '#f8d7da';
-        statusDiv.style.color = '#721c24';
-        statusDiv.style.border = '1px solid #f5c6cb';
-        statusDiv.innerHTML = '⚠️ Please enter a valid academic year format (e.g., 2025-2026)';
-        return;
-      }
-
-      // Check year logic
-      const years = academicYear.split('-');
-      const startYear = parseInt(years[0]);
-      const endYear = parseInt(years[1]);
-      
-      if (endYear !== startYear + 1) {
-        statusDiv.style.display = 'block';
-        statusDiv.style.background = '#f8d7da';
-        statusDiv.style.color = '#721c24';
-        statusDiv.style.border = '1px solid #f5c6cb';
-        statusDiv.innerHTML = '⚠️ End year should be one year after start year (e.g., 2025-2026)';
-        return;
-      }
-
-      // Show confirmation modal
-      document.getElementById('modalAcademicYear').textContent = academicYear;
-      document.getElementById('promotionModal').style.display = 'block';
-      document.body.style.overflow = 'hidden'; // Prevent background scrolling
-    }
-
-    // Modal control functions
-    function closePromotionModal() {
-      document.getElementById('promotionModal').style.display = 'none';
-      document.body.style.overflow = 'auto'; // Restore scrolling
-    }
-
-    // Close modal when clicking outside of it
-    document.getElementById('promotionModal').addEventListener('click', function(e) {
-      if (e.target === this) {
-        closePromotionModal();
-      }
-    });
-
-    // Close modal with ESC key
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape' && document.getElementById('promotionModal').style.display === 'block') {
-        closePromotionModal();
-      }
-    });
-
-    function confirmStudentPromotion() {
-      const input = document.getElementById('current_academic_year');
-      const statusDiv = document.getElementById('promotion-status');
-      const academicYear = input.value.trim();
-      
-      // Close modal
-      closePromotionModal();
-
-      // Send to server
-      const promoteBtn = document.querySelector('button[onclick="triggerStudentPromotion()"]');
-      const originalText = promoteBtn.innerHTML;
-      
-      promoteBtn.disabled = true;
-      promoteBtn.innerHTML = '<svg style="width: 16px; height: 16px; animation: spin 1s linear infinite;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> Processing...';
-
-      fetch('/admin/trigger-student-promotion', {
-        method: 'POST',
-        headers: {
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          academic_year: academicYear
-        })
-      })
-      .then(response => response.json())
-      .then(data => {
-        statusDiv.style.display = 'block';
-        if (data.success) {
-          statusDiv.style.background = '#d4edda';
-          statusDiv.style.color = '#155724';
-          statusDiv.style.border = '1px solid #c3e6cb';
-          statusDiv.innerHTML = '✅ ' + data.message + ' Students promoted: ' + (data.promoted_count || 0);
-        } else {
-          statusDiv.style.background = '#f8d7da';
-          statusDiv.style.color = '#721c24';
-          statusDiv.style.border = '1px solid #f5c6cb';
-          statusDiv.innerHTML = '❌ Error: ' + (data.message || 'Failed to trigger student promotion');
-        }
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        statusDiv.style.display = 'block';
-        statusDiv.style.background = '#f8d7da';
-        statusDiv.style.color = '#721c24';
-        statusDiv.style.border = '1px solid #f5c6cb';
-        statusDiv.innerHTML = '❌ An error occurred while triggering student promotion.';
-      })
-      .finally(() => {
-        promoteBtn.disabled = false;
-        promoteBtn.innerHTML = originalText;
-      });
-    }
   </script>
 
-  <!-- Custom Delete Confirmation Modal -->
-  <div id="deleteConfirmModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 10000; backdrop-filter: blur(4px);">
-    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 16px; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25); min-width: 400px; max-width: 500px; animation: modalSlideIn 0.3s ease;">
-      <div style="padding: 24px 24px 0 24px; text-align: center;">
-        <!-- Warning Icon -->
-        <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #ff6b6b, #ee5a52); border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; animation: pulse 2s infinite;">
-          <svg style="width: 32px; height: 32px; color: white;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M3 12a9 9 0 1118 0 9 9 0 01-18 0z"></path>
-          </svg>
-        </div>
-        
-        <h3 style="margin: 0 0 12px 0; color: #2d3748; font-size: 20px; font-weight: 700;">Confirm Account Deletion</h3>
-        
-        <p style="margin: 0 0 8px 0; color: #4a5568; font-size: 16px; line-height: 1.5;">
-          Are you sure you want to delete the account for:
-        </p>
-        
-        <p id="deleteAccountName" style="margin: 0 0 16px 0; color: #2d3748; font-size: 18px; font-weight: 600; background: #f7fafc; padding: 12px; border-radius: 8px; border-left: 4px solid #ff6b6b;"></p>
-        
-        <div style="background: #fff5f5; padding: 16px; border-radius: 8px; border: 1px solid #fed7d7; margin-bottom: 24px;">
-          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-            <svg style="width: 16px; height: 16px; color: #e53e3e;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01"></path>
-            </svg>
-            <strong style="color: #c53030; font-size: 14px;">Warning:</strong>
-          </div>
-          <p style="margin: 0; color: #c53030; font-size: 14px; line-height: 1.4;">
-            This action cannot be undone. All data associated with this account will be permanently deleted.
-          </p>
-        </div>
+  {{-- Convert to Alumni Confirmation Modal --}}
+  <x-shared.modals.confirm-action
+      id="alumniConfirmModal"
+      title="Convert to Alumni"
+      title-color="#6a1b9a"
+      close-fn="closeAlumniModal()"
+      z-index="10000">
+
+    <div style="text-align: center;">
+      <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #6610f2, #520dc2); border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;">
+        <svg style="width: 32px; height: 32px; color: white;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5"></path>
+        </svg>
       </div>
-      
-      <div style="display: flex; gap: 12px; padding: 0 24px 24px 24px;">
+      <p style="margin: 0 0 8px 0; color: #4a5568; font-size: 16px; line-height: 1.5;">
+        Are you sure you want to convert this student to alumni?
+      </p>
+      <p id="alumniAccountName" style="margin: 0 0 16px 0; color: #2d3748; font-size: 18px; font-weight: 600; background: #f7fafc; padding: 12px; border-radius: 8px; border-left: 4px solid #6610f2;"></p>
+      <div style="background: #f3e5f5; padding: 16px; border-radius: 8px; border: 1px solid #ce93d8; margin-bottom: 4px; text-align: left;">
+        <p style="margin: 0 0 8px; font-size: 14px; font-weight: 600; color: #6a1b9a;">This will:</p>
+        <ul style="margin: 0; padding-left: 20px; font-size: 14px; color: #6a1b9a; line-height: 1.6;">
+          <li>Change account type from <strong>Student</strong> to <strong>Alumni</strong></li>
+          <li>Remove access to PSG Officer applications</li>
+          <li>Retain Good Moral application and violation history access</li>
+        </ul>
+      </div>
+    </div>
+
+    <x-slot name="footer">
+      <div style="display: flex; gap: 12px; margin-top: 20px;">
+        <button onclick="closeAlumniModal()" style="flex: 1; padding: 12px 20px; background: #e2e8f0; color: #2d3748; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
+          Cancel
+        </button>
+        <button id="confirmAlumniBtn" onclick="confirmConvertToAlumni()" style="flex: 1; padding: 12px 20px; background: linear-gradient(135deg, #6610f2, #520dc2); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(102, 16, 242, 0.3);">
+          Convert to Alumni
+        </button>
+      </div>
+    </x-slot>
+
+  </x-shared.modals.confirm-action>
+
+  <script>
+    // Convert to Alumni Functions
+    let pendingAlumniId = null;
+
+    function convertToAlumni(accountId, accountName) {
+      pendingAlumniId = accountId;
+      document.getElementById('alumniAccountName').textContent = accountName;
+      document.getElementById('alumniConfirmModal').style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeAlumniModal() {
+      document.getElementById('alumniConfirmModal').style.display = 'none';
+      document.body.style.overflow = 'auto';
+      pendingAlumniId = null;
+    }
+
+    function confirmConvertToAlumni() {
+      if (!pendingAlumniId) return;
+
+      const confirmBtn = document.getElementById('confirmAlumniBtn');
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = 'Converting...';
+
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = `/admin/account/${pendingAlumniId}/convert-to-alumni`;
+
+      const csrfToken = document.createElement('input');
+      csrfToken.type = 'hidden';
+      csrfToken.name = '_token';
+      csrfToken.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+      form.appendChild(csrfToken);
+
+      document.body.appendChild(form);
+      form.submit();
+
+      closeAlumniModal();
+    }
+
+    document.getElementById('alumniConfirmModal').addEventListener('click', function(e) {
+      if (e.target === this) closeAlumniModal();
+    });
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && document.getElementById('alumniConfirmModal').style.display === 'flex') {
+        closeAlumniModal();
+      }
+    });
+  </script>
+
+  {{-- Custom Delete Confirmation Modal --}}
+  <x-shared.modals.confirm-action
+      id="deleteConfirmModal"
+      title="Confirm Account Deletion"
+      title-color="#c53030"
+      close-fn="closeDeleteModal()"
+      z-index="10000">
+
+    <div style="text-align: center;">
+      {{-- Warning Icon --}}
+      <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #ff6b6b, #ee5a52); border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; animation: pulse 2s infinite;">
+        <svg style="width: 32px; height: 32px; color: white;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M3 12a9 9 0 1118 0 9 9 0 01-18 0z"></path>
+        </svg>
+      </div>
+      <p style="margin: 0 0 8px 0; color: #4a5568; font-size: 16px; line-height: 1.5;">
+        Are you sure you want to delete the account for:
+      </p>
+      <p id="deleteAccountName" style="margin: 0 0 16px 0; color: #2d3748; font-size: 18px; font-weight: 600; background: #f7fafc; padding: 12px; border-radius: 8px; border-left: 4px solid #ff6b6b;"></p>
+      <div style="background: #fff5f5; padding: 16px; border-radius: 8px; border: 1px solid #fed7d7; margin-bottom: 4px;">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+          <svg style="width: 16px; height: 16px; color: #e53e3e;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01"></path>
+          </svg>
+          <strong style="color: #c53030; font-size: 14px;">Warning:</strong>
+        </div>
+        <p style="margin: 0; color: #c53030; font-size: 14px; line-height: 1.4;">
+          This action cannot be undone. All data associated with this account will be permanently deleted.
+        </p>
+      </div>
+    </div>
+
+    <x-slot name="footer">
+      <div style="display: flex; gap: 12px; margin-top: 20px;">
         <button onclick="closeDeleteModal()" style="flex: 1; padding: 12px 20px; background: #e2e8f0; color: #2d3748; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
           Cancel
         </button>
@@ -1222,8 +1124,9 @@
           Delete Account
         </button>
       </div>
-    </div>
-  </div>
+    </x-slot>
+
+  </x-shared.modals.confirm-action>
 
   <style>
     @keyframes spin {
@@ -1302,13 +1205,13 @@
       const organizationField = document.getElementById('organization_field');
 
       const studentIdInput = document.getElementById('student_id');
-      const courseInput = document.getElementById('course');
+      const courseInput = document.getElementById('course_id');
       const yearLevelInput = document.getElementById('year_level');
       const departmentInput = document.getElementById('department');
       const organizationInput = document.getElementById('organization');
 
       // Roles that do not require a department
-      const noDepartmentRoles = ['sec_osa', 'head_osa'];
+      const noDepartmentRoles = ['sec_osa'];
 
       // Toggle department field based on account type
       if (noDepartmentRoles.includes(accountType)) {
@@ -1320,39 +1223,42 @@
         departmentInput.setAttribute('required', 'required');
       }
 
-      // Toggle PSG-specific fields
-      if (accountType === 'psg_officer') {
-        organizationField.style.display = 'block';
-        organizationInput.setAttribute('required', 'required');
-      } else {
-        organizationField.style.display = 'none';
-        organizationInput.removeAttribute('required');
-        organizationInput.value = '';
-      }
+      // Toggle PSG-specific fields (no longer applicable in create form)
+      organizationField.style.display = 'none';
+      organizationInput.removeAttribute('required');
+      organizationInput.value = '';
 
       // Show/hide student-specific fields based on account type
-      if (accountType === 'student' || accountType === 'alumni') {
-        // Show student fields
+      if (accountType === 'student') {
+        // Students: show student ID, course, and year level
         studentIdField.style.display = 'block';
         courseField.style.display = 'block';
         yearLevelField.style.display = 'block';
 
-        // Make fields required
         studentIdInput.setAttribute('required', 'required');
         courseInput.setAttribute('required', 'required');
         yearLevelInput.setAttribute('required', 'required');
+      } else if (accountType === 'alumni') {
+        // Alumni: show student ID only (optional), hide course and year level
+        studentIdField.style.display = 'block';
+        courseField.style.display = 'none';
+        yearLevelField.style.display = 'none';
+
+        studentIdInput.removeAttribute('required');
+        courseInput.removeAttribute('required');
+        yearLevelInput.removeAttribute('required');
+        courseInput.value = '';
+        yearLevelInput.value = '';
       } else {
-        // Hide student fields
+        // Staff roles: hide all student fields
         studentIdField.style.display = 'none';
         courseField.style.display = 'none';
         yearLevelField.style.display = 'none';
 
-        // Remove required attribute
         studentIdInput.removeAttribute('required');
         courseInput.removeAttribute('required');
         yearLevelInput.removeAttribute('required');
 
-        // Clear values
         studentIdInput.value = '';
         courseInput.value = '';
         yearLevelInput.value = '';

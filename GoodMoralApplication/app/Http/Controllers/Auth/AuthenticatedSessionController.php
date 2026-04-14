@@ -62,7 +62,6 @@ class AuthenticatedSessionController extends Controller
       'psg_officer',
       'dean',
       'registrar',
-      'head_osa',
       'sec_osa',
       'student',
       'alumni'
@@ -91,8 +90,6 @@ class AuthenticatedSessionController extends Controller
         return route('dean.dashboard');
       case 'registrar':
         return route('registrar.goodMoralApplication');
-      case 'head_osa':
-        return route('head_osa.dashboard');
       case 'sec_osa':
         return route('sec_osa.dashboard');
       case 'alumni':

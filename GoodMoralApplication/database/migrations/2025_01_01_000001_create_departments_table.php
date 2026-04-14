@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id();
             $table->string('department_code', 20)->unique();
             $table->string('department_name');
-            $table->text('description')->nullable();
             $table->timestamps();
         });
     }

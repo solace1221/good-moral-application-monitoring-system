@@ -28,7 +28,6 @@ class DepartmentController extends Controller
         $validated = $request->validate([
             'department_code' => 'required|string|max:20|unique:departments,department_code',
             'department_name' => 'required|string|max:255',
-            'description' => 'nullable|string',
         ]);
 
         Department::create($validated);
@@ -44,7 +43,6 @@ class DepartmentController extends Controller
         $validated = $request->validate([
             'department_code' => 'required|string|max:20|unique:departments,department_code,' . $department->id,
             'department_name' => 'required|string|max:255',
-            'description' => 'nullable|string',
         ]);
 
         // If department_code changed, update courses that reference the old code

@@ -14,6 +14,10 @@ class DatabaseSeeder extends Seeder
             AdminSeeder::class,
             DefaultUsersSeeder::class,
             OrganizationSeeder::class,
+            RegistrarSeeder::class,
+            SecOSASeeder::class,
+            StudentSeeder::class,
+            HistoricalViolationTrendsSeeder::class,
         ]);
     }
 }

@@ -117,5 +117,37 @@ class User extends Authenticatable
     {
         return $this->suffix_name;
     }
+
+    /**
+     * Get the role_account record linked to this user via email.
+     */
+    public function roleAccount()
+    {
+        return $this->hasOne(RoleAccount::class, 'email', 'email');
+    }
+
+    /**
+     * Accessor: resolve department from role_account table.
+     */
+    public function getDepartmentAttribute()
+    {
+        return $this->roleAccount?->department;
+    }
+
+    /**
+     * Accessor: resolve student_id from role_account table.
+     */
+    public function getStudentIdAttribute()
+    {
+        return $this->roleAccount?->student_id;
+    }
+
+    /**
+     * Accessor: resolve gender from role_account table.
+     */
+    public function getGenderAttribute()
+    {
+        return $this->roleAccount?->gender;
+    }
 }
 

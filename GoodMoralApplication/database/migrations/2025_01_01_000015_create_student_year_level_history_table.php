@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('student_year_level_history', function (Blueprint $table) {
+        Schema::create('student_year_level_histories', function (Blueprint $table) {
             $table->id();
             $table->string('student_id')->index();
             $table->unsignedBigInteger('academic_year_id')->index();
@@ -32,6 +32,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('student_year_level_history');
+        Schema::dropIfExists('student_year_level_histories');
     }
 };

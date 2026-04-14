@@ -1,4 +1,5 @@
 <?php
+use Illuminate\Support\Facades\DB;
 
 /**
  * Migration Consolidation Validator
@@ -26,8 +27,8 @@ $expectedSchema = [
     'jobs' => ['id', 'queue', 'payload', 'attempts', 'reserved_at', 'available_at', 'created_at'],
     'job_batches' => ['id', 'name', 'total_jobs', 'pending_jobs', 'failed_jobs', 'failed_job_ids', 'options', 'cancelled_at', 'created_at', 'finished_at'],
     'failed_jobs' => ['id', 'uuid', 'connection', 'queue', 'payload', 'exception', 'failed_at'],
-    'departments' => ['id', 'department_code', 'department_name', 'description', 'created_at', 'updated_at'],
-    'courses' => ['id', 'course_code', 'course_name', 'department', 'department_name', 'is_active', 'description', 'sort_order', 'created_at', 'updated_at'],
+    'departments' => ['id', 'department_code', 'department_name', 'created_at', 'updated_at'],
+    'courses' => ['id', 'course_code', 'course_name', 'department', 'department_name', 'sort_order', 'created_at', 'updated_at'],
     'designations' => ['dsn_id', 'dept_id', 'description', 'created_at', 'updated_at'],
     'academic_years' => ['id', 'academic_year', 'start_year', 'end_year', 'is_active', 'is_current', 'description', 'sort_order', 'created_at', 'updated_at', 'year_name', 'start_date', 'end_date', 'year_level_promotion_active', 'promotion_triggered_at', 'promotion_triggered_by', 'notes'],
     'role_account' => ['id', 'fullname', 'mname', 'extension', 'gender', 'organization', 'position', 'email', 'pending_email', 'email_verification_token', 'email_verification_sent_at', 'email_verified_at', 'student_id', 'department', 'department_id', 'course_id', 'course', 'year_level', 'password', 'account_type', 'status', 'is_graduating', 'graduation_date', 'graduated_at', 'created_at', 'updated_at'],

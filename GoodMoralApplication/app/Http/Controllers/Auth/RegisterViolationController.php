@@ -18,6 +18,9 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
 use App\Http\Requests\StoreViolationReportRequest;
+use App\Helpers\CourseHelper;
+use App\Services\DashboardStatsService;
+use App\Services\ViolationService;
 use Illuminate\Support\Facades\Log;
 
 class RegisterViolationController extends Controller
@@ -28,8 +31,9 @@ class RegisterViolationController extends Controller
    * Display the registration view.
    */
 
-  public function __construct()
-  {
+  public function __construct(
+    private ViolationService $violationService
+  ) {
     // Role check will be done in middleware or individual methods
   }
 
@@ -53,7 +57,7 @@ class RegisterViolationController extends Controller
     $minorResolvedPercentage = $minorTotal > 0 ? round(($minorResolved / $minorTotal) * 100, 1) : 0;
 
     // Get violations by department for PSG Officer view (only their violations)
-    $departments = ['SITE', 'SASTE', 'SBAHM', 'SNAHS'];
+    $departments = DashboardStatsService::VIOLATION_DEPARTMENTS;
     $violationsByDept = [];
     foreach ($departments as $dept) {
       $violationsByDept[$dept] = $this->applyDateFilter(StudentViolation::where('offense_type', 'minor')->where('added_by', $currentUser)->where('department', $dept), $frequency)->count();
@@ -126,6 +130,7 @@ class RegisterViolationController extends Controller
         'status' => '0',
         'offense_type' => $offenseType,
         'unique_id' => $uniqueID,
+        'ref_num' => $uniqueID,
       ]);
     } else {
       $violation = StudentViolation::create([
@@ -139,6 +144,7 @@ class RegisterViolationController extends Controller
         'status' => '0',
         'offense_type' => 'minor', // PSG Officers can only issue minor violations
         'unique_id' => $uniqueID,
+        'ref_num' => $uniqueID,
       ]);
     }
 
@@ -150,17 +156,16 @@ class RegisterViolationController extends Controller
       'added_by' => $violation->added_by
     ]);
 
-    // Get the violation details to find article reference
-    $violationRecord = \App\Models\Violation::where('description', $violation->violation)->first();
-    $article = $violationRecord ? $violationRecord->article : null;
-
-    // Create notification for the student about the violation using new format
-    \App\Models\ViolationNotif::create([
-      'ref_num' => $violation->ref_num ?? 'VIOLATION-' . $violation->id,
-      'student_id' => $violation->student_id,
-      'status' => 0, // Under review
-      'notif' => generateViolationNotification($violation->offense_type, $violation->violation, $article, $violation->added_by),
-    ]);
+    // Create notification for the student about the violation
+    try {
+      $this->violationService->createViolationNotification($violation);
+    } catch (\Throwable $e) {
+      Log::warning('Violation notification failed for PSG officer path', [
+        'violation_id' => $violation->id,
+        'student_id' => $violation->student_id,
+        'error' => $e->getMessage(),
+      ]);
+    }
 
     // Check for escalation if this is a minor violation
     if ($violation->offense_type === 'minor') {
@@ -187,14 +192,9 @@ class RegisterViolationController extends Controller
   public function ViolatorDashboard()
   {
     // PSG Officers can only issue minor violations
-    $violations = Violation::where('offense_type', 'minor')->get();
+    $violations = Violation::where('offense_type', 'minor')->where('status', 'active')->get();
 
-    $coursesByDepartment = [
-      'SITE' => ['BSIT', 'BLIS', 'BS ENSE', 'BS CpE', 'BSCE'],
-      'SBAHM' => ['BSA', 'BSE', 'BSBAMM', 'BSBA MFM', 'BSBA MOP', 'BSMA', 'BSHM', 'BSTM', 'BSPDMI'],
-      'SASTE' => ['BAELS', 'BS Psych', 'BS Bio', 'BSSW', 'BSPA', 'BS Bio MB', 'BSEd', 'BEEd', 'BPEd'],
-      'SNAHS' => ['BSN', 'BSPh', 'BSMT', 'BSPT', 'BSRT'],
-    ];
+    $coursesByDepartment = CourseHelper::getCoursesByDepartment();
 
     return view('PsgOfficer.psg-add-violation', compact('violations', 'coursesByDepartment'));
   }

@@ -27,17 +27,7 @@
   <!-- Main Content -->
   <div class="content-section">
     <div class="card">
-      @if(session('success'))
-        <div class="alert alert-success" style="margin-bottom: 20px;">
-          {{ session('success') }}
-        </div>
-      @endif
-
-      @if(session('error'))
-        <div class="alert alert-error" style="margin-bottom: 20px;">
-          {{ session('error') }}
-        </div>
-      @endif
+      @include('shared.alerts.flash')
 
       @if($departments->isEmpty())
         <div style="text-align: center; padding: 40px 20px; color: #666;">
@@ -50,7 +40,6 @@
               <tr>
                 <th class="px-6 py-3 text-left text-sm font-medium text-gray-500">Code</th>
                 <th class="px-6 py-3 text-left text-sm font-medium text-gray-500">Department Name</th>
-                <th class="px-6 py-3 text-left text-sm font-medium text-gray-500">Description</th>
                 <th class="px-6 py-3 text-left text-sm font-medium text-gray-500">Courses</th>
                 <th class="px-6 py-3 text-left text-sm font-medium text-gray-500">Actions</th>
               </tr>
@@ -60,7 +49,6 @@
                 <tr class="border-b hover:bg-gray-50">
                   <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ $department->department_code }}</td>
                   <td class="px-6 py-4 text-sm text-gray-600">{{ $department->department_name }}</td>
-                  <td class="px-6 py-4 text-sm text-gray-600">{{ $department->description ?? '—' }}</td>
                   <td class="px-6 py-4 text-sm text-gray-600">
                     <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">{{ $department->courses_count }}</span>
                   </td>
@@ -97,13 +85,9 @@
           <label style="display:block; font-weight:500; margin-bottom:4px;">Department Code</label>
           <input type="text" name="department_code" required maxlength="20" placeholder="e.g. SITE" style="width:100%; padding:8px 12px; border:1px solid #d1d5db; border-radius:6px;">
         </div>
-        <div style="margin-bottom:16px;">
+        <div style="margin-bottom:20px;">
           <label style="display:block; font-weight:500; margin-bottom:4px;">Department Name</label>
           <input type="text" name="department_name" required maxlength="255" placeholder="e.g. School of Information Technology and Engineering" style="width:100%; padding:8px 12px; border:1px solid #d1d5db; border-radius:6px;">
-        </div>
-        <div style="margin-bottom:20px;">
-          <label style="display:block; font-weight:500; margin-bottom:4px;">Description (optional)</label>
-          <textarea name="description" rows="2" style="width:100%; padding:8px 12px; border:1px solid #d1d5db; border-radius:6px;"></textarea>
         </div>
         <div style="display:flex; gap:12px; justify-content:flex-end;">
           <button type="button" onclick="closeCreateModal()" class="btn-secondary" style="padding:8px 20px;">Cancel</button>
@@ -124,13 +108,9 @@
           <label style="display:block; font-weight:500; margin-bottom:4px;">Department Code</label>
           <input type="text" name="department_code" id="edit_department_code" required maxlength="20" style="width:100%; padding:8px 12px; border:1px solid #d1d5db; border-radius:6px;">
         </div>
-        <div style="margin-bottom:16px;">
+        <div style="margin-bottom:20px;">
           <label style="display:block; font-weight:500; margin-bottom:4px;">Department Name</label>
           <input type="text" name="department_name" id="edit_department_name" required maxlength="255" style="width:100%; padding:8px 12px; border:1px solid #d1d5db; border-radius:6px;">
-        </div>
-        <div style="margin-bottom:20px;">
-          <label style="display:block; font-weight:500; margin-bottom:4px;">Description (optional)</label>
-          <textarea name="description" id="edit_description" rows="2" style="width:100%; padding:8px 12px; border:1px solid #d1d5db; border-radius:6px;"></textarea>
         </div>
         <div style="display:flex; gap:12px; justify-content:flex-end;">
           <button type="button" onclick="closeEditModal()" class="btn-secondary" style="padding:8px 20px;">Cancel</button>
@@ -150,7 +130,6 @@
     function openEditModal(dept) {
       document.getElementById('edit_department_code').value = dept.department_code;
       document.getElementById('edit_department_name').value = dept.department_name;
-      document.getElementById('edit_description').value = dept.description || '';
       document.getElementById('editForm').action = '/admin/departments/' + dept.id;
       document.getElementById('editModal').style.display = 'flex';
     }

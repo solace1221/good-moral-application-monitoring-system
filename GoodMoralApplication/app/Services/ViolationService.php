@@ -6,6 +6,7 @@ use App\Models\StudentViolation;
 use App\Models\Violation;
 use App\Models\ViolationNotif;
 use App\Models\RoleAccount;
+use Illuminate\Support\Str;
 
 class ViolationService
 {
@@ -93,7 +94,7 @@ class ViolationService
             'ref_num' => $violation->ref_num ?? 'VIOLATION-' . $violation->id,
             'student_id' => $violation->student_id,
             'status' => 0,
-            'notif' => generateViolationNotification($violation->offense_type, $violation->violation, $article, $violation->added_by),
+            'notif' => generateViolationNotification($violation->offense_type, $violation->getAttribute('violation'), $article, $violation->added_by),
         ]);
     }
 
@@ -143,5 +144,58 @@ class ViolationService
         });
 
         return $notifications;
+    }
+
+    /**
+     * Generate a unique case number with the given prefix.
+     * Replaces duplicated case-number generation across Dean, SecOSA, and Admin controllers.
+     */
+    public static function generateCaseNumber(string $prefix = 'CASE'): string
+    {
+        $date = date('Ymd');
+        do {
+            $unique = strtoupper(Str::random(6));
+            $caseNumber = "{$prefix}-{$date}-{$unique}";
+            $exists = StudentViolation::where('ref_num', $caseNumber)->exists();
+        } while ($exists);
+
+        return $caseNumber;
+    }
+
+    /**
+     * Get violation status counts for major violations.
+     * Used by SecOSA\ViolationController::major() / searchMajor().
+     */
+    public function getMajorStatusCounts(?array $departments = null): array
+    {
+        $query = StudentViolation::major();
+        if ($departments) {
+            $query->whereIn('department', $departments);
+        }
+
+        return [
+            'pendingCount' => (clone $query)->where('status', '0')->count(),
+            'proceedingsUploadedCount' => (clone $query)->where('status', '1')->count(),
+            'forwardedCount' => (clone $query)->where('status', '1.5')->count(),
+            'closedCount' => (clone $query)->where('status', '2')->count(),
+        ];
+    }
+
+    /**
+     * Get violation status counts for minor violations.
+     * Used by SecOSA\ViolationController::minor() / searchMinor().
+     */
+    public function getMinorStatusCounts(?array $departments = null): array
+    {
+        $query = StudentViolation::minor();
+        if ($departments) {
+            $query->whereIn('department', $departments);
+        }
+
+        return [
+            'pendingCount' => (clone $query)->where('status', '0')->count(),
+            'approvedCount' => (clone $query)->where('status', '1')->count(),
+            'closedCount' => (clone $query)->where('status', '2')->count(),
+        ];
     }
 }

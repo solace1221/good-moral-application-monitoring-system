@@ -42,14 +42,27 @@
 
           <!-- Course (This will be shown/hidden based on account type) -->
           <div id="course-dropdown-main" style="margin-bottom: 20px; display: none; border: 2px solid #e8f5e8; padding: 12px; border-radius: 8px; background: #f8fff8;">
-            <label for="year_level_main" class="form-label" style="color: var(--primary-green); font-weight: 600;">Course & Year Level (Required for Students)</label>
-            <select id="year_level_main" name="year_level" class="form-input">
-              <option value="" disabled selected>Select Course & Year</option>
+            <label for="course_id" class="form-label" style="color: var(--primary-green); font-weight: 600;">Course (Required for Students & Alumni)</label>
+            <select id="course_id" name="course_id" class="form-input">
+              <option value="" disabled selected>Select Course</option>
             </select>
-            <x-input-error :messages="$errors->get('year_level')" class="mt-2" style="color: #e74c3c; font-size: 12px;" />
+            <x-input-error :messages="$errors->get('course_id')" class="mt-2" style="color: #e74c3c; font-size: 12px;" />
             <p style="color: #6b7280; font-size: 12px; margin-top: 4px;">
               Select your department first to see available courses.
             </p>
+
+            <div style="margin-top: 12px;">
+              <label for="year_level" class="form-label" style="color: var(--primary-green); font-weight: 600;">Year Level (Required for Students & Alumni)</label>
+              <select id="year_level_main" name="year_level" class="form-input">
+                <option value="" disabled selected>Select Year Level</option>
+                <option value="1st Year" {{ old('year_level') == '1st Year' ? 'selected' : '' }}>1st Year</option>
+                <option value="2nd Year" {{ old('year_level') == '2nd Year' ? 'selected' : '' }}>2nd Year</option>
+                <option value="3rd Year" {{ old('year_level') == '3rd Year' ? 'selected' : '' }}>3rd Year</option>
+                <option value="4th Year" {{ old('year_level') == '4th Year' ? 'selected' : '' }}>4th Year</option>
+                <option value="5th Year" {{ old('year_level') == '5th Year' ? 'selected' : '' }}>5th Year</option>
+              </select>
+              <x-input-error :messages="$errors->get('year_level')" class="mt-2" style="color: #e74c3c; font-size: 12px;" />
+            </div>
           </div>
 
           <!-- Account Type -->
@@ -214,6 +227,7 @@
         const courseDropdown = document.getElementById('course-dropdown-main');
         const organizationInput = document.getElementById('organization_id');
         const positionInput = document.getElementById('position_id');
+        const courseIdInput = document.getElementById('course_id');
         const yearLevelInput = document.getElementById('year_level_main');
 
         console.log('Account type changed to:', accountType);
@@ -226,20 +240,21 @@
         // Clear requirements
         if (organizationInput) organizationInput.required = false;
         if (positionInput) positionInput.required = false;
+        if (courseIdInput) courseIdInput.required = false;
         if (yearLevelInput) yearLevelInput.required = false;
 
         // Clear values
         if (organizationInput) organizationInput.value = '';
         if (positionInput) positionInput.value = '';
-        if (yearLevelInput) yearLevelInput.value = '';
 
         if (accountType === 'psg_officer') {
           psgFields.style.display = 'block';
           if (organizationInput) organizationInput.required = true;
           if (positionInput) positionInput.required = true;
-        } else if (accountType === 'student') {
-          console.log('Student account type selected');
+        } else if (accountType === 'student' || accountType === 'alumni') {
+          console.log(accountType + ' account type selected');
           studentFields.style.display = 'block';
+          courseIdInput.required = true;
           yearLevelInput.required = true;
 
           // Show course dropdown if department is already selected
@@ -254,7 +269,7 @@
             updateCourseOptions(department);
           } else {
             // Show course dropdown but with placeholder if no department selected
-            const courseSelect = document.getElementById('year_level_main');
+            const courseSelect = document.getElementById('course_id');
             courseSelect.innerHTML = '<option value="" disabled selected>Select Department First</option>';
             console.log('Set placeholder for course dropdown');
           }
@@ -278,13 +293,13 @@
 
           console.log('Department changed:', department, 'Account type:', accountType);
 
-          if (accountType === 'student') {
+          if (accountType === 'student' || accountType === 'alumni') {
             courseDropdown.style.display = 'block';
             if (department && coursesByDepartment[department]) {
               updateCourseOptions(department);
             } else {
               // Clear options if no valid department
-              const courseSelect = document.getElementById('year_level_main');
+              const courseSelect = document.getElementById('course_id');
               courseSelect.innerHTML = '<option value="" disabled selected>Select Department First</option>';
             }
           } else {
@@ -302,8 +317,10 @@
 
         // Check if all elements are found
         const courseDropdown = document.getElementById('course-dropdown-main');
+        const courseSelect = document.getElementById('course_id');
         const yearLevelSelect = document.getElementById('year_level_main');
         console.log('Course dropdown element found:', courseDropdown);
+        console.log('Course select found:', courseSelect);
         console.log('Year level select found:', yearLevelSelect);
 
         // Account type change handler
@@ -330,7 +347,8 @@
             // Basic validation for conditional fields
             const accountType = document.getElementById('account_type').value;
 
-            if (accountType === 'student') {
+            if (accountType === 'student' || accountType === 'alumni') {
+              const courseId = document.getElementById('course_id').value;
               const yearLevel = document.getElementById('year_level_main').value;
               const department = document.getElementById('department').value;
 
@@ -340,8 +358,14 @@
                 return false;
               }
 
+              if (!courseId) {
+                alert('Please select your course.');
+                e.preventDefault();
+                return false;
+              }
+
               if (!yearLevel) {
-                alert('Please select your course and year level.');
+                alert('Please select your year level.');
                 e.preventDefault();
                 return false;
               }
@@ -367,21 +391,17 @@
 
       // Function to update course options based on department
       function updateCourseOptions(department) {
-        const courseSelect = document.getElementById('year_level_main');
+        const courseSelect = document.getElementById('course_id');
 
         // Clear existing options
-        courseSelect.innerHTML = '<option value="" disabled selected>Select Course & Year</option>';
+        courseSelect.innerHTML = '<option value="" disabled selected>Select Course</option>';
 
         if (coursesByDepartment[department]) {
           coursesByDepartment[department].forEach(course => {
-            // Add year levels for each course
-            const years = ['1st Year', '2nd Year', '3rd Year', '4th Year', '5th Year'];
-            years.forEach(year => {
-              const option = document.createElement('option');
-              option.value = `${course} - ${year}`;
-              option.textContent = `${course} - ${year}`;
-              courseSelect.appendChild(option);
-            });
+            const option = document.createElement('option');
+            option.value = course.id;
+            option.textContent = `${course.code} - ${course.name}`;
+            courseSelect.appendChild(option);
           });
         }
       }

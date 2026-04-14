@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\GenerateReportRequest;
-use App\Models\AcademicYear;
 use App\Models\GeneratedReport;
 use App\Models\GoodMoralApplication;
 use App\Models\RoleAccount;
@@ -15,6 +14,9 @@ use Barryvdh\Snappy\Facades\SnappyPdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use App\Services\DashboardStatsService;
+use App\Services\MajorViolationReportService;
 
 class ReportController extends Controller
 {
@@ -28,7 +30,7 @@ class ReportController extends Controller
     }
 
     // Define departments
-    $departments = ['SASTE', 'SBAHM', 'SITE', 'SNAHS'];
+    $departments = DashboardStatsService::VIOLATION_DEPARTMENTS;
     $departmentsData = [];
     $totals = [
       'total_cases' => 0,
@@ -38,24 +40,38 @@ class ReportController extends Controller
       'total_population' => 0,
     ];
 
-    // Calculate data for each department
+    // Calculate data for each department using aggregate queries
+    $violationAggregates = StudentViolation::select(
+        'department',
+        DB::raw('COUNT(*) as total_cases'),
+        DB::raw("SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) as closed_cases"),
+        DB::raw("SUM(CASE WHEN status != 2 THEN 1 ELSE 0 END) as pending_cases"),
+        DB::raw('COUNT(DISTINCT student_id) as unique_violators')
+      )
+      ->whereIn('department', $departments)
+      ->groupBy('department')
+      ->get()
+      ->keyBy('department');
+
+    $populationAggregates = RoleAccount::select(
+        'department',
+        DB::raw('COUNT(*) as total_population')
+      )
+      ->whereIn('department', $departments)
+      ->whereIn('account_type', ['student', 'alumni'])
+      ->groupBy('department')
+      ->get()
+      ->keyBy('department');
+
     foreach ($departments as $dept) {
-      // Total cases (all violations in department)
-      $totalCases = StudentViolation::where('department', $dept)->count();
+      $violRow = $violationAggregates->get($dept);
+      $popRow = $populationAggregates->get($dept);
 
-      // Closed cases (status = 2)
-      $closedCases = StudentViolation::where('department', $dept)->where('status', 2)->count();
-
-      // Pending cases (status != 2)
-      $pendingCases = StudentViolation::where('department', $dept)->where('status', '!=', 2)->count();
-
-      // Unique violators (distinct student_ids with violations)
-      $uniqueViolators = StudentViolation::where('department', $dept)->distinct('student_id')->count();
-
-      // Total population (all students in department)
-      $totalPopulation = RoleAccount::where('department', $dept)
-        ->whereIn('account_type', ['student', 'alumni'])
-        ->count();
+      $totalCases = $violRow ? (int) $violRow->total_cases : 0;
+      $closedCases = $violRow ? (int) $violRow->closed_cases : 0;
+      $pendingCases = $violRow ? (int) $violRow->pending_cases : 0;
+      $uniqueViolators = $violRow ? (int) $violRow->unique_violators : 0;
+      $totalPopulation = $popRow ? (int) $popRow->total_population : 0;
 
       // Calculate percentage
       $percentage = $totalPopulation > 0 ? round(($uniqueViolators / $totalPopulation) * 100, 2) : 0;
@@ -115,7 +131,13 @@ class ReportController extends Controller
    */
   public function reportsPage()
   {
-    $academicYears = AcademicYear::getActiveYears();
+    // Generate academic year options dynamically based on current date
+    $currentYear = (int) date('Y');
+    $academicYears = [];
+    for ($i = 0; $i < 5; $i++) {
+      $start = $currentYear - $i;
+      $academicYears[] = $start . '-' . ($start + 1);
+    }
     return view('admin.reports', compact('academicYears'));
   }
 
@@ -146,7 +168,12 @@ class ReportController extends Controller
     $statistics = GeneratedReport::getStatistics();
 
     // Get academic years for filter
-    $academicYears = AcademicYear::getActiveYears();
+    $currentYear = (int) date('Y');
+    $academicYears = [];
+    for ($i = 0; $i < 5; $i++) {
+      $start = $currentYear - $i;
+      $academicYears[] = $start . '-' . ($start + 1);
+    }
 
     return view('admin.reports-history', compact('reports', 'statistics', 'academicYears'));
   }
@@ -160,6 +187,7 @@ class ReportController extends Controller
     $academicYear = $request->academic_year;
     $reportType = $request->report_type;
     $timePeriod = $request->time_period ?? 'all';
+    $exportFormat = $request->export_format ?? 'pdf';
 
     // Parse academic year (e.g., "2024-2025" -> start: 2024, end: 2025)
     $yearParts = explode('-', $academicYear);
@@ -181,7 +209,7 @@ class ReportController extends Controller
         return $this->generateMinorViolatorsReport($academicYear, $startDate, $endDate, $timePeriod);
 
       case 'major_violators':
-        return $this->generateMajorViolatorsReport($academicYear, $startDate, $endDate, $timePeriod);
+        return $this->generateMajorViolatorsReport($academicYear, $startDate, $endDate, $timePeriod, $exportFormat);
 
       case 'overall_report':
         return $this->generateOverallReport($academicYear, $startDate, $endDate, $timePeriod);
@@ -429,9 +457,9 @@ class ReportController extends Controller
   }
 
   /**
-   * Generate Major Violators Report
+   * Generate Major Violators Report (DOCX or PDF via PHPWord)
    */
-  private function generateMajorViolatorsReport($academicYear, $startDate, $endDate, $timePeriod = 'all')
+  private function generateMajorViolatorsReport($academicYear, $startDate, $endDate, $timePeriod = 'all', $format = 'pdf')
   {
     // Include student relationship for year level information
     $query = StudentViolation::with('studentAccount')->where('offense_type', 'major');
@@ -449,8 +477,67 @@ class ReportController extends Controller
       ->orderBy('created_at', 'desc')
       ->get();
 
+    // Group violations by ref_num so each case appears as one row
+    $cases = $violations->groupBy('ref_num')->map(function ($group) {
+      $first = $group->first();
+
+      // Combine student names (Last, First format; semicolon-separated)
+      $names = $group->unique('student_id')->map(function ($v) {
+        return ucwords(strtolower($v->last_name)) . ', ' . ucwords(strtolower($v->first_name));
+      })->implode('; ');
+
+      // Combine unique courses
+      $courses = $group->unique('student_id')->pluck('course')->filter()->unique()->implode(' / ');
+
+      // Determine overall case status (pending unless ALL records are closed)
+      $allClosed = $group->every(fn($v) => $v->status == 2);
+      $anyWithdrawn = $group->contains(fn($v) => $v->status == 1.5);
+
+      if ($allClosed) {
+        $statusText = 'CLOSED';
+        $rowClass = 'status-resolved';
+      } elseif ($anyWithdrawn) {
+        $statusText = 'PENDING - WITHDRAWN';
+        $rowClass = 'status-forwarded';
+      } else {
+        $statusText = 'PENDING';
+        $rowClass = 'status-pending';
+      }
+
+      return (object) [
+        'ref_num' => $first->ref_num,
+        'names' => $names,
+        'courses' => $courses ?: 'N/A',
+        'violation' => $first->violation,
+        'status_text' => $statusText,
+        'row_class' => $rowClass,
+        'date_filed' => $first->created_at,
+        'department' => $first->department,
+        'student_ids' => $group->pluck('student_id')->unique()->values(),
+        'is_closed' => $allClosed,
+      ];
+    })->values();
+
     // Get time period description
     $timePeriodInfo = $this->getSpecificTimePeriodDescription($timePeriod);
+
+    // Get real population data per department from the database
+    $departments = DashboardStatsService::DEPARTMENTS;
+    $populationAggregates = RoleAccount::select(
+        'department',
+        DB::raw('COUNT(*) as total_population')
+      )
+      ->whereIn('department', $departments)
+      ->whereIn('account_type', ['student', 'alumni'])
+      ->groupBy('department')
+      ->get()
+      ->keyBy('department');
+
+    $populationData = [];
+    foreach ($departments as $dept) {
+      $popRow = $populationAggregates->get($dept);
+      $populationData[$dept] = $popRow ? (int) $popRow->total_population : 0;
+    }
 
     $reportData = [
       'generated_date' => now()->format('F j, Y'),
@@ -461,19 +548,46 @@ class ReportController extends Controller
       'time_period_info' => $timePeriodInfo,
       'report_title' => 'List of Violators (Major Offenses)',
       'report_subtitle' => $timePeriod !== 'all' ? $timePeriodInfo['description'] : 'A.Y. ' . $academicYear,
+      'cases' => $cases,
       'violations' => $violations,
-      'total_count' => $violations->count(),
-      'departments_summary' => $violations->groupBy('department')->map->count(),
+      'total_count' => $cases->count(),
+      'departments_summary' => $cases->groupBy('department')->map->count(),
       'unique_violators' => $violations->unique('student_id')->count(),
+      'populationData' => $populationData,
     ];
-
-    $pdf = Pdf::loadView('pdf.major_violators_report', $reportData);
-    $pdf->setPaper('letter', 'portrait');
 
     // Create filename with time period info
     $filenameSuffix = $timePeriod !== 'all' ? $timePeriodInfo['filename_suffix'] : $academicYear;
-    $filename = 'major_violators_' . $filenameSuffix . '_' . now()->format('Y-m-d_H-i-s') . '.pdf';
-    return $pdf->download($filename);
+
+    $service = new MajorViolationReportService();
+
+    if ($format === 'docx') {
+      $tempFile = $service->generateDocx($reportData);
+      $filename = 'major_violators_' . $filenameSuffix . '_' . now()->format('Y-m-d_H-i-s') . '.docx';
+
+      return response()->download($tempFile, $filename, [
+        'Content-Type' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      ])->deleteFileAfterSend(true);
+    }
+
+    // Default: generate DOCX then convert to PDF
+    try {
+      $tempFile = $service->generatePdf($reportData);
+      $filename = 'major_violators_' . $filenameSuffix . '_' . now()->format('Y-m-d_H-i-s') . '.pdf';
+
+      return response()->download($tempFile, $filename, [
+        'Content-Type' => 'application/pdf',
+      ])->deleteFileAfterSend(true);
+    } catch (\Exception $e) {
+      // Fallback: if PDF conversion fails, fall back to Blade→DomPDF
+      Log::warning('PHPWord PDF conversion failed, falling back to DomPDF', ['error' => $e->getMessage()]);
+
+      $reportData['cases'] = $cases;
+      $pdf = Pdf::loadView('pdf.major_violators_report', $reportData);
+      $pdf->setPaper('letter', 'portrait');
+      $filename = 'major_violators_' . $filenameSuffix . '_' . now()->format('Y-m-d_H-i-s') . '.pdf';
+      return $pdf->download($filename);
+    }
   }
 
   /**
@@ -575,7 +689,7 @@ class ReportController extends Controller
   private function generateOverallReport($academicYear, $startDate, $endDate, $timePeriod = 'all')
   {
     // Define departments
-    $departments = ['SASTE', 'SBAHM', 'SITE', 'SNAHS', 'SOM', 'GRADSCH'];
+    $departments = DashboardStatsService::DEPARTMENTS;
     $departmentsData = [];
     $totals = [
       'total_cases' => 0,
@@ -585,35 +699,39 @@ class ReportController extends Controller
       'total_population' => 0,
     ];
 
-    // Calculate data for each department within the academic year
+    // Calculate data for each department within the academic year using aggregate queries
+    $violationAggregates = StudentViolation::select(
+        'department',
+        DB::raw('COUNT(*) as total_cases'),
+        DB::raw("SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) as closed_cases"),
+        DB::raw("SUM(CASE WHEN status != 2 THEN 1 ELSE 0 END) as pending_cases"),
+        DB::raw('COUNT(DISTINCT student_id) as unique_violators')
+      )
+      ->whereIn('department', $departments)
+      ->whereBetween('created_at', [$startDate, $endDate])
+      ->groupBy('department')
+      ->get()
+      ->keyBy('department');
+
+    $populationAggregates = RoleAccount::select(
+        'department',
+        DB::raw('COUNT(*) as total_population')
+      )
+      ->whereIn('department', $departments)
+      ->whereIn('account_type', ['student', 'alumni'])
+      ->groupBy('department')
+      ->get()
+      ->keyBy('department');
+
     foreach ($departments as $dept) {
-      // Total cases (all violations in department within academic year)
-      $totalCases = StudentViolation::where('department', $dept)
-        ->whereBetween('created_at', [$startDate, $endDate])
-        ->count();
+      $violRow = $violationAggregates->get($dept);
+      $popRow = $populationAggregates->get($dept);
 
-      // Closed cases (status = 2)
-      $closedCases = StudentViolation::where('department', $dept)
-        ->where('status', 2)
-        ->whereBetween('created_at', [$startDate, $endDate])
-        ->count();
-
-      // Pending cases (status != 2)
-      $pendingCases = StudentViolation::where('department', $dept)
-        ->where('status', '!=', 2)
-        ->whereBetween('created_at', [$startDate, $endDate])
-        ->count();
-
-      // Unique violators (distinct student_ids with violations in academic year)
-      $uniqueViolators = StudentViolation::where('department', $dept)
-        ->whereBetween('created_at', [$startDate, $endDate])
-        ->distinct('student_id')
-        ->count();
-
-      // Total population (all students in department)
-      $totalPopulation = RoleAccount::where('department', $dept)
-        ->whereIn('account_type', ['student', 'alumni'])
-        ->count();
+      $totalCases = $violRow ? (int) $violRow->total_cases : 0;
+      $closedCases = $violRow ? (int) $violRow->closed_cases : 0;
+      $pendingCases = $violRow ? (int) $violRow->pending_cases : 0;
+      $uniqueViolators = $violRow ? (int) $violRow->unique_violators : 0;
+      $totalPopulation = $popRow ? (int) $popRow->total_population : 0;
 
       // Calculate percentage
       $percentage = $totalPopulation > 0 ? round(($uniqueViolators / $totalPopulation) * 100, 2) : 0;

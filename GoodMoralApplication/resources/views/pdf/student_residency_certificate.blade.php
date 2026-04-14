@@ -261,7 +261,7 @@
   <div class="header">
     <img src="data:image/png;base64,{{ $header }}" alt="University Header" style="width: 100%; height: auto; margin-bottom: 5px; max-width: 600px; display: block; margin-left: auto; margin-right: auto;" />
 
-    <h3 style="margin-top: 5px; margin-bottom: 5px;">OFFICE OF STUDENT AFFAIRS</h3>
+    <h3 style="margin-top: 5px; margin-bottom: 5px;">STUDENT AFFAIRS AND ACADEMIC SUPPORT SERVICES</h3>
     <div class="two-tone-line"></div>
   </div>
 
@@ -299,8 +299,8 @@
     <p>Any courtesy extended to {{ $objectPronoun }} will be highly appreciated.</p>
 
     <div class="signature">
-      <strong>RUCELJ D. PUGEDA, MIT</strong><br />
-      Head, Student Affairs
+      <strong>TERESITA T. LASAM, PhD</strong><br />
+      Director, Student Affairs and Academic Support Services
     </div> <br><br>
     <div class="note">Not valid without University Dry Seal</div>
     <br>

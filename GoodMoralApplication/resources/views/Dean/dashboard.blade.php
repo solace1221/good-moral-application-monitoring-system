@@ -2,7 +2,7 @@
   <x-slot name="roleTitle">Dean</x-slot>
 
   <x-slot name="navigation">
-    @include('components.dean-navigation')
+    <x-dean-navigation />
   </x-slot>
 
   <!-- Header Section -->

@@ -2,7 +2,7 @@
     <x-slot name="roleTitle">PSG Officer</x-slot>
 
     <x-slot name="navigation">
-        @include('PsgOfficer.sidebar')
+        <x-psg-officer-navigation />
     </x-slot>
 
     <!-- Header Section -->
@@ -31,12 +31,53 @@
                         @csrf
                         @method('patch')
 
+                        @if ($errors->any())
+                            <div style="background: #f8d7da; color: #721c24; padding: 16px; border-radius: 8px; border-left: 4px solid #dc3545;">
+                                <strong>{{ __('Whoops! Something went wrong.') }}</strong>
+                                <ul style="margin: 8px 0 0 0; padding-left: 20px;">
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+
                         <div>
-                            <label for="fullname" style="display: block; margin-bottom: 8px; font-weight: 500; color: #495057;">{{ __('Full Name') }}</label>
-                            <input type="text" id="fullname" name="fullname" 
+                            <label for="first_name" style="display: block; margin-bottom: 8px; font-weight: 500; color: #495057;">{{ __('First Name') }}</label>
+                            <input type="text" id="first_name" name="first_name" 
                                    style="width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px;"
-                                   value="{{ old('fullname', $user->fullname) }}" required autofocus>
-                            @error('fullname')
+                                   value="{{ old('first_name', $user->firstname) }}" required autofocus>
+                            @error('first_name')
+                                <p style="color: #e74c3c; font-size: 12px; margin-top: 4px;">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label for="middle_name" style="display: block; margin-bottom: 8px; font-weight: 500; color: #495057;">{{ __('Middle Name') }}</label>
+                            <input type="text" id="middle_name" name="middle_name" 
+                                   style="width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px;"
+                                   value="{{ old('middle_name', $user->middlename) }}">
+                            @error('middle_name')
+                                <p style="color: #e74c3c; font-size: 12px; margin-top: 4px;">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label for="last_name" style="display: block; margin-bottom: 8px; font-weight: 500; color: #495057;">{{ __('Last Name') }}</label>
+                            <input type="text" id="last_name" name="last_name" 
+                                   style="width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px;"
+                                   value="{{ old('last_name', $user->lastname) }}" required>
+                            @error('last_name')
+                                <p style="color: #e74c3c; font-size: 12px; margin-top: 4px;">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label for="extension" style="display: block; margin-bottom: 8px; font-weight: 500; color: #495057;">{{ __('Name Extension (Jr., Sr., III, etc.)') }}</label>
+                            <input type="text" id="extension" name="extension" 
+                                   style="width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px;"
+                                   value="{{ old('extension', $user->suffix_name) }}">
+                            @error('extension')
                                 <p style="color: #e74c3c; font-size: 12px; margin-top: 4px;">{{ $message }}</p>
                             @enderror
                         </div>
@@ -44,19 +85,21 @@
                         <div>
                             <label for="email" style="display: block; margin-bottom: 8px; font-weight: 500; color: #495057;">{{ __('Email') }}</label>
                             <input type="email" id="email" name="email" 
-                                   style="width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px; background: #f8f9fa;"
-                                   value="{{ old('email', $user->email) }}" readonly>
-                            <p style="color: #6b7280; font-size: 12px; margin-top: 4px;">
-                                {{ __('To change your email address, use the email update section below.') }}
-                            </p>
+                                   style="width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px;"
+                                   value="{{ old('email', $user->email) }}" required>
+                            @error('email')
+                                <p style="color: #e74c3c; font-size: 12px; margin-top: 4px;">{{ $message }}</p>
+                            @enderror
                         </div>
 
                         <div>
-                            <label for="department" style="display: block; margin-bottom: 8px; font-weight: 500; color: #495057;">{{ __('Department') }}</label>
-                            <input type="text" id="department" name="department" 
-                                   style="width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px;"
-                                   value="{{ old('department', $user->department) }}" required>
-                            @error('department')
+                            <label for="gender" style="display: block; margin-bottom: 8px; font-weight: 500; color: #495057;">{{ __('Gender') }}</label>
+                            <select id="gender" name="gender" required
+                                    style="width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px;">
+                                <option value="male" {{ old('gender', $user->gender) == 'male' ? 'selected' : '' }}>Male</option>
+                                <option value="female" {{ old('gender', $user->gender) == 'female' ? 'selected' : '' }}>Female</option>
+                            </select>
+                            @error('gender')
                                 <p style="color: #e74c3c; font-size: 12px; margin-top: 4px;">{{ $message }}</p>
                             @enderror
                         </div>
@@ -65,7 +108,7 @@
                             <label for="organization" style="display: block; margin-bottom: 8px; font-weight: 500; color: #495057;">{{ __('Organization') }}</label>
                             <input type="text" id="organization" name="organization" 
                                    style="width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px;"
-                                   value="{{ old('organization', $user->organization) }}">
+                                   value="{{ old('organization', $student->organization ?? '') }}" required>
                             @error('organization')
                                 <p style="color: #e74c3c; font-size: 12px; margin-top: 4px;">{{ $message }}</p>
                             @enderror
@@ -75,7 +118,7 @@
                             <label for="position" style="display: block; margin-bottom: 8px; font-weight: 500; color: #495057;">{{ __('Position') }}</label>
                             <input type="text" id="position" name="position" 
                                    style="width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px;"
-                                   value="{{ old('position', $user->position) }}">
+                                   value="{{ old('position', $student->position ?? '') }}" required>
                             @error('position')
                                 <p style="color: #e74c3c; font-size: 12px; margin-top: 4px;">{{ $message }}</p>
                             @enderror

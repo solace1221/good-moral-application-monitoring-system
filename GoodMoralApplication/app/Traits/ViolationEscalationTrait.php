@@ -107,17 +107,13 @@ trait ViolationEscalationTrait
         // Get all admin users
         $admins = RoleAccount::where('account_type', 'admin')->get();
 
-        foreach ($admins as $admin) {
-            // Only create notification if admin has a student_id (some staff accounts might not have one)
-            if ($admin->student_id) {
-                ViolationNotif::create([
-                    'ref_num' => $caseReference,
-                    'student_id' => $admin->student_id, // Notify admin
-                    'status' => 0, // Pending/unread
-                    'notif' => "🚨 AUTOMATIC ESCALATION: Student {$studentName} ({$studentId}) has accumulated {$violationCount} minor violations. A major violation has been automatically created (Case: {$caseReference}). Immediate administrative action required.",
-                ]);
-            }
-        }
+        // Create a single role-targeted notification for all admins
+        ViolationNotif::create([
+            'ref_num' => $caseReference,
+            'student_id' => 'ROLE_ADMIN', // Role-based targeting so all admins see it
+            'status' => 0, // Pending/unread
+            'notif' => "\xF0\x9F\x9A\xA8 AUTOMATIC ESCALATION: Student {$studentName} ({$studentId}) has accumulated {$violationCount} minor violations. A major violation has been automatically created (Case: {$caseReference}). Immediate administrative action required.",
+        ]);
 
         // Also create a notification for the student using new format
         $escalationMessage = generateHandbookReference('major') . ". 🚨 CRITICAL NOTICE: You have accumulated {$violationCount} minor violations. This has automatically resulted in a MAJOR VIOLATION (Case: {$caseReference}). Please go to the Dean's office immediately for compliance.";

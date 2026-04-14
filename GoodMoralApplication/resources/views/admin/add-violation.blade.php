@@ -35,16 +35,15 @@
       this.showEditModal = true;
     }
   }" class="header-section">
-    <!-- Status Messages -->
-    @if(session('status'))
-    <div style="margin-bottom: 24px; padding: 16px; background: #d4edda; color: #155724; border: 1px solid #c3e6cb; border-radius: 8px;">
-      {{ session('status') }}
-    </div>
-    @endif
+    @include('shared.alerts.flash')
 
-    @if (session('success'))
-    <div style="margin-bottom: 24px; padding: 16px; background: #d4edda; color: #155724; border: 1px solid #c3e6cb; border-radius: 8px;">
-      {{ session('success') }}
+    @if ($errors->any())
+    <div style="margin-bottom: 24px; padding: 16px; background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 8px;">
+      <ul style="margin: 0; padding-left: 20px;">
+        @foreach ($errors->all() as $error)
+          <li>{{ $error }}</li>
+        @endforeach
+      </ul>
     </div>
     @endif
 
@@ -52,7 +51,7 @@
     <div style="background: white; padding: 24px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 24px;">
       <h3 style="margin: 0 0 20px; color: var(--primary-green); font-size: 1.25rem; font-weight: 600;">Add New Violation</h3>
       
-      <form method="POST" action="{{ route('registerviolation') }}" style="display: grid; gap: 20px;">
+      <form method="POST" action="{{ route('admin.storeViolation') }}" style="display: grid; gap: 20px;">
         @csrf
 
         <div>
@@ -115,12 +114,13 @@
               <th style="padding: 16px; text-align: left; font-weight: 600; color: #495057;">Offense Type</th>
               <th style="padding: 16px; text-align: left; font-weight: 600; color: #495057;">Description</th>
               <th style="padding: 16px; text-align: left; font-weight: 600; color: #495057;">Article</th>
+              <th style="padding: 16px; text-align: left; font-weight: 600; color: #495057;">Status</th>
               <th style="padding: 16px; text-align: left; font-weight: 600; color: #495057;">Actions</th>
             </tr>
           </thead>
           <tbody>
             @foreach ($violations as $violation)
-            <tr style="border-bottom: 1px solid #e9ecef;">
+            <tr style="border-bottom: 1px solid #e9ecef; {{ $violation->status === 'inactive' ? 'opacity: 0.6;' : '' }}">
               <td style="padding: 16px;">
                 <span style="display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; 
                              background: {{ $violation->offense_type == 'major' ? '#dc354520' : '#28a74520' }}; 
@@ -139,6 +139,13 @@
                 @endif
               </td>
               <td style="padding: 16px;">
+                @if($violation->status === 'active')
+                  <span style="display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; background: #d4edda; color: #155724;">Active</span>
+                @else
+                  <span style="display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; background: #f8d7da; color: #721c24;">Archived</span>
+                @endif
+              </td>
+              <td style="padding: 16px;">
                 <div style="display: flex; gap: 8px;">
                   <button @click="openEditModal({{ json_encode($violation) }})"
                           style="padding: 8px 16px; font-size: 14px; background: var(--primary-green); color: white; border: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);"
@@ -150,15 +157,31 @@
                     Edit
                   </button>
 
-                  <button onclick="showDeleteConfirmation({{ $violation->id }}, '{{ addslashes($violation->description) }}')"
-                            style="padding: 8px 16px; background: #dc3545; color: white; border: none; border-radius: 6px; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);"
-                            onmouseover="this.style.background='#c82333'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(220, 53, 69, 0.4)'"
-                            onmouseout="this.style.background='#dc3545'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(220, 53, 69, 0.3)'">
-                      <svg style="width: 14px; height: 14px; color: white;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/>
+                  @if($violation->status === 'active')
+                    <button onclick="showArchiveConfirmation({{ $violation->id }}, '{{ addslashes($violation->description) }}')"
+                            style="padding: 8px 16px; background: #ffc107; color: #212529; border: none; border-radius: 6px; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);"
+                            onmouseover="this.style.background='#e0a800'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(255, 193, 7, 0.4)'"
+                            onmouseout="this.style.background='#ffc107'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(255, 193, 7, 0.3)'">
+                      <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0-3-3m3 3 3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z"/>
                       </svg>
-                      Delete
+                      Archive
                     </button>
+                  @else
+                    <form method="POST" action="{{ route('admin.restoreViolation', $violation->id) }}" style="display: inline;">
+                      @csrf
+                      @method('PATCH')
+                      <button type="submit"
+                              style="padding: 8px 16px; background: #17a2b8; color: white; border: none; border-radius: 6px; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(23, 162, 184, 0.3);"
+                              onmouseover="this.style.background='#138496'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(23, 162, 184, 0.4)'"
+                              onmouseout="this.style.background='#17a2b8'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(23, 162, 184, 0.3)'">
+                        <svg style="width: 14px; height: 14px; color: white;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182"/>
+                        </svg>
+                        Restore
+                      </button>
+                    </form>
+                  @endif
                 </div>
               </td>
             </tr>
@@ -241,49 +264,54 @@
       </div>
     </div>
 
-    <!-- Delete Confirmation Modal -->
-    <div id="deleteConfirmModal" 
-         style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: 10000; backdrop-filter: blur(4px); padding: 20px;">
-      <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 16px; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25); min-width: 400px; max-width: 500px; animation: modalSlideIn 0.3s ease;">
-        <div style="padding: 24px 24px 0 24px; text-align: center;">
-          <!-- Warning Icon -->
-          <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #ff6b6b, #ee5a52); border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; animation: pulse 2s infinite;">
-            <svg style="width: 32px; height: 32px; color: white;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+    {{-- Archive Confirmation Modal --}}
+    <x-shared.modals.confirm-action
+        id="archiveConfirmModal"
+        title="Archive Violation Type"
+        title-color="#2d3748"
+        close-fn="closeArchiveModal()"
+        z-index="10000"
+        max-width="500px">
+
+      <div style="text-align: center;">
+        {{-- Warning Icon --}}
+        <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #ffc107, #e0a800); border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; animation: pulse 2s infinite;">
+          <svg style="width: 32px; height: 32px; color: white;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0-3-3m3 3 3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z"/>
+          </svg>
+        </div>
+
+        <p style="margin: 0 0 8px 0; color: #4a5568; font-size: 16px; line-height: 1.5;">
+          Are you sure you want to archive this violation type:
+        </p>
+
+        <p id="archiveViolationDescription" style="margin: 0 0 16px 0; color: #2d3748; font-size: 18px; font-weight: 600; background: #f7fafc; padding: 12px; border-radius: 8px; border-left: 4px solid #ffc107;"></p>
+
+        <div style="background: #fff3cd; padding: 16px; border-radius: 8px; border: 1px solid #ffeeba; margin-bottom: 4px; text-align: left;">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+            <svg style="width: 16px; height: 16px; color: #856404;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/>
             </svg>
+            <strong style="color: #856404; font-size: 14px;">Note:</strong>
           </div>
-          
-          <h3 style="margin: 0 0 12px 0; color: #2d3748; font-size: 20px; font-weight: 700;">Confirm Violation Deletion</h3>
-          
-          <p style="margin: 0 0 8px 0; color: #4a5568; font-size: 16px; line-height: 1.5;">
-            Are you sure you want to delete this violation:
+          <p style="margin: 0; color: #856404; font-size: 14px; line-height: 1.4;">
+            Archived violation types will no longer appear in dropdowns but will remain visible in existing records. You can restore them later.
           </p>
-          
-          <p id="deleteViolationDescription" style="margin: 0 0 16px 0; color: #2d3748; font-size: 18px; font-weight: 600; background: #f7fafc; padding: 12px; border-radius: 8px; border-left: 4px solid #ff6b6b;"></p>
-          
-          <div style="background: #fff5f5; padding: 16px; border-radius: 8px; border: 1px solid #fed7d7; margin-bottom: 24px;">
-            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-              <svg style="width: 16px; height: 16px; color: #e53e3e;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/>
-              </svg>
-              <strong style="color: #c53030; font-size: 14px;">Warning:</strong>
-            </div>
-            <p style="margin: 0; color: #c53030; font-size: 14px; line-height: 1.4;">
-              This action cannot be undone. All data associated with this violation type will be permanently deleted.
-            </p>
-          </div>
-        </div>
-        
-        <div style="display: flex; gap: 12px; padding: 0 24px 24px 24px;">
-          <button onclick="closeDeleteModal()" style="flex: 1; padding: 12px 20px; background: #e2e8f0; color: #2d3748; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
-            Cancel
-          </button>
-          <button id="confirmDeleteBtn" onclick="confirmDelete()" style="flex: 1; padding: 12px 20px; background: linear-gradient(135deg, #ff6b6b, #ee5a52); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);">
-            Delete Violation
-          </button>
         </div>
       </div>
-    </div>
+
+      <x-slot name="footer">
+        <div style="display: flex; gap: 12px; margin-top: 20px;">
+          <button onclick="closeArchiveModal()" style="flex: 1; padding: 12px 20px; background: #e2e8f0; color: #2d3748; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
+            Cancel
+          </button>
+          <button id="confirmArchiveBtn" onclick="confirmArchive()" style="flex: 1; padding: 12px 20px; background: linear-gradient(135deg, #ffc107, #e0a800); color: #212529; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);">
+            Archive Violation
+          </button>
+        </div>
+      </x-slot>
+
+    </x-shared.modals.confirm-action>
   </div>
 
   <!-- Styles and JavaScript -->
@@ -317,52 +345,51 @@
       }
     }
     
-    #confirmDeleteBtn:hover {
+    #confirmArchiveBtn:hover {
       transform: translateY(-2px);
-      box-shadow: 0 6px 25px rgba(255, 107, 107, 0.4);
-      background: linear-gradient(135deg, #ee5a52, #ff6b6b);
+      box-shadow: 0 6px 25px rgba(255, 193, 7, 0.4);
+      background: linear-gradient(135deg, #e0a800, #ffc107);
     }
     
-    button[onclick="closeDeleteModal()"]:hover {
+    button[onclick="closeArchiveModal()"]:hover {
       background: #cbd5e0;
       transform: translateY(-1px);
     }
   </style>
 
   <script>
-    let pendingDeleteId = null;
-    let pendingDeleteDescription = null;
+    let pendingArchiveId = null;
+    let pendingArchiveDescription = null;
 
-    function showDeleteConfirmation(id, description) {
-      pendingDeleteId = id;
-      pendingDeleteDescription = description;
+    function showArchiveConfirmation(id, description) {
+      pendingArchiveId = id;
+      pendingArchiveDescription = description;
       
-      document.getElementById('deleteViolationDescription').textContent = description;
-      document.getElementById('deleteConfirmModal').style.display = 'block';
+      document.getElementById('archiveViolationDescription').textContent = description;
+      document.getElementById('archiveConfirmModal').style.display = 'flex';
       document.body.style.overflow = 'hidden';
     }
 
-    function closeDeleteModal() {
-      document.getElementById('deleteConfirmModal').style.display = 'none';
+    function closeArchiveModal() {
+      document.getElementById('archiveConfirmModal').style.display = 'none';
       document.body.style.overflow = 'auto';
-      pendingDeleteId = null;
-      pendingDeleteDescription = null;
+      pendingArchiveId = null;
+      pendingArchiveDescription = null;
     }
 
-    function confirmDelete() {
-      if (!pendingDeleteId) return;
+    function confirmArchive() {
+      if (!pendingArchiveId) return;
       
-      const confirmBtn = document.getElementById('confirmDeleteBtn');
-      const originalText = confirmBtn.textContent;
+      const confirmBtn = document.getElementById('confirmArchiveBtn');
       
       // Show loading state
       confirmBtn.disabled = true;
-      confirmBtn.innerHTML = '<svg style="width: 16px; height: 16px; animation: spin 1s linear infinite; margin-right: 8px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>Deleting...';
+      confirmBtn.innerHTML = '<svg style="width: 16px; height: 16px; animation: spin 1s linear infinite; margin-right: 8px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>Archiving...';
       
       // Create and submit form
       const form = document.createElement('form');
       form.method = 'POST';
-      form.action = `/admin/violation/delete/${pendingDeleteId}`;
+      form.action = `/admin/violation/${pendingArchiveId}/archive`;
 
       // Add CSRF token
       const csrfToken = document.createElement('input');
@@ -371,11 +398,11 @@
       csrfToken.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
       form.appendChild(csrfToken);
 
-      // Add DELETE method
+      // Add PATCH method
       const methodField = document.createElement('input');
       methodField.type = 'hidden';
       methodField.name = '_method';
-      methodField.value = 'DELETE';
+      methodField.value = 'PATCH';
       form.appendChild(methodField);
 
       document.body.appendChild(form);
@@ -383,15 +410,15 @@
     }
 
     // Close modal when clicking outside or pressing Escape
-    document.getElementById('deleteConfirmModal').addEventListener('click', function(e) {
+    document.getElementById('archiveConfirmModal').addEventListener('click', function(e) {
       if (e.target === this) {
-        closeDeleteModal();
+        closeArchiveModal();
       }
     });
 
     document.addEventListener('keydown', function(event) {
       if (event.key === 'Escape') {
-        closeDeleteModal();
+        closeArchiveModal();
       }
     });
   </script>

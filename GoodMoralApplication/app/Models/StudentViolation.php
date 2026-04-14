@@ -19,11 +19,15 @@ class StudentViolation extends Model
     'offense_type',
     'added_by',
     'violation',
+    'violation_id',
     'unique_id',
     'department',
     'course',
     'ref_num',
+    'case_type',
+    'group_size',
     'document_path',
+    'downloaded',
     'meeting_date',
     'meeting_notes',
     'proceedings_uploaded_by',
@@ -65,19 +69,10 @@ class StudentViolation extends Model
   public function getStudentYearLevel()
   {
     if ($this->studentAccount) {
-      return $this->studentAccount->getDisplayYearLevel();
+      return $this->studentAccount->year_level ?: 'N/A';
     }
 
-    // If no student account found, generate random year level based on student_id
-    if ($this->student_id) {
-      $yearLevels = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
-      mt_srand(crc32($this->student_id));
-      $randomIndex = mt_rand(0, count($yearLevels) - 1);
-      mt_srand(); // Reset random seed
-      return $yearLevels[$randomIndex];
-    }
-
-    return '1st Year'; // Default fallback
+    return 'N/A';
   }
 
   /**
@@ -94,5 +89,37 @@ class StudentViolation extends Model
   public function notifs()
   {
     return $this->hasMany(ViolationNotif::class, 'ref_num', 'ref_num');
+  }
+
+  /**
+   * Scope: minor offenses.
+   */
+  public function scopeMinor($query)
+  {
+    return $query->where('offense_type', 'minor');
+  }
+
+  /**
+   * Scope: major offenses.
+   */
+  public function scopeMajor($query)
+  {
+    return $query->where('offense_type', 'major');
+  }
+
+  /**
+   * Scope: violations not yet resolved (status != 2).
+   */
+  public function scopePending($query)
+  {
+    return $query->where('status', '!=', 2);
+  }
+
+  /**
+   * Scope: resolved / closed violations (status = 2).
+   */
+  public function scopeResolved($query)
+  {
+    return $query->where('status', 2);
   }
 }

@@ -19,6 +19,7 @@ class RoleAccount extends Authenticatable
     'account_type',
     'student_id',
     'department',
+    'course_id',
     'course',
     'year_level',
     'fullname',
@@ -31,6 +32,10 @@ class RoleAccount extends Authenticatable
     'is_graduating',
     'graduation_date',
     'graduated_at',
+    'pending_email',
+    'email_verification_token',
+    'email_verification_sent_at',
+    'email_verified_at',
   ];
 
   protected $hidden = [
@@ -92,40 +97,11 @@ class RoleAccount extends Authenticatable
   }
 
   /**
-   * Get the year level for the student, randomizing if not set
-   * 
-   * @return string
+   * Check if this account is a student-type account.
    */
-  public function getYearLevelAttribute($value)
+  public function isStudentType(): bool
   {
-    // If year_level is already set and not empty, return it
-    if ($value && !empty(trim($value))) {
-      return $value;
-    }
-
-    // If year_level is empty or null, generate a random one
-    $yearLevels = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
-    
-    // Use student_id as seed for consistent randomization per student
-    if ($this->student_id) {
-      mt_srand(crc32($this->student_id));
-      $randomIndex = mt_rand(0, count($yearLevels) - 1);
-      mt_srand(); // Reset random seed
-      return $yearLevels[$randomIndex];
-    }
-    
-    // Fallback to truly random if no student_id
-    return $yearLevels[array_rand($yearLevels)];
-  }
-
-  /**
-   * Get display-friendly year level
-   * 
-   * @return string
-   */
-  public function getDisplayYearLevel()
-  {
-    return $this->year_level ?: $this->getYearLevelAttribute(null);
+    return in_array($this->account_type, ['student', 'alumni']);
   }
 
   // =========================================================
@@ -137,7 +113,7 @@ class RoleAccount extends Authenticatable
     return $this->belongsTo(Department::class, 'department_id');
   }
 
-  public function course()
+  public function courseRecord()
   {
     return $this->belongsTo(Course::class, 'course_id');
   }

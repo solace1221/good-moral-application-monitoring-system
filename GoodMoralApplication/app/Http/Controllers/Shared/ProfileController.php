@@ -10,15 +10,17 @@ use App\Http\Requests\UpdateStaffProfileRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
-use App\Traits\RoleCheck;
 use App\Models\RoleAccount;
 use App\Models\StudentRegistration;
-use PhpParser\Node\Arg;
+use App\Models\User;
+use App\Services\NotificationCountService;
+use Illuminate\Support\Facades\Log;
 
 class ProfileController extends Controller
 {
@@ -28,12 +30,12 @@ class ProfileController extends Controller
     public function edit(Request $request): View
     {
         $user = $request->user();
-
-        // Determine the appropriate view based on user role
+        $roleAccount = RoleAccount::where('email', $user->email)->first();
         $viewName = $this->getProfileViewName($user->account_type);
 
         return view($viewName, [
             'user' => $user,
+            'student' => $roleAccount,
         ]);
     }
 
@@ -46,12 +48,13 @@ class ProfileController extends Controller
             'admin' => 'profile.admin',
             'moderator' => 'profile.moderator',
             'dean' => 'profile.dean',
+            'deansom' => 'profile.dean',
+            'deangradsch' => 'profile.dean',
             'prog_coor' => 'profile.prog_coor',
             'registrar' => 'profile.registrar',
-            'student' => 'profile.student',
-            'alumni' => 'profile.alumni',
+            'student' => 'student.profile',
+            'alumni' => 'student.profile',
             'psg_officer' => 'profile.psg_officer',
-            'head_osa' => 'profile.head_osa',
             'sec_osa' => 'profile.sec_osa',
         ];
 
@@ -59,18 +62,142 @@ class ProfileController extends Controller
     }
 
     /**
-     * Update the user's profile information.
+     * Update the user's profile information (role-aware).
      */
-    public function update(ProfileUpdateRequest $request): RedirectResponse
+    public function update(Request $request): RedirectResponse
     {
+        /** @var \App\Models\User $user */
         $user = $request->user();
-        $user->fill($request->validated());
+        $roleAccount = RoleAccount::where('email', $user->email)->first();
 
-        if ($user->isDirty('email')) {
-            $user->email_verified_at = null;
+        if (!$roleAccount) {
+            return back()->with('error', 'Account record not found.');
         }
 
-        $user->save();
+        $accountType = $user->account_type;
+
+        // Student / Alumni → limited profile (email + gender only)
+        if (in_array($accountType, ['student', 'alumni'])) {
+            return $this->updateStudentProfile($request, $user, $roleAccount);
+        }
+
+        // PSG Officer → name parts + org/position
+        if ($accountType === 'psg_officer') {
+            return $this->updatePsgOfficerProfile($request, $user, $roleAccount);
+        }
+
+        // Staff roles → fullname + department + gender
+        $staffRoles = ['admin', 'moderator', 'sec_osa', 'dean', 'deansom', 'deangradsch', 'registrar', 'prog_coor'];
+        if (in_array($accountType, $staffRoles)) {
+            return $this->updateStaffProfileData($request, $user, $roleAccount);
+        }
+
+        // Unknown role — log and reject
+        Log::warning('Profile update attempted by unknown role', [
+            'user_id' => $user->id,
+            'account_type' => $accountType,
+        ]);
+
+        return back()->with('error', 'Unable to update profile for this account type.');
+    }
+
+    private function updateStudentProfile(Request $request, User $user, RoleAccount $roleAccount): RedirectResponse
+    {
+        $request->validate([
+            'email' => ['required', 'email', 'max:255', 'unique:role_account,email,' . $roleAccount->id],
+            'gender' => ['required', 'string', 'in:male,female'],
+        ]);
+
+        $oldEmail = $user->email;
+
+        // Log attempted unauthorized field changes
+        $restrictedFields = ['first_name', 'middle_name', 'last_name', 'extension', 'course', 'year_level'];
+        $attemptedChanges = array_intersect(array_keys($request->all()), $restrictedFields);
+        if (!empty($attemptedChanges)) {
+            Log::warning('Unauthorized profile update attempt', [
+                'user_id' => $user->id,
+                'student_id' => $roleAccount->student_id,
+                'attempted_fields' => $attemptedChanges,
+                'ip_address' => $request->ip(),
+            ]);
+        }
+
+        DB::transaction(function () use ($user, $roleAccount, $request, $oldEmail) {
+            $user->update(['email' => $request->email]);
+
+            $roleAccount->update([
+                'email' => $request->email,
+                'gender' => $request->gender,
+            ]);
+
+            if ($request->email !== $oldEmail) {
+                StudentRegistration::where('email', $oldEmail)->update([
+                    'email' => $request->email,
+                ]);
+            }
+        });
+
+        return Redirect::route('profile.edit')->with('status', 'profile-updated');
+    }
+
+    private function updatePsgOfficerProfile(Request $request, User $user, RoleAccount $roleAccount): RedirectResponse
+    {
+        $request->validate([
+            'first_name' => ['required', 'string', 'max:255', 'regex:/^[A-Za-z\s]+$/'],
+            'middle_name' => ['nullable', 'string', 'max:255', 'regex:/^[A-Za-z\s]*$/'],
+            'last_name' => ['required', 'string', 'max:255', 'regex:/^[A-Za-z\s]+$/'],
+            'extension' => ['nullable', 'string', 'max:10', 'regex:/^[A-Za-z\s]*$/'],
+            'email' => ['required', 'email', 'max:255', 'unique:role_account,email,' . $roleAccount->id],
+            'gender' => ['required', 'string', 'in:male,female'],
+            'organization' => ['required', 'string', 'max:255'],
+            'position' => ['required', 'string', 'max:255'],
+        ]);
+
+        $oldEmail = $user->email;
+        $fullname = $request->last_name . ', ' . $request->first_name;
+        if ($request->middle_name) {
+            $fullname .= ' ' . $request->middle_name;
+        }
+
+        DB::transaction(function () use ($user, $roleAccount, $request, $oldEmail, $fullname) {
+            $user->update([
+                'firstname' => $request->first_name,
+                'lastname' => $request->last_name,
+                'middlename' => $request->middle_name,
+                'suffix_name' => $request->extension,
+                'email' => $request->email,
+            ]);
+
+            $roleAccount->update([
+                'fullname' => $fullname,
+                'mname' => $request->middle_name,
+                'extension' => $request->extension,
+                'email' => $request->email,
+                'gender' => $request->gender,
+                'organization' => $request->organization,
+                'position' => $request->position,
+            ]);
+        });
+
+        return Redirect::route('profile.edit')->with('status', 'profile-updated');
+    }
+
+    private function updateStaffProfileData(Request $request, User $user, RoleAccount $roleAccount): RedirectResponse
+    {
+        // Validate using UpdateStaffProfileRequest (resolving from container triggers validation)
+        app(UpdateStaffProfileRequest::class);
+
+        DB::transaction(function () use ($user, $roleAccount, $request) {
+            // Sync users.name with fullname
+            $user->update(['name' => $request->fullname]);
+
+            // Update role_account with profile fields
+            $roleAccount->update([
+                'fullname' => $request->fullname,
+                'department' => $request->department,
+                'gender' => $request->gender,
+            ]);
+        });
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }
@@ -175,16 +302,6 @@ class ProfileController extends Controller
             'graduated_at' => $user->graduated_at->format('M d, Y'),
         ]);
     }
-    public function logout(Request $request)
-    {
-        Auth::logout(); // ✅ Logs out the user
-
-        $request->session()->invalidate(); // ✅ Invalidates the session
-        $request->session()->regenerateToken(); // ✅ Prevents CSRF attacks
-
-        return redirect('/')->with('status', 'You have been logged out successfully.');
-    }
-
     /**
      * Update user's email address with verification
      */
@@ -239,14 +356,29 @@ class ProfileController extends Controller
             return redirect()->route('profile.edit')->with('error', 'Verification token has expired.');
         }
 
-        // Update email
-        $user->update([
-            'email' => $user->pending_email,
-            'pending_email' => null,
-            'email_verification_token' => null,
-            'email_verification_sent_at' => null,
-            'email_verified_at' => now(),
-        ]);
+        $oldEmail = $user->email;
+        $newEmail = $user->pending_email;
+
+        DB::transaction(function () use ($user, $oldEmail, $newEmail) {
+            // 1. Update role_account table
+            $user->update([
+                'email' => $newEmail,
+                'pending_email' => null,
+                'email_verification_token' => null,
+                'email_verification_sent_at' => null,
+                'email_verified_at' => now(),
+            ]);
+
+            // 2. Sync users table
+            User::where('email', $oldEmail)->update([
+                'email' => $newEmail,
+            ]);
+
+            // 3. Sync student_registrations table
+            StudentRegistration::where('email', $oldEmail)->update([
+                'email' => $newEmail,
+            ]);
+        });
 
         return redirect()->route('profile.edit')->with('status', 'email-updated');
     }
@@ -274,68 +406,6 @@ class ProfileController extends Controller
                         ->from(config('mail.from.address'), config('mail.from.name'));
             }
         );
-    }
-
-    /**
-     * Show admin profile page
-     */
-    public function adminProfile()
-    {
-        if (Auth::user()->account_type !== 'admin') {
-            abort(403, 'Unauthorized access.');
-        }
-
-        return view('profile.admin', ['user' => Auth::user()]);
-    }
-
-    /**
-     * Update admin profile
-     */
-    public function updateAdminProfile(UpdateStaffProfileRequest $request)
-    {
-        if (Auth::user()->account_type !== 'admin') {
-            abort(403, 'Unauthorized access.');
-        }
-
-        $user = Auth::user();
-        $user->update([
-            'fullname' => $request->fullname,
-            'department' => $request->department,
-            'gender' => $request->gender,
-        ]);
-
-        return back()->with('status', 'profile-updated');
-    }
-
-    /**
-     * Show moderator profile page
-     */
-    public function moderatorProfile()
-    {
-        if (Auth::user()->account_type !== 'moderator') {
-            abort(403, 'Unauthorized access.');
-        }
-
-        return view('profile.moderator', ['user' => Auth::user()]);
-    }
-
-    /**
-     * Update moderator profile
-     */
-    public function updateModeratorProfile(UpdateStaffProfileRequest $request)
-    {
-        if (Auth::user()->account_type !== 'moderator') {
-            abort(403, 'Unauthorized access.');
-        }
-
-        $user = Auth::user();
-        $user->update([
-            'fullname' => $request->fullname,
-            'department' => $request->department,
-            'gender' => $request->gender,
-        ]);
-
-        return back()->with('status', 'profile-updated');
     }
 
     /**
@@ -377,55 +447,18 @@ class ProfileController extends Controller
     /**
      * Get notification counts for Dean
      */
-    public function getDeanNotificationCounts()
+    public function getDeanNotificationCounts(NotificationCountService $notificationCountService)
     {
-        $dean = Auth::user();
-        $department = $dean->department;
+        $department = Auth::user()->department;
 
-        // Count pending Good Moral applications that need dean approval
-        $pendingApplications = \App\Models\GoodMoralApplication::where(function($query) {
-            $query->where('application_status', 'LIKE', 'Approved By Registrar%')
-                  ->orWhere('application_status', 'LIKE', 'Approved by Registrar%')
-                  ->orWhere('application_status', '=', 'Approved By Registrar')
-                  ->orWhere('application_status', '=', 'Approved by Registrar');
-        })
-        ->where('department', $department)
-        ->whereNotNull('application_status')
-        ->count();
-
-        // Count major violations pending dean review
-        $majorViolations = \App\Models\StudentViolation::where('offense_type', 'major')
-            ->where('status', 0) // Pending status
-            ->whereHas('student', function($query) use ($department) {
-                $query->where('department', $department);
-            })
-            ->count();
-
-        // Count minor violations pending dean review
-        $minorViolations = \App\Models\StudentViolation::where('offense_type', 'minor')
-            ->where('status', 0) // Pending status
-            ->whereHas('student', function($query) use ($department) {
-                $query->where('department', $department);
-            })
-            ->count();
-
-        return response()->json([
-            'pendingApplications' => $pendingApplications,
-            'majorViolations' => $majorViolations,
-            'minorViolations' => $minorViolations,
-        ]);
+        return response()->json($notificationCountService->getDeanCounts($department));
     }
 
     /**
      * Get notification counts for Registrar
      */
-    public function getRegistrarNotificationCounts()
+    public function getRegistrarNotificationCounts(NotificationCountService $notificationCountService)
     {
-        // Count pending Good Moral applications that need registrar approval
-        $pendingApplications = \App\Models\GoodMoralApplication::where('status', 'pending')->count();
-
-        return response()->json([
-            'pendingApplications' => $pendingApplications,
-        ]);
+        return response()->json($notificationCountService->getRegistrarCounts());
     }
 }

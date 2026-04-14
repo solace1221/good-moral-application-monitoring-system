@@ -40,9 +40,11 @@
     </div>
     @endif
 
-    @if (session('success'))
-    <div style="background: #efe; border: 1px solid #cfc; color: #363; padding: 16px; border-radius: 8px; margin-bottom: 24px;">
-      {{ session('success') }}
+    @include('shared.alerts.flash')
+
+    @if (session('warning'))
+    <div style="background: #fff8e1; border: 1px solid #ffe082; color: #f57f17; padding: 16px; border-radius: 8px; margin-bottom: 24px;">
+      {{ session('warning') }}
     </div>
     @endif
 
@@ -125,12 +127,10 @@
           </label>
 
           <div>
-            <label for="ref_num" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Reference Number <span style="color: #6b7280; font-weight: normal;">(Optional)</span></label>
-            <input id="ref_num" type="text" name="ref_num"
-                   value="{{ old('ref_num') }}"
-                   placeholder="Enter reference number"
-                   style="width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px;">
-            <x-input-error :messages="$errors->get('ref_num')" class="mt-2" />
+            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Reference Number</label>
+            <div style="width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px; background: #f9fafb; color: #6b7280;">
+              Will be auto-generated (e.g. VIO-{{ date('Y') }}-0001)
+            </div>
           </div>
         </div>
 
@@ -219,8 +219,14 @@
         }
 
         searchTimeout = setTimeout(() => {
-          fetch(`{{ route('api.students.search') }}?q=${encodeURIComponent(query)}`)
-            .then(response => response.json())
+          fetch(`{{ route('api.students.search') }}?q=${encodeURIComponent(query)}`, {
+            headers: { 'Accept': 'application/json' },
+            credentials: 'same-origin'
+          })
+            .then(response => {
+              if (!response.ok) throw new Error(`${response.status}`);
+              return response.json();
+            })
             .then(students => {
               displaySearchResults(students);
             })
@@ -231,19 +237,27 @@
         }, 300);
       });
 
+      function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.appendChild(document.createTextNode(str));
+        return div.innerHTML;
+      }
+
       function displaySearchResults(students) {
         if (students.length === 0) {
           searchResults.innerHTML = '<div style="padding: 12px; color: #666;">No students found</div>';
         } else {
-          searchResults.innerHTML = students.map(student => `
-            <div onclick="selectStudent('${student.student_id}', '${student.fullname}', '${student.department}', '${student.course || ''}')"
-                 style="padding: 12px; border-bottom: 1px solid #eee; cursor: pointer;"
-                 onmouseover="this.style.backgroundColor='#f5f5f5'"
-                 onmouseout="this.style.backgroundColor='white'">
-              <div style="font-weight: 600;">${student.fullname}</div>
-              <div style="font-size: 12px; color: #666;">ID: ${student.student_id} | ${student.department}</div>
-            </div>
-          `).join('');
+          searchResults.innerHTML = '';
+          students.forEach((student, index) => {
+            const div = document.createElement('div');
+            div.style.cssText = 'padding: 12px; border-bottom: 1px solid #eee; cursor: pointer;';
+            div.innerHTML = `<div style="font-weight: 600;">${escapeHtml(student.fullname)}</div>
+              <div style="font-size: 12px; color: #666;">ID: ${escapeHtml(student.student_id)} | ${escapeHtml(student.department)}</div>`;
+            div.addEventListener('click', () => selectStudent(student.student_id, student.fullname, student.department, student.course || ''));
+            div.addEventListener('mouseover', () => div.style.backgroundColor = '#f5f5f5');
+            div.addEventListener('mouseout', () => div.style.backgroundColor = 'white');
+            searchResults.appendChild(div);
+          });
         }
         searchResults.style.display = 'block';
       }

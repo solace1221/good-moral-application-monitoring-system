@@ -19,6 +19,7 @@ class StudentRegistration extends Authenticatable
     'gender',
     'email',
     'department',
+    'course_id',
     'course',
     'password',
     'status',
@@ -27,8 +28,6 @@ class StudentRegistration extends Authenticatable
     'year_level',
     'organization',
     'position',
-    'organization_id',
-    'position_id',
   ];
 
 
@@ -64,5 +63,14 @@ class StudentRegistration extends Authenticatable
   public function setPositionAttribute($value)
   {
     $this->attributes['position'] = $value ? strtoupper($value) : null;
+  }
+
+  // =========================================================
+  // Relationships
+  // =========================================================
+
+  public function courseRecord()
+  {
+    return $this->belongsTo(Course::class, 'course_id');
   }
 }

@@ -14,7 +14,6 @@ class DeanApplication extends Model
   protected $fillable = [
     'reference_number',
     'number_of_copies',
-    'application_id',
     'student_id',
     'department',
     'fullname',
@@ -25,6 +24,12 @@ class DeanApplication extends Model
     'last_course_year_level', // New field
     'last_semester_sy',   // New field
     'status',
+  ];
+
+  protected $casts = [
+    'graduation_date' => 'date',
+    'is_undergraduate' => 'boolean',
+    'number_of_copies' => 'integer',
   ];
 
   public function student()

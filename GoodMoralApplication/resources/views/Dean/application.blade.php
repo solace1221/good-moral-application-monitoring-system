@@ -2,7 +2,7 @@
   <x-slot name="roleTitle">Dean</x-slot>
 
   <x-slot name="navigation">
-    @include('components.dean-navigation')
+    <x-dean-navigation />
   </x-slot>
 
   <!-- Header Section -->
@@ -24,23 +24,7 @@
   <!-- Main Content -->
   <div class="header-section">
     <!-- Status Messages -->
-    @if(session('status'))
-    <div style="margin-bottom: 24px; padding: 16px; background: #d4edda; color: #155724; border: 1px solid #c3e6cb; border-radius: 8px;">
-      {{ session('status') }}
-    </div>
-    @endif
-
-    @if(session('success'))
-    <div style="margin-bottom: 24px; padding: 16px; background: #d4edda; color: #155724; border: 1px solid #c3e6cb; border-radius: 8px;">
-      {{ session('success') }}
-    </div>
-    @endif
-
-    @if(session('error'))
-    <div style="margin-bottom: 24px; padding: 16px; background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 8px;">
-      {{ session('error') }}
-    </div>
-    @endif
+    @include('shared.alerts.flash')
 
     <!-- Filter Tabs -->
     <div style="background: white; border-radius: 12px 12px 0 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 0;">

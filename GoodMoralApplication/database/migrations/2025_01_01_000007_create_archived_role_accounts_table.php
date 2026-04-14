@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('archived_role_accounts', function (Blueprint $table) {
             $table->id();
-            $table->string('student_id');
+            $table->string('student_id')->index();
             $table->string('fullname', 200);
             $table->string('department');
             $table->string('status')->default('0');

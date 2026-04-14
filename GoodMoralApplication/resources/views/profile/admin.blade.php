@@ -14,7 +14,7 @@
         </div>
     </div>
 
-    <div style="display: grid; gap: 24px;"
+    <div style="display: grid; gap: 24px;">
         <!-- Profile Information -->
         <div style="background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow: hidden;">
             <div style="padding: 24px; border-bottom: 1px solid #e9ecef;">
@@ -28,15 +28,26 @@
             <div style="padding: 24px;">
                 <section>
 
-                    <form method="post" action="{{ route('profile.admin.update') }}" style="display: grid; gap: 20px;">
+                    <form method="post" action="{{ route('profile.update') }}" style="display: grid; gap: 20px;">
                         @csrf
                         @method('patch')
+
+                        @if ($errors->any())
+                            <div style="background: #f8d7da; color: #721c24; padding: 16px; border-radius: 8px; border-left: 4px solid #dc3545;">
+                                <strong>{{ __('Whoops! Something went wrong.') }}</strong>
+                                <ul style="margin: 8px 0 0 0; padding-left: 20px;">
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
 
                         <div>
                             <label for="fullname" style="display: block; margin-bottom: 8px; font-weight: 500; color: #495057;">{{ __('Full Name') }}</label>
                             <input type="text" id="fullname" name="fullname"
                                    style="width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px;"
-                                   value="{{ old('fullname', $user->fullname) }}" required autofocus>
+                                   value="{{ old('fullname', $user->roleAccount->fullname ?? $user->name) }}" required autofocus>
                             @error('fullname')
                                 <p style="color: #e74c3c; font-size: 12px; margin-top: 4px;">{{ $message }}</p>
                             @enderror

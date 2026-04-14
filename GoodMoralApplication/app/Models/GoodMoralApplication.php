@@ -30,6 +30,9 @@ class GoodMoralApplication extends Model
     'last_course_year_level', // New field
     'last_semester_sy',   // New field
     'certificate_type',   // New field for certificate type
+    'receipt_id',
+    'claimed_at',
+    'claimed_by',
   ];
 
   /**
@@ -39,8 +42,11 @@ class GoodMoralApplication extends Model
     'reason' => 'array',
     'graduation_date' => 'date',
     'rejected_at' => 'datetime',
+    'claimed_at' => 'datetime',
     'is_undergraduate' => 'boolean',
   ];
+
+  protected $appends = ['claimer_name'];
 
   /**
    * Get the student associated with the application.
@@ -56,6 +62,18 @@ class GoodMoralApplication extends Model
   public function receipts()
   {
     return $this->hasMany(\App\Models\Receipt::class, 'reference_num', 'reference_number');
+  }
+
+  /**
+   * Get the name of the staff who claimed (released) the certificate.
+   */
+  public function getClaimerNameAttribute(): ?string
+  {
+    if (!$this->claimed_by) {
+      return null;
+    }
+    $user = \App\Models\User::find($this->claimed_by);
+    return $user?->name ?? $user?->fullname ?? 'Unknown';
   }
 
   /**
@@ -103,5 +121,40 @@ class GoodMoralApplication extends Model
     $copyText = $copies === 1 ? 'copy' : 'copies';
 
     return "₱" . number_format($amount, 2) . " ({$reasonCount} {$reasonText} × {$copies} {$copyText} × ₱50.00)";
+  }
+
+  /**
+   * Scope: applications pending initial review.
+   */
+  public function scopePending($query)
+  {
+    return $query->where('status', 'pending');
+  }
+
+  /**
+   * Scope: applications approved by registrar (status includes appended registrar name).
+   */
+  public function scopeApprovedByRegistrar($query)
+  {
+    return $query->where(function ($q) {
+      $q->where('application_status', 'LIKE', 'Approved By Registrar%')
+        ->orWhere('application_status', 'LIKE', 'Approved by Registrar%');
+    });
+  }
+
+  /**
+   * Scope: applications with a receipt uploaded.
+   */
+  public function scopeReceiptUploaded($query)
+  {
+    return $query->where('application_status', 'LIKE', 'Receipt Uploaded%');
+  }
+
+  /**
+   * Scope: applications ready for moderator print or pickup.
+   */
+  public function scopeReadyForPrint($query)
+  {
+    return $query->whereIn('application_status', ['Ready for Moderator Print', 'Ready for Pickup']);
   }
 }

@@ -26,6 +26,7 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->string('department');
+            $table->unsignedBigInteger('course_id')->nullable();
             $table->string('course', 20)->nullable();
             $table->string('status');
             $table->string('account_type')->nullable();
@@ -33,6 +34,8 @@ return new class extends Migration
             $table->string('organization')->nullable();
             $table->string('position')->nullable();
             $table->timestamps();
+
+            $table->foreign('course_id')->references('id')->on('courses')->nullOnDelete();
         });
     }
 

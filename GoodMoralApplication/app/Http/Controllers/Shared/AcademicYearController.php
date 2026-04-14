@@ -52,13 +52,19 @@ class AcademicYearController extends Controller
      */
     public function store(StoreAcademicYearRequest $request)
     {
+        $yearParts = explode('-', $request->academic_year);
+
         $academicYear = AcademicYear::create([
-            'year_name' => $request->year_name,
+            'academic_year' => $request->academic_year,
+            'year_name' => $request->academic_year,
+            'start_year' => (int) $yearParts[0],
+            'end_year' => (int) $yearParts[1],
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
             'notes' => $request->notes,
             'is_current' => false,
-            'year_level_promotion_active' => false
+            'is_active' => true,
+            'year_level_promotion_active' => false,
         ]);
 
         return redirect()->route('admin.academic-year.index')
@@ -177,7 +183,7 @@ class AcademicYearController extends Controller
         }
 
         $history = $query->orderBy('effective_date', 'desc')->paginate(20);
-        $academicYears = AcademicYear::orderBy('year_name', 'desc')->get();
+        $academicYears = AcademicYear::orderBy('academic_year', 'desc')->get();
 
         return view('admin.academic-year.history', compact('history', 'academicYears'));
     }
@@ -207,7 +213,7 @@ class AcademicYearController extends Controller
      */
     public function getActiveYears()
     {
-        $academicYears = AcademicYear::orderBy('year_name', 'desc')->get();
+        $academicYears = AcademicYear::orderBy('academic_year', 'desc')->get();
 
         return response()->json([
             'success' => true,

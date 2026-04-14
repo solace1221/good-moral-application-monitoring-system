@@ -91,7 +91,7 @@ class CertificateService
 
             // On first print, update status and create notification
             $isReprint = $application->application_status === 'Ready for Pickup';
-            if (in_array($application->application_status, ['Approved by Administrator', 'Ready for Moderator Print'])) {
+            if ($application->application_status === 'Ready for Moderator Print') {
                 $application->application_status = 'Ready for Pickup';
                 $application->save();
 

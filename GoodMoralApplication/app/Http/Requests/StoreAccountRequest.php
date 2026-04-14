@@ -16,11 +16,11 @@ class StoreAccountRequest extends FormRequest
     public function rules(): array
     {
         // Roles that do not require a department (system-wide roles)
-        $noDepartmentRoles = ['sec_osa', 'head_osa'];
+        $noDepartmentRoles = ['sec_osa'];
 
         return [
             'fullname' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:role_account,email'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:role_account,email', 'unique:users,email'],
             'department' => [
                 Rule::requiredIf(! in_array($this->account_type, $noDepartmentRoles)),
                 'nullable',
@@ -29,15 +29,24 @@ class StoreAccountRequest extends FormRequest
             ],
             'password' => ['required', 'confirmed', Password::defaults()],
             'student_id' => ['nullable', 'string', 'max:20', 'unique:role_account,student_id'],
-            'course' => ['nullable', 'string', 'max:255'],
-            'year_level' => ['nullable', 'string', 'max:255'],
+            'course_id' => [
+                Rule::requiredIf(in_array($this->account_type, ['student', 'alumni'])),
+                'nullable',
+                'integer',
+                'exists:courses,id',
+            ],
+            'year_level' => [
+                Rule::requiredIf(in_array($this->account_type, ['student', 'alumni'])),
+                'nullable',
+                'string',
+                'in:1st Year,2nd Year,3rd Year,4th Year,5th Year',
+            ],
             'organization' => [
-                Rule::requiredIf($this->account_type === 'psg_officer'),
                 'nullable',
                 'string',
                 'max:255',
             ],
-            'account_type' => ['required', 'string', 'in:dean,sec_osa,head_osa,registrar,prog_coor,psg_officer,student,alumni'],
+            'account_type' => ['required', 'string', 'in:dean,sec_osa,registrar,prog_coor,student,alumni'],
         ];
     }
 }

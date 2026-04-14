@@ -14,11 +14,7 @@
     </div>
   </div>
   <!-- Status Messages -->
-  @if(session('success'))
-  <div style="margin-bottom: 24px; padding: 16px; background: #d4edda; color: #155724; border: 1px solid #c3e6cb; border-radius: 8px;">
-    {{ session('success') }}
-  </div>
-  @endif
+  @include('shared.alerts.flash')
 
   @if(session('pdf_url'))
   <script>
@@ -184,6 +180,10 @@
                 <span style="display: inline-block; padding: 6px 12px; background: #28a74520; color: #28a745; border-radius: 20px; font-size: 12px; font-weight: 500;">
                   Printed
                 </span>
+              @elseif($application->application_status === 'Claimed')
+                <span style="display: inline-block; padding: 6px 12px; background: #6f42c120; color: #6f42c1; border-radius: 20px; font-size: 12px; font-weight: 500;">
+                  Claimed
+                </span>
               @elseif($application->application_status === 'Approved by Administrator')
                 <span style="display: inline-block; padding: 6px 12px; background: #17a2b820; color: #17a2b8; border-radius: 20px; font-size: 12px; font-weight: 500;">
                   Payment Required
@@ -229,12 +229,29 @@
                   </form>
                 @elseif($application->application_status === 'Ready for Pickup' && $receipt && $receipt->document_path)
                   <a href="{{ route('moderator.downloadCertificate', $application->id) }}"
-                     style="background: #17a2b8; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; margin-right: 8px;">
+                     style="background: #17a2b8; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
                     <svg style="width: 12px; height: 12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                     </svg>
                     Download
                   </a>
+                  <form action="{{ route('moderator.printCertificate', $application->id) }}" method="POST" style="display: inline;">
+                    @csrf
+                    <button type="submit"
+                            onclick="return confirm('Are you sure you want to reprint this certificate?')"
+                            style="background: #ffc107; color: #212529; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer;">
+                      Reprint
+                    </button>
+                  </form>
+                  <form action="{{ route('moderator.markAsClaimed', $application->id) }}" method="POST" style="display: inline;">
+                    @csrf
+                    <button type="submit"
+                            onclick="return confirm('Mark this certificate as claimed by the student?')"
+                            style="background: #6f42c1; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer;">
+                      Mark as Claimed
+                    </button>
+                  </form>
+                @elseif($application->application_status === 'Claimed' && $receipt && $receipt->document_path)
                   <form action="{{ route('moderator.printCertificate', $application->id) }}" method="POST" style="display: inline;">
                     @csrf
                     <button type="submit"
@@ -322,6 +339,10 @@
                 <span style="display: inline-block; padding: 6px 12px; background: #28a74520; color: #28a745; border-radius: 20px; font-size: 12px; font-weight: 500;">
                   Printed
                 </span>
+              @elseif($application->application_status === 'Claimed')
+                <span style="display: inline-block; padding: 6px 12px; background: #6f42c120; color: #6f42c1; border-radius: 20px; font-size: 12px; font-weight: 500;">
+                  Claimed
+                </span>
               @else
                 <span style="display: inline-block; padding: 6px 12px; background: #6c757d20; color: #6c757d; border-radius: 20px; font-size: 12px; font-weight: 500;">
                   {{ $application->application_status }}
@@ -346,12 +367,29 @@
                   </form>
                 @elseif($application->application_status === 'Ready for Pickup' && $receipt && $receipt->document_path)
                   <a href="{{ route('moderator.downloadCertificate', $application->id) }}"
-                     style="background: #17a2b8; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; margin-right: 8px;">
+                     style="background: #17a2b8; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
                     <svg style="width: 12px; height: 12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                     </svg>
                     Download
                   </a>
+                  <form action="{{ route('moderator.printCertificate', $application->id) }}" method="POST" style="display: inline;">
+                    @csrf
+                    <button type="submit"
+                            onclick="return confirm('Are you sure you want to reprint this certificate?')"
+                            style="background: #ffc107; color: #212529; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer;">
+                      Reprint
+                    </button>
+                  </form>
+                  <form action="{{ route('moderator.markAsClaimed', $application->id) }}" method="POST" style="display: inline;">
+                    @csrf
+                    <button type="submit"
+                            onclick="return confirm('Mark this certificate as claimed by the student?')"
+                            style="background: #6f42c1; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer;">
+                      Mark as Claimed
+                    </button>
+                  </form>
+                @elseif($application->application_status === 'Claimed' && $receipt && $receipt->document_path)
                   <form action="{{ route('moderator.printCertificate', $application->id) }}" method="POST" style="display: inline;">
                     @csrf
                     <button type="submit"
@@ -431,6 +469,10 @@
                 <span style="display: inline-block; padding: 6px 12px; background: #28a74520; color: #28a745; border-radius: 20px; font-size: 12px; font-weight: 500;">
                   Printed
                 </span>
+              @elseif($application->application_status === 'Claimed')
+                <span style="display: inline-block; padding: 6px 12px; background: #6f42c120; color: #6f42c1; border-radius: 20px; font-size: 12px; font-weight: 500;">
+                  Claimed
+                </span>
               @else
                 <span style="display: inline-block; padding: 6px 12px; background: #6c757d20; color: #6c757d; border-radius: 20px; font-size: 12px; font-weight: 500;">
                   {{ $application->application_status }}
@@ -455,12 +497,29 @@
                   </form>
                 @elseif($application->application_status === 'Ready for Pickup' && $receipt && $receipt->document_path)
                   <a href="{{ route('moderator.downloadCertificate', $application->id) }}"
-                     style="background: #17a2b8; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; margin-right: 8px;">
+                     style="background: #17a2b8; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
                     <svg style="width: 12px; height: 12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                     </svg>
                     Download
                   </a>
+                  <form action="{{ route('moderator.printCertificate', $application->id) }}" method="POST" style="display: inline;">
+                    @csrf
+                    <button type="submit"
+                            onclick="return confirm('Are you sure you want to reprint this certificate?')"
+                            style="background: #ffc107; color: #212529; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer;">
+                      Reprint
+                    </button>
+                  </form>
+                  <form action="{{ route('moderator.markAsClaimed', $application->id) }}" method="POST" style="display: inline;">
+                    @csrf
+                    <button type="submit"
+                            onclick="return confirm('Mark this certificate as claimed by the student?')"
+                            style="background: #6f42c1; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer;">
+                      Mark as Claimed
+                    </button>
+                  </form>
+                @elseif($application->application_status === 'Claimed' && $receipt && $receipt->document_path)
                   <form action="{{ route('moderator.printCertificate', $application->id) }}" method="POST" style="display: inline;">
                     @csrf
                     <button type="submit"
@@ -648,6 +707,15 @@
                     </button>
                   </form>
 
+                  <form action="{{ route('moderator.markAsClaimed', $application->id) }}" method="POST" style="display: inline;">
+                    @csrf
+                    <button type="submit"
+                            onclick="return confirm('Mark this certificate as claimed by the student?')"
+                            style="background: #6f42c1; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer;">
+                      Mark as Claimed
+                    </button>
+                  </form>
+
                   <a href="{{ route('files.serve', $receipt->document_path) }}" target="_blank"
                      style="background: #6f42c1; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; text-decoration: none; display: inline-block;">
                     View Receipt
@@ -715,6 +783,15 @@
         <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; padding: 12px; background: #f8f9fa; border-radius: 6px;">
           <strong>Last Semester SY:</strong>
           <span id="modalLastSemesterSY"></span>
+        </div>
+      </div>
+
+      {{-- Claim info: only shown when status is Claimed --}}
+      <div id="modalClaimSection" style="display: none; margin-top: 16px; padding: 16px; background: #f3e8ff; border-left: 4px solid #6f42c1; border-radius: 6px;">
+        <div style="font-size: 12px; font-weight: 700; color: #6f42c1; text-transform: uppercase; margin-bottom: 8px;">Certificate Claimed</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 13px; color: #495057;">
+          <div><strong>Released by:</strong> <span id="modalClaimedBy"></span></div>
+          <div><strong>Released on:</strong> <span id="modalClaimedAt"></span></div>
         </div>
       </div>
 
@@ -883,6 +960,17 @@
       document.getElementById('modalUndergraduate').innerText = (app.is_undergraduate) ? 'Yes' : 'No';
       document.getElementById('modalLastCourseYearLevel').innerText = app.last_course_year_level ?? 'N/A';
       document.getElementById('modalLastSemesterSY').innerText = app.last_semester_sy ?? 'N/A';
+
+      // Claim info
+      const claimSection = document.getElementById('modalClaimSection');
+      if (app.application_status === 'Claimed') {
+        claimSection.style.display = 'block';
+        document.getElementById('modalClaimedBy').innerText = app.claimer_name ?? 'Unknown';
+        const claimedAt = app.claimed_at ? new Date(app.claimed_at).toLocaleString() : 'N/A';
+        document.getElementById('modalClaimedAt').innerText = claimedAt;
+      } else {
+        claimSection.style.display = 'none';
+      }
     }
 
     // Legacy SecOSA Application Modal (for backward compatibility)

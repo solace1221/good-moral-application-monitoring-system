@@ -36,18 +36,9 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
           </svg>
           Academic Year
-          <button type="button" onclick="showAddAcademicYearModal()"
-                  style="margin-left: auto; padding: 8px 16px; background: var(--primary-green); color: white; border: none; border-radius: 6px; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.3s ease;"
-                  onmouseover="this.style.background='#2d5a3d'" onmouseout="this.style.background='var(--primary-green)'">
-            <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-            </svg>
-            Add Academic Year
-          </button>
         </h3>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;" id="academicYearsList">
-          @if(isset($academicYears) && count($academicYears) > 0)
-            @foreach($academicYears as $year)
+          @foreach($academicYears as $year)
             <label style="display: flex; align-items: center; gap: 12px; padding: 16px; border: 2px solid #e1e5e9; border-radius: 8px; cursor: pointer; transition: all 0.3s ease;"
                    class="academic-year-option" data-year="{{ $year }}">
               <input type="radio" name="academic_year" value="{{ $year }}" style="width: 20px; height: 20px;" {{ $loop->first ? 'checked' : '' }}>
@@ -56,23 +47,7 @@
                 <div style="font-size: 14px; color: #666;">Academic Year</div>
               </div>
             </label>
-            @endforeach
-          @else
-            @php
-              // Fallback to default academic years if none are loaded from database
-              $defaultAcademicYears = ['2025-2026', '2024-2025', '2023-2024'];
-            @endphp
-            @foreach($defaultAcademicYears as $year)
-            <label style="display: flex; align-items: center; gap: 12px; padding: 16px; border: 2px solid #e1e5e9; border-radius: 8px; cursor: pointer; transition: all 0.3s ease;"
-                   class="academic-year-option" data-year="{{ $year }}">
-              <input type="radio" name="academic_year" value="{{ $year }}" style="width: 20px; height: 20px;" {{ $loop->first ? 'checked' : '' }}>
-              <div>
-                <div style="font-weight: 600; color: #333;">{{ $year }}</div>
-                <div style="font-size: 14px; color: #666;">Academic Year</div>
-              </div>
-            </label>
-            @endforeach
-          @endif
+          @endforeach
         </div>
       </div>
 
@@ -268,6 +243,31 @@
 
       <!-- Hidden inputs for form submission -->
       <input type="hidden" name="time_period" id="selected_time_period" value="all">
+      <input type="hidden" name="export_format" id="selected_export_format" value="pdf">
+
+      <!-- Export Format Selection (shown only for Major Violations) -->
+      <div id="export_format_section" style="display: none; margin-bottom: 24px;">
+        <h3 style="font-size: 18px; font-weight: 600; color: #333; margin-bottom: 16px;">
+          <span style="background: #e74c3c; color: white; border-radius: 50%; width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; margin-right: 8px; font-size: 14px;">⬇</span>
+          Export Format
+        </h3>
+        <div style="display: flex; gap: 16px;">
+          <label style="display: flex; align-items: center; gap: 12px; padding: 16px 24px; border: 2px solid #e1e5e9; border-radius: 12px; cursor: pointer; transition: all 0.3s ease; flex: 1;" class="export-format-option" data-format="pdf">
+            <input type="radio" name="export_format_radio" value="pdf" checked style="width: 18px; height: 18px;">
+            <div>
+              <div style="font-weight: 600; color: #333;">PDF</div>
+              <div style="font-size: 13px; color: #666;">Download as PDF document</div>
+            </div>
+          </label>
+          <label style="display: flex; align-items: center; gap: 12px; padding: 16px 24px; border: 2px solid #e1e5e9; border-radius: 12px; cursor: pointer; transition: all 0.3s ease; flex: 1;" class="export-format-option" data-format="docx">
+            <input type="radio" name="export_format_radio" value="docx" style="width: 18px; height: 18px;">
+            <div>
+              <div style="font-weight: 600; color: #333;">DOCX</div>
+              <div style="font-size: 13px; color: #666;">Download as Word document</div>
+            </div>
+          </label>
+        </div>
+      </div>
 
       <!-- Generate Button -->
       <div style="display: flex; justify-content: center; gap: 16px;">
@@ -275,7 +275,7 @@
           <svg style="width: 24px; height: 24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
           </svg>
-          Generate Report (PDF)
+          Generate Report
         </button>
       </div>
     </form>
@@ -348,6 +348,25 @@
         option.addEventListener('click', function() {
           reportTypeOptions.forEach(opt => opt.style.borderColor = '#e1e5e9');
           this.style.borderColor = 'var(--primary-green)';
+
+          // Show/hide export format section for major_violators
+          const selectedType = this.dataset.type || this.querySelector('input[name="report_type"]').value;
+          const formatSection = document.getElementById('export_format_section');
+          if (selectedType === 'major_violators') {
+            formatSection.style.display = 'block';
+          } else {
+            formatSection.style.display = 'none';
+            document.getElementById('selected_export_format').value = 'pdf';
+          }
+        });
+      });
+
+      // Export format radio buttons
+      document.querySelectorAll('.export-format-option').forEach(option => {
+        option.addEventListener('click', function() {
+          document.querySelectorAll('.export-format-option').forEach(opt => opt.style.borderColor = '#e1e5e9');
+          this.style.borderColor = 'var(--primary-green)';
+          document.getElementById('selected_export_format').value = this.dataset.format;
         });
       });
 
@@ -383,169 +402,5 @@
       });
     });
 
-    // Academic Year Management Functions
-    function showAddAcademicYearModal() {
-      const modal = document.getElementById('addAcademicYearModal');
-      modal.style.display = 'flex';
-      document.body.style.overflow = 'hidden';
-    }
-
-    function hideAddAcademicYearModal() {
-      const modal = document.getElementById('addAcademicYearModal');
-      modal.style.display = 'none';
-      document.body.style.overflow = 'auto';
-      // Reset form
-      document.getElementById('addAcademicYearForm').reset();
-    }
-
-    function addAcademicYear() {
-      const startYear = document.getElementById('startYear').value;
-      const endYear = document.getElementById('endYear').value;
-      const description = document.getElementById('description').value;
-
-      if (!startYear || !endYear) {
-        alert('Please fill in both start and end years.');
-        return;
-      }
-
-      if (parseInt(endYear) !== parseInt(startYear) + 1) {
-        alert('End year must be exactly one year after start year.');
-        return;
-      }
-
-      // Send AJAX request to save to database
-      fetch('{{ route("admin.academic-year.store") }}', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        },
-        body: JSON.stringify({
-          start_year: parseInt(startYear),
-          end_year: parseInt(endYear),
-          description: description
-        })
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          alert(data.message);
-          hideAddAcademicYearModal();
-          // Refresh the academic years list
-          refreshAcademicYearsList();
-        } else {
-          alert('Error: ' + data.message);
-        }
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred while adding the academic year.');
-      });
-    }
-
-    function refreshAcademicYearsList() {
-      fetch('{{ route("admin.academic-year.active") }}')
-        .then(response => response.json())
-        .then(data => {
-          if (data.success) {
-            const academicYearsList = document.getElementById('academicYearsList');
-            academicYearsList.innerHTML = '';
-
-            data.academic_years.forEach((year, index) => {
-              const label = document.createElement('label');
-              label.style.cssText = 'display: flex; align-items: center; gap: 12px; padding: 16px; border: 2px solid #e1e5e9; border-radius: 8px; cursor: pointer; transition: all 0.3s ease;';
-              label.className = 'academic-year-option';
-              label.setAttribute('data-year', year);
-
-              label.innerHTML = `
-                <input type="radio" name="academic_year" value="${year}" style="width: 20px; height: 20px;" ${index === 0 ? 'checked' : ''}>
-                <div>
-                  <div style="font-weight: 600; color: #333;">${year}</div>
-                  <div style="font-size: 14px; color: #666;">Academic Year</div>
-                </div>
-              `;
-
-              academicYearsList.appendChild(label);
-            });
-
-            // Re-attach event listeners
-            attachAcademicYearListeners();
-          }
-        })
-        .catch(error => {
-          console.error('Error refreshing academic years:', error);
-        });
-    }
-
-    function attachAcademicYearListeners() {
-      const academicYearOptions = document.querySelectorAll('.academic-year-option');
-      academicYearOptions.forEach(option => {
-        option.addEventListener('click', function() {
-          academicYearOptions.forEach(opt => opt.style.borderColor = '#e1e5e9');
-          this.style.borderColor = 'var(--primary-green)';
-        });
-      });
-    }
-
-    // Close modal when clicking outside
-    document.addEventListener('click', function(event) {
-      const modal = document.getElementById('addAcademicYearModal');
-      if (event.target === modal) {
-        hideAddAcademicYearModal();
-      }
-    });
   </script>
-
-  <!-- Add Academic Year Modal -->
-  <div id="addAcademicYearModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center;">
-    <div style="background: white; padding: 32px; border-radius: 12px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2); max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
-      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
-        <h2 style="color: var(--primary-green); margin: 0; font-size: 1.5rem; display: flex; align-items: center; gap: 8px;">
-          <svg style="width: 24px; height: 24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v12a2 2 0 002 2z"></path>
-          </svg>
-          Add Academic Year
-        </h2>
-        <button type="button" onclick="hideAddAcademicYearModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #666; padding: 4px;">×</button>
-      </div>
-
-      <form id="addAcademicYearForm" onsubmit="event.preventDefault(); addAcademicYear();">
-        <div style="margin-bottom: 20px;">
-          <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Start Year</label>
-          <input type="number" id="startYear" min="2020" max="2050" placeholder="e.g., 2025"
-                 style="width: 100%; padding: 12px; border: 2px solid #e1e5e9; border-radius: 6px; font-size: 14px;" required>
-        </div>
-
-        <div style="margin-bottom: 20px;">
-          <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">End Year</label>
-          <input type="number" id="endYear" min="2021" max="2051" placeholder="e.g., 2026"
-                 style="width: 100%; padding: 12px; border: 2px solid #e1e5e9; border-radius: 6px; font-size: 14px;" required>
-        </div>
-
-        <div style="margin-bottom: 24px;">
-          <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Description (Optional)</label>
-          <input type="text" id="description" placeholder="e.g., Academic Year 2025-2026"
-                 style="width: 100%; padding: 12px; border: 2px solid #e1e5e9; border-radius: 6px; font-size: 14px;">
-        </div>
-
-        <div style="background: #f8f9fa; padding: 16px; border-radius: 8px; margin-bottom: 24px;">
-          <p style="margin: 0; font-size: 14px; color: #666;">
-            <strong>Note:</strong> Academic years follow the format YYYY-YYYY (e.g., 2025-2026).
-            The end year must be exactly one year after the start year.
-          </p>
-        </div>
-
-        <div style="display: flex; gap: 12px; justify-content: flex-end;">
-          <button type="button" onclick="hideAddAcademicYearModal()"
-                  style="padding: 12px 24px; border: 2px solid #e1e5e9; background: white; color: #666; border-radius: 6px; cursor: pointer; font-size: 14px;">
-            Cancel
-          </button>
-          <button type="submit"
-                  style="padding: 12px 24px; background: var(--primary-green); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px;">
-            Add Academic Year
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
 </x-dashboard-layout>

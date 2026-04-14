@@ -2,7 +2,7 @@
     <x-slot name="roleTitle">Secretary OSA</x-slot>
 
     <x-slot name="navigation">
-        @include('sec_osa.sidebar')
+        <x-sec-osa-navigation />
     </x-slot>
 
     <!-- Header Section -->
@@ -31,11 +31,22 @@
                         @csrf
                         @method('patch')
 
+                        @if ($errors->any())
+                            <div style="background: #f8d7da; color: #721c24; padding: 16px; border-radius: 8px; border-left: 4px solid #dc3545;">
+                                <strong>{{ __('Whoops! Something went wrong.') }}</strong>
+                                <ul style="margin: 8px 0 0 0; padding-left: 20px;">
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+
                         <div>
                             <label for="fullname" style="display: block; margin-bottom: 8px; font-weight: 500; color: #495057;">{{ __('Full Name') }}</label>
                             <input type="text" id="fullname" name="fullname" 
                                    style="width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px;"
-                                   value="{{ old('fullname', $user->fullname) }}" required autofocus>
+                                   value="{{ old('fullname', $user->roleAccount->fullname ?? $user->name) }}" required autofocus>
                             @error('fullname')
                                 <p style="color: #e74c3c; font-size: 12px; margin-top: 4px;">{{ $message }}</p>
                             @enderror
@@ -57,6 +68,18 @@
                                    style="width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px;"
                                    value="{{ old('department', $user->department) }}" required>
                             @error('department')
+                                <p style="color: #e74c3c; font-size: 12px; margin-top: 4px;">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label for="gender" style="display: block; margin-bottom: 8px; font-weight: 500; color: #495057;">{{ __('Gender') }}</label>
+                            <select id="gender" name="gender" required
+                                    style="width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px;">
+                                <option value="male" {{ old('gender', $user->gender) == 'male' ? 'selected' : '' }}>Male</option>
+                                <option value="female" {{ old('gender', $user->gender) == 'female' ? 'selected' : '' }}>Female</option>
+                            </select>
+                            @error('gender')
                                 <p style="color: #e74c3c; font-size: 12px; margin-top: 4px;">{{ $message }}</p>
                             @enderror
                         </div>

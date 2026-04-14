@@ -32,7 +32,7 @@ return new class extends Migration
             $table->string('year_level', 50)->nullable();
             $table->string('password');
             $table->string('account_type');
-            $table->tinyInteger('status')->default(1);
+            $table->string('status', 20)->default('active');
             $table->boolean('is_graduating')->default(false);
             $table->date('graduation_date')->nullable();
             $table->timestamp('graduated_at')->nullable();
