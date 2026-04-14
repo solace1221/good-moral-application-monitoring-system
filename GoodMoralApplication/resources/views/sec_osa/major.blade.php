@@ -209,14 +209,15 @@
             <td style="padding: 16px; color: #495057; font-size: 14px;">
               @if ($student->document_path)
                 <div style="display: flex; flex-direction: column; gap: 4px;">
-                  <a href="{{ route('sec_osa.downloadProceedings', $student->id) }}"
+                  <a href="/files/{{ $student->document_path }}" target="_blank"
                      style="background: #007bff; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s ease;"
                      onmouseover="this.style.background='#0056b3'"
                      onmouseout="this.style.background='#007bff'">
                     <svg style="width: 12px; height: 12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                     </svg>
-                    Download Proceedings
+                    View Proceedings
                   </a>
                   @if ($student->proceedings_uploaded_at)
                     <small style="color: #6c757d; font-size: 11px;">
@@ -247,6 +248,11 @@
                   </svg>
                   Upload Proceedings
                 </a>
+              @elseif ($student->status == 1 && $student->document_path && $student->forwarded_to_admin_at)
+                {{-- Status 1: Already forwarded to admin --}}
+                <span style="color: #17a2b8; font-size: 12px; font-weight: 500; padding: 8px 12px; background: #d1ecf120; border-radius: 6px;">
+                  📤 Forwarded to Admin
+                </span>
               @elseif ($student->status == 1 && $student->document_path)
                 {{-- Status 1: Proceedings uploaded, can forward to admin --}}
                 <form action="{{ route('sec_osa.forwardToAdmin', $student->id) }}" method="POST" style="display: inline;"
@@ -262,11 +268,6 @@
                     Forward to Admin
                   </button>
                 </form>
-              @elseif ($student->status == 1.5)
-                {{-- Status 1.5: Already forwarded to admin --}}
-                <span style="color: #17a2b8; font-size: 12px; font-weight: 500; padding: 8px 12px; background: #d1ecf120; border-radius: 6px;">
-                  📤 Forwarded to Admin
-                </span>
               @elseif ($student->status == 2)
                 {{-- Status 2: Case closed --}}
                 <span style="color: #28a745; font-size: 12px; font-weight: 500; padding: 8px 12px; background: #28a74520; border-radius: 6px;">

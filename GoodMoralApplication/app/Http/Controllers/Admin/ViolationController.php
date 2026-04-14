@@ -99,45 +99,84 @@ class ViolationController extends Controller
 
   public function violation(Request $request)
   {
-    // Get the active tab from request, default to 'all'
-    $activeTab = $request->get('tab', 'all');
+    $displayMode = $request->get('display_mode', 'all');
 
-    // Check if grouped view is requested
-    $viewMode = $request->get('view', 'individual'); // 'individual' or 'grouped'
+    $baseQuery = StudentViolation::with('studentAccount');
 
-    if ($viewMode === 'grouped') {
-      return $this->violationGrouped($request);
+    // Search by student name or ID
+    if ($request->filled('search')) {
+      $search = $request->search;
+      $baseQuery->where(function ($q) use ($search) {
+        $q->where('student_id', 'like', '%' . $search . '%')
+          ->orWhere('first_name', 'like', '%' . $search . '%')
+          ->orWhere('last_name', 'like', '%' . $search . '%')
+          ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ['%' . $search . '%']);
+      });
     }
 
-    // Admin can view ALL violations regardless of who added them
-    // Include student relationship for year level information
-    $baseQuery = StudentViolation::with('studentAccount')->orderBy('created_at', 'desc');
+    // Filter by department
+    if ($request->filled('department')) {
+      $baseQuery->where('department', 'like', '%' . $request->department . '%');
+    }
 
-    // Get violations for each tab with pagination
+    // Filter by violation type (minor / major)
+    if ($request->filled('offense_type')) {
+      $baseQuery->where('offense_type', $request->offense_type);
+    }
+
+    // Filter by status — use explicit string values since status is a TEXT column
+    if ($request->filled('status')) {
+      if ($request->status === 'resolved') {
+        $baseQuery->where('status', '2');
+      } elseif ($request->status === 'pending') {
+        $baseQuery->whereIn('status', ['0', '1', '1.5']);
+      }
+    }
+
+    // Display mode filtering based on how many students share the same ref_num
+    if ($displayMode === 'grouped') {
+      // Group cases: ref_num appears more than once (multiple students in same incident)
+      $baseQuery->whereNotNull('ref_num')
+        ->where('ref_num', '!=', '')
+        ->whereIn('ref_num', function ($sub) {
+          $sub->select('ref_num')
+            ->from('student_violations')
+            ->whereNotNull('ref_num')
+            ->where('ref_num', '!=', '')
+            ->groupBy('ref_num')
+            ->havingRaw('COUNT(*) > 1');
+        })
+        ->orderBy('ref_num');
+    } elseif ($displayMode === 'individual') {
+      // Individual cases: ref_num appears exactly once (single student) OR ref_num is null
+      $baseQuery->where(function ($q) {
+        $q->whereNull('ref_num')
+          ->orWhere('ref_num', '')
+          ->orWhereIn('ref_num', function ($sub) {
+            $sub->select('ref_num')
+              ->from('student_violations')
+              ->whereNotNull('ref_num')
+              ->where('ref_num', '!=', '')
+              ->groupBy('ref_num')
+              ->havingRaw('COUNT(*) = 1');
+          });
+      });
+      $baseQuery->orderBy('created_at', 'desc');
+    } else {
+      // All: no display mode filtering
+      $baseQuery->orderBy('created_at', 'desc');
+    }
+
     $perPage = 10;
+    $allViolationsPaginated = $baseQuery->paginate($perPage, ['*'], 'page');
 
-    // All violations
-    $allViolations = clone $baseQuery;
-    $allViolationsPaginated = $allViolations->paginate($perPage, ['*'], 'all_page');
-
-    // Minor violations only
-    $minorViolations = clone $baseQuery;
-    $minorViolationsPaginated = $minorViolations->where('offense_type', 'minor')
-      ->paginate($perPage, ['*'], 'minor_page');
-
-    // Major violations only
-    $majorViolations = clone $baseQuery;
-    $majorViolationsPaginated = $majorViolations->where('offense_type', 'major')
-      ->paginate($perPage, ['*'], 'major_page');
-
-    // Organize violations by type
     $violations = [
-      'all' => $allViolationsPaginated,
-      'minor' => $minorViolationsPaginated,
-      'major' => $majorViolationsPaginated,
+      'all'   => $allViolationsPaginated,
+      'minor' => $allViolationsPaginated,
+      'major' => $allViolationsPaginated,
     ];
 
-    // Get escalation status for ALL students with minor violations
+    $activeTab = 'all';
     $escalationData = $this->violationService->getAllEscalationData();
 
     return view('admin.violation', compact('violations', 'escalationData', 'activeTab'));
@@ -164,9 +203,19 @@ class ViolationController extends Controller
           'status' => $violation->status,
           'added_by' => $violation->added_by,
           'created_at' => $violation->created_at,
-          'forwarded_to_admin_at' => $violation->forwarded_to_admin_at,
+          'forwarded_to_admin_at' => $violation->forwarded_to_admin_at
+              ?? ($violation->ref_num
+                  ? StudentViolation::where('ref_num', $violation->ref_num)
+                      ->whereNotNull('forwarded_to_admin_at')
+                      ->value('forwarded_to_admin_at')
+                  : null),
           'closed_at' => $violation->closed_at,
-          'document_path' => $violation->document_path,
+          'document_path' => $violation->document_path
+              ?? ($violation->ref_num
+                  ? StudentViolation::where('ref_num', $violation->ref_num)
+                      ->whereNotNull('document_path')
+                      ->value('document_path')
+                  : null),
         ]
       ]);
     } catch (\Exception $e) {
@@ -210,7 +259,7 @@ class ViolationController extends Controller
       return back()->with('success', 'Minor violation approved by Admin! Case fully resolved.');
     } else {
       // For major violations, ensure it has been forwarded by moderator
-      if ($violation->status != '1.5') {
+      if ($violation->status != '1') {
         return back()->with('error', 'Major violations must be reviewed by the Moderator first before Admin can close the case.');
       }
 
@@ -249,6 +298,34 @@ class ViolationController extends Controller
     }
   }
 
+  public function declineCase(Request $request, $id)
+  {
+    $request->validate([
+      'decline_reason' => 'required|string|max:1000',
+    ]);
+
+    $violation = StudentViolation::findOrFail($id);
+
+    if ($violation->status == '2' || $violation->status == '3') {
+      return back()->with('error', 'This case has already been resolved.');
+    }
+
+    $violation->status = '3'; // Declined
+    $violation->decline_reason = $request->decline_reason;
+    $violation->closed_by = Auth::user()->fullname;
+    $violation->closed_at = now();
+    $violation->save();
+
+    ViolationNotif::create([
+      'ref_num' => $violation->ref_num,
+      'student_id' => $violation->student_id,
+      'status' => 0,
+      'notif' => "Your violation case has been declined by the Administrator. Case Reference: {$violation->ref_num}.",
+    ]);
+
+    return back()->with('success', 'Violation case has been declined.');
+  }
+
   /**
    * Download proceedings document for a violation (Admin has access to all)
    */
@@ -265,74 +342,13 @@ class ViolationController extends Controller
 
   public function violationsearch(Request $request)
   {
-    // Get the active tab from request, default to 'all'
-    $activeTab = $request->get('tab', 'all');
-
-    // Check if grouped view is requested
-    $viewMode = $request->get('view', 'individual'); // 'individual' or 'grouped'
-
-    if ($viewMode === 'grouped') {
+    // For grouped view, use the dedicated grouped search method
+    if ($request->get('view', 'individual') === 'grouped') {
       return $this->violationsearchGrouped($request);
     }
 
-    // Admin can search ALL violations regardless of who added them
-    // Include student relationship for year level information
-    $baseQuery = StudentViolation::with('studentAccount');
-
-    // Apply search filters
-    if ($request->filled('search')) {
-      $search = $request->search;
-      $baseQuery->where(function ($q) use ($search) {
-        $q->where('student_id', 'like', '%' . $search . '%')
-          ->orWhere('first_name', 'like', '%' . $search . '%')
-          ->orWhere('last_name', 'like', '%' . $search . '%')
-          ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ['%' . $search . '%']);
-      });
-    }
-    if ($request->filled('course')) {
-      $baseQuery->where('course', 'like', '%' . $request->course . '%');
-    }
-    if ($request->filled('offense_type')) {
-      $baseQuery->where('offense_type', $request->offense_type);
-    }
-    if ($request->filled('status')) {
-      if ($request->status === 'resolved') {
-        $baseQuery->where('status', 2);
-      } elseif ($request->status === 'pending') {
-        $baseQuery->where('status', '<', 2);
-      }
-    }
-
-    $baseQuery->orderBy('created_at', 'desc');
-
-    // Get violations for each tab with pagination
-    $perPage = 10;
-
-    // All violations (with search filters applied)
-    $allViolations = clone $baseQuery;
-    $allViolationsPaginated = $allViolations->paginate($perPage, ['*'], 'all_page');
-
-    // Minor violations only (with search filters applied)
-    $minorViolations = clone $baseQuery;
-    $minorViolationsPaginated = $minorViolations->where('offense_type', 'minor')
-      ->paginate($perPage, ['*'], 'minor_page');
-
-    // Major violations only (with search filters applied)
-    $majorViolations = clone $baseQuery;
-    $majorViolationsPaginated = $majorViolations->where('offense_type', 'major')
-      ->paginate($perPage, ['*'], 'major_page');
-
-    // Organize violations by type
-    $violations = [
-      'all' => $allViolationsPaginated,
-      'minor' => $minorViolationsPaginated,
-      'major' => $majorViolationsPaginated,
-    ];
-
-    // Get escalation status for ALL students with minor violations
-    $escalationData = $this->violationService->getAllEscalationData();
-
-    return view('admin.violation', compact('violations', 'escalationData', 'activeTab'));
+    // Individual view: delegate to violation() which now applies all filters
+    return $this->violation($request);
   }
 
   public function violationGrouped(Request $request)
@@ -420,8 +436,8 @@ class ViolationController extends Controller
     if ($request->filled('last_name')) {
       $baseQuery->where('last_name', 'like', '%' . $request->last_name . '%');
     }
-    if ($request->filled('course')) {
-      $baseQuery->where('course', 'like', '%' . $request->course . '%');
+    if ($request->filled('department')) {
+      $baseQuery->where('department', 'like', '%' . $request->department . '%');
     }
     if ($request->filled('offense_type')) {
       $baseQuery->where('offense_type', $request->offense_type);

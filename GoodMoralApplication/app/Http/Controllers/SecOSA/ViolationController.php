@@ -134,7 +134,7 @@ class ViolationController extends Controller
                 ->with('error', 'This violation is not eligible for forwarding to admin.');
         }
 
-        $violation->status = '1.5';
+        $violation->status = '1';
         $violation->forwarded_to_admin_at = now();
         $violation->forwarded_by = Auth::user()->fullname;
         $violation->save();

@@ -79,6 +79,7 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::get('/admin/violation', [ViolationController::class, 'violation'])->name('admin.violation');
     Route::get('/admin/violation/search', [ViolationController::class, 'violationsearch'])->name('admin.violationsearch');
     Route::post('/admin/violation/{id}/close-case', [ViolationController::class, 'closeCase'])->name('violations.closeCase');
+    Route::post('/admin/violation/{id}/decline-case', [ViolationController::class, 'declineCase'])->name('violations.declineCase');
     Route::post('/admin/violation/{id}/mark-downloaded', [ViolationController::class, 'markDownloaded'])->name('violations.markDownloaded');
     Route::get('/admin/violation/{id}/download-proceedings', [ViolationController::class, 'downloadProceedings'])->name('admin.downloadProceedings');
     Route::get('/admin/violation-details/{id}', [ViolationController::class, 'getViolationDetails'])->name('admin.violationDetails');
