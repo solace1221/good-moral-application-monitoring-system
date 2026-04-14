@@ -24,34 +24,31 @@ class RegisteredAccountController extends Controller
 {
   public function create(Request $request): View
   {
-    $query = RoleAccount::query();
-
-    if ($request->filled('search_name')) {
-      $query->where('fullname', 'LIKE', '%' . $request->search_name . '%');
+    // Students query (account_type = 'student')
+    $studentsQuery = RoleAccount::where('account_type', 'student');
+    if ($request->filled('search_name') && $request->get('subtab', 'students') !== 'admin') {
+      $studentsQuery->where('fullname', 'LIKE', '%' . $request->search_name . '%');
     }
     if ($request->filled('search_student_id')) {
-      $query->where('student_id', 'LIKE', '%' . $request->search_student_id . '%');
+      $studentsQuery->where('student_id', 'LIKE', '%' . $request->search_student_id . '%');
     }
-    if ($request->filled('search_email')) {
-      $query->where('email', 'LIKE', '%' . $request->search_email . '%');
+    $students = $studentsQuery->orderBy('fullname', 'asc')->paginate(10)->appends($request->query());
+
+    // Administrative accounts query (account_type != 'student')
+    $adminQuery = RoleAccount::where('account_type', '!=', 'student');
+    if ($request->filled('search_name') && $request->get('subtab') === 'admin') {
+      $adminQuery->where('fullname', 'LIKE', '%' . $request->search_name . '%');
     }
     if ($request->filled('search_department')) {
-      $query->where('department', $request->search_department);
+      $adminQuery->where('department', $request->search_department);
     }
-    if ($request->filled('search_account_type')) {
-      $query->where('account_type', $request->search_account_type);
-    }
-    if ($request->filled('search_status')) {
-      $query->where('status', $request->search_status);
-    }
-
-    $students = $query->orderBy('fullname', 'asc')->paginate(10)->appends($request->query());
+    $adminAccounts = $adminQuery->orderBy('account_type')->orderBy('fullname')->paginate(10)->appends($request->query());
 
     $organizations = Organization::orderBy('description')->get();
 
     $courses = Course::ordered()->get();
 
-    return view('admin.add-account', compact('students', 'organizations', 'courses'));
+    return view('admin.add-account', compact('students', 'adminAccounts', 'organizations', 'courses'));
   }
 
   /**

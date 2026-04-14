@@ -59,7 +59,7 @@
         <svg style="width: 18px; height: 18px; margin-right: 8px; vertical-align: middle;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"></path>
         </svg>
-        View Accounts ({{ $students->total() }})
+        View Accounts ({{ $students->total() + $adminAccounts->total() }})
       </button>
     </div>
   </div>
@@ -307,244 +307,284 @@
     </div>
 
     <!-- Accounts List Tab -->
-    <div id="list-content" style="background: white; border-radius: 0 0 12px 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 24px; display: none;">
-      <h3 style="margin: 0 0 24px 0; color: var(--primary-green); font-size: 1.25rem; font-weight: 600;">
-        @if(request()->hasAny(['search_name', 'search_student_id']))
-          Search Results ({{ $students->total() }} found)
-        @else
-          All User Accounts ({{ $students->total() }})
-        @endif
-      </h3>
+    <div id="list-content" style="background: white; border-radius: 0 0 12px 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: none;">
 
-      <!-- Search Form -->
-      <form method="GET" action="{{ route('admin.AddAccount') }}" style="margin-bottom: 24px; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid var(--primary-green);">
-        <input type="hidden" name="tab" value="list">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 16px;">
-          <div>
-            <label for="search_name" style="display: block; margin-bottom: 6px; font-weight: 600; color: #333; font-size: 14px;">Full Name</label>
+      @php
+        $roleColors = [
+          'admin'      => '#dc3545',
+          'dean'       => '#6f42c1',
+          'registrar'  => '#fd7e14',
+          'sec_osa'    => '#20c997',
+          'prog_coor'  => '#17a2b8',
+          'alumni'     => '#6610f2',
+          'psg_officer'=> '#e83e8c',
+        ];
+        $roleLabels = [
+          'admin'      => 'Admin',
+          'dean'       => 'Dean',
+          'registrar'  => 'Registrar',
+          'sec_osa'    => 'Moderator',
+          'prog_coor'  => 'Prog. Coordinator',
+          'alumni'     => 'Alumni',
+          'psg_officer'=> 'PSG Officer',
+        ];
+      @endphp
+
+      <!-- Sub-tab Navigation -->
+      <div style="display: flex; border-bottom: 2px solid #e9ecef; padding: 0 24px;">
+        <button onclick="showAccountSubTab('students')" id="subtab-students"
+                style="padding: 14px 20px; background: none; border: none; font-size: 14px; font-weight: 600; border-bottom: 3px solid var(--primary-green); color: var(--primary-green); cursor: pointer; margin-bottom: -2px; display: flex; align-items: center; gap: 8px; transition: all 0.2s;">
+          <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5"/>
+          </svg>
+          Students
+          <span style="padding: 2px 8px; background: #e8f5e9; color: var(--primary-green); border-radius: 10px; font-size: 11px; font-weight: 700;">{{ $students->total() }}</span>
+        </button>
+        <button onclick="showAccountSubTab('admin')" id="subtab-admin"
+                style="padding: 14px 20px; background: none; border: none; font-size: 14px; font-weight: 600; border-bottom: 3px solid transparent; color: #6c757d; cursor: pointer; margin-bottom: -2px; display: flex; align-items: center; gap: 8px; transition: all 0.2s;">
+          <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
+          </svg>
+          Administrative Accounts
+          <span style="padding: 2px 8px; background: #e9ecef; color: #495057; border-radius: 10px; font-size: 11px; font-weight: 700;">{{ $adminAccounts->total() }}</span>
+        </button>
+      </div>
+
+      <!-- Students Search Form -->
+      <div id="filter-students" style="padding: 16px 24px 0;">
+        <form method="GET" action="{{ route('admin.AddAccount') }}" style="margin-bottom: 16px;">
+          <input type="hidden" name="tab" value="list">
+          <input type="hidden" name="subtab" value="students">
+          <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
             <input type="text" id="search_name" name="search_name"
-                   style="width: 100%; padding: 10px 12px; border: 2px solid #e1e5e9; border-radius: 6px; font-size: 14px; transition: border-color 0.3s ease;"
-                   value="{{ request('search_name') }}"
+                   style="flex: 1; min-width: 160px; padding: 10px 12px; border: 2px solid #e1e5e9; border-radius: 6px; font-size: 14px;"
+                   value="{{ request('subtab', 'students') === 'students' ? request('search_name') : '' }}"
                    placeholder="Search by name">
-          </div>
-          <div>
-            <label for="search_student_id" style="display: block; margin-bottom: 6px; font-weight: 600; color: #333; font-size: 14px;">Student ID</label>
             <input type="text" id="search_student_id" name="search_student_id"
-                   style="width: 100%; padding: 10px 12px; border: 2px solid #e1e5e9; border-radius: 6px; font-size: 14px; transition: border-color 0.3s ease;"
-                   value="{{ request('search_student_id') }}"
-                   placeholder="Search by student ID">
+                   style="flex: 1; min-width: 140px; padding: 10px 12px; border: 2px solid #e1e5e9; border-radius: 6px; font-size: 14px;"
+                   value="{{ request('subtab', 'students') === 'students' ? request('search_student_id') : '' }}"
+                   placeholder="Student ID">
+            <button type="submit" style="padding: 10px 16px; background: var(--primary-green); color: #fff !important; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; white-space: nowrap;">
+              <svg style="width: 16px; height: 16px;" fill="none" stroke="white" stroke-width="1.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+              </svg>
+              <span style="color: #fff !important;">Search</span>
+            </button>
+            <a href="{{ route('admin.AddAccount', ['tab' => 'list', 'subtab' => 'students']) }}" style="padding: 10px 16px; background: #e74c3c; color: white; text-decoration: none; border-radius: 6px; font-weight: 600; display: flex; align-items: center; gap: 6px; white-space: nowrap;">
+              <svg style="width: 16px; height: 16px;" fill="none" stroke="white" stroke-width="1.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+              </svg>
+              Clear
+            </a>
+            @if(request('subtab', 'students') === 'students' && request()->hasAny(['search_name', 'search_student_id']))
+            <span style="color: var(--primary-green); font-size: 13px; font-weight: 600;">Filters Active</span>
+            @endif
           </div>
-        </div>
-        <div style="display: flex; gap: 12px; align-items: center;">
-          <button type="submit" class="btn-primary" style="display: flex; align-items: center; gap: 8px; color: #ffffff !important;">
-            <svg style="width: 18px; height: 18px; color: #ffffff !important;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-            </svg>
-            <span style="color: #ffffff !important;">Search Accounts</span>
-          </button>
-          <a href="{{ route('admin.AddAccount', ['tab' => 'list']) }}" style="padding: 12px 20px; background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); color: white; text-decoration: none; border-radius: 6px; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3); border: none; cursor: pointer;">
-            <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-            </svg>
-            Clear Filters
-          </a>
-          @if(request()->hasAny(['search_name', 'search_student_id']))
-          <span style="color: var(--primary-green); font-size: 14px; font-weight: 600;">
-            <svg style="width: 16px; height: 16px; vertical-align: middle; margin-right: 4px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
-            </svg>
-            Filters Active
-          </span>
-          @endif
-        </div>
-      </form>
+        </form>
+      </div>
 
-      <div style="overflow-x: auto;">
-        <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-          <thead>
-            <tr style="background: #f8f9fa; border-bottom: 2px solid #e9ecef;">
-              <th style="padding: 16px; text-align: left; font-weight: 600; color: #495057; font-size: 14px;">Full Name</th>
-              <th style="padding: 16px; text-align: left; font-weight: 600; color: #495057; font-size: 14px;">Student ID</th>
-              <th style="padding: 16px; text-align: left; font-weight: 600; color: #495057; font-size: 14px;">Email</th>
-              <th style="padding: 16px; text-align: left; font-weight: 600; color: #495057; font-size: 14px;">Department</th>
-              <th style="padding: 16px; text-align: left; font-weight: 600; color: #495057; font-size: 14px;">Course</th>
-              <th style="padding: 16px; text-align: left; font-weight: 600; color: #495057; font-size: 14px;">Year Level</th>
-              <th style="padding: 16px; text-align: left; font-weight: 600; color: #495057; font-size: 14px;">Account Type</th>
-              <th style="padding: 16px; text-align: left; font-weight: 600; color: #495057; font-size: 14px;">Status</th>
-              <th style="padding: 16px; text-align: center; font-weight: 600; color: #495057; font-size: 14px;">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            @forelse ($students as $student)
-            <tr style="border-bottom: 1px solid #e9ecef; transition: background-color 0.2s ease;"
-                onmouseover="this.style.backgroundColor='#f8f9fa'"
-                onmouseout="this.style.backgroundColor='transparent'">
-              <td style="padding: 16px; color: #495057; font-size: 14px; font-weight: 500;">{{ $student->fullname }}</td>
-              <td style="padding: 16px; color: #495057; font-size: 14px;">
-                @if(in_array($student->account_type, ['student', 'alumni']))
+      <!-- Administrative Accounts Search Form -->
+      <div id="filter-admin" style="padding: 16px 24px 0; display: none;">
+        <form method="GET" action="{{ route('admin.AddAccount') }}" style="margin-bottom: 16px;">
+          <input type="hidden" name="tab" value="list">
+          <input type="hidden" name="subtab" value="admin">
+          <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <input type="text" id="admin_search_name" name="search_name"
+                   style="flex: 1; min-width: 160px; padding: 10px 12px; border: 2px solid #e1e5e9; border-radius: 6px; font-size: 14px;"
+                   value="{{ request('subtab') === 'admin' ? request('search_name') : '' }}"
+                   placeholder="Search by name">
+            <select name="search_department"
+                    style="flex: 1; min-width: 160px; padding: 10px 12px; border: 2px solid #e1e5e9; border-radius: 6px; font-size: 14px; background: white; color: #495057;">
+              <option value="">All Departments</option>
+              @foreach(['SASTE', 'SBAHM', 'SITE', 'SNAHS', 'Administration', 'Gradschool'] as $dept)
+              <option value="{{ $dept }}" {{ request('subtab') === 'admin' && request('search_department') === $dept ? 'selected' : '' }}>{{ $dept }}</option>
+              @endforeach
+            </select>
+            <button type="submit" style="padding: 10px 16px; background: var(--primary-green); color: #fff !important; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; white-space: nowrap;">
+              <svg style="width: 16px; height: 16px;" fill="none" stroke="white" stroke-width="1.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+              </svg>
+              <span style="color: #fff !important;">Search</span>
+            </button>
+            <a href="{{ route('admin.AddAccount', ['tab' => 'list', 'subtab' => 'admin']) }}" style="padding: 10px 16px; background: #e74c3c; color: white; text-decoration: none; border-radius: 6px; font-weight: 600; display: flex; align-items: center; gap: 6px; white-space: nowrap;">
+              <svg style="width: 16px; height: 16px;" fill="none" stroke="white" stroke-width="1.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+              </svg>
+              Clear
+            </a>
+            @if(request('subtab') === 'admin' && request()->hasAny(['search_name', 'search_department']))
+            <span style="color: var(--primary-green); font-size: 13px; font-weight: 600;">Filters Active</span>
+            @endif
+          </div>
+        </form>
+      </div>
+
+      <!-- Sub-tab: Students -->
+      <div id="subtab-students-content" style="padding: 0 24px 24px;">
+        <div style="overflow-x: auto;">
+          <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 6px rgba(0,0,0,0.08);">
+            <thead>
+              <tr style="background: #f9fafb; border-bottom: 1px solid #e5e7eb;">
+                <th style="padding: 11px 14px; text-align: left; font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em;">Full Name</th>
+                <th style="padding: 11px 14px; text-align: left; font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em;">Student ID</th>
+                <th style="padding: 11px 14px; text-align: left; font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em;">Email</th>
+                <th style="padding: 11px 14px; text-align: left; font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em;">Program</th>
+                <th style="padding: 11px 14px; text-align: left; font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em;">Year Level</th>
+                <th style="padding: 11px 14px; text-align: left; font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em;">Status</th>
+                <th style="padding: 11px 14px; text-align: center; font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @forelse ($students as $student)
+              <tr style="border-bottom: 1px solid #e9ecef;"
+                  onmouseover="this.style.backgroundColor='#f9fafb'"
+                  onmouseout="this.style.backgroundColor='transparent'">
+                <td style="padding: 12px 14px; color: #212529; font-size: 14px; font-weight: 500;">{{ $student->fullname }}</td>
+                <td style="padding: 12px 14px; font-size: 13px;">
                   @if($student->student_id)
-                    <span style="font-family: monospace; background: #e9ecef; padding: 2px 6px; border-radius: 4px; font-size: 13px;">{{ $student->student_id }}</span>
+                    <span style="font-family: monospace; background: #e9ecef; padding: 2px 7px; border-radius: 4px;">{{ $student->student_id }}</span>
                   @else
-                    <span style="color: #6c757d; font-style: italic; font-size: 12px;">Not set</span>
+                    <span style="color: #adb5bd; font-style: italic; font-size: 12px;">Not set</span>
                   @endif
-                @else
-                  <span style="color: #6c757d; font-style: italic; font-size: 12px;">N/A</span>
-                @endif
-              </td>
-              <td style="padding: 16px; color: #495057; font-size: 14px;">{{ $student->email }}</td>
-              <td style="padding: 16px; color: #495057; font-size: 14px;">
-                @php
-                  $deptColor = '#e3f2fd'; // default light blue
-                  $deptTextColor = '#1976d2'; // default text color
-                  switch($student->department) {
-                    case 'SASTE': $deptColor = '#e3f2fd'; $deptTextColor = '#1976d2'; break; // Light blue
-                    case 'SBAHM': $deptColor = '#e8f5e8'; $deptTextColor = '#2e7d32'; break; // Light green
-                    case 'SITE': $deptColor = '#f3e5f5'; $deptTextColor = '#7b1fa2'; break; // Light purple
-                    case 'SNAHS': $deptColor = '#ffebee'; $deptTextColor = '#c62828'; break; // Light red
-                    case 'SOM': $deptColor = '#fff3e0'; $deptTextColor = '#ef6c00'; break; // Light orange (for other departments)
-                    case 'GRADSCH': $deptColor = '#f1f8e9'; $deptTextColor = '#558b2f'; break; // Light green variant
-                    default: $deptColor = '#f5f5f5'; $deptTextColor = '#424242'; break; // Light gray for others
-                  }
-                @endphp
-                <span style="display: inline-block; padding: 4px 8px; background: {{ $deptColor }}; color: {{ $deptTextColor }}; border-radius: 4px; font-size: 12px; font-weight: 500;">
-                  {{ $student->department }}
-                </span>
-              </td>
-              <td style="padding: 16px; color: #495057; font-size: 14px;">
-                @if($student->account_type === 'student')
-                  @if($student->course)
-                    <span style="display: inline-block; padding: 4px 8px; background: #e8f5e8; color: #2e7d32; border-radius: 4px; font-size: 12px; font-weight: 500;">
-                      {{ $student->course }}
-                    </span>
-                  @else
-                    <span style="color: #6c757d; font-style: italic; font-size: 12px;">Not set</span>
-                  @endif
-                @else
-                  <span style="color: #6c757d; font-style: italic; font-size: 12px;">N/A</span>
-                @endif
-              </td>
-              <td style="padding: 16px; color: #495057; font-size: 14px;">
-                @if($student->account_type === 'student')
+                </td>
+                <td style="padding: 12px 14px; color: #495057; font-size: 13px;">{{ $student->email }}</td>
+                <td style="padding: 12px 14px; color: #495057; font-size: 13px;">
+                  {{ $student->department ?? '—' }}@if($student->course)<span style="color: #ced4da; margin: 0 4px;">•</span>{{ $student->course }}@endif
+                </td>
+                <td style="padding: 12px 14px; font-size: 13px;">
                   @if($student->year_level)
-                    <span style="display: inline-block; padding: 4px 8px; background: #f3e5f5; color: #7b1fa2; border-radius: 4px; font-size: 12px; font-weight: 500;">
-                      {{ $student->year_level }}
+                    <span style="display: inline-block; padding: 3px 9px; background: #f1f3f5; color: #6b7280; border-radius: 12px; font-size: 12px; font-weight: 500;">{{ $student->year_level }}</span>
+                  @else
+                    <span style="color: #adb5bd; font-style: italic; font-size: 12px;">Not set</span>
+                  @endif
+                </td>
+                <td style="padding: 12px 14px;">
+                  @if($student->status === 'active')
+                    <span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; background: #28a745; color: #fff !important; border-radius: 20px; font-size: 12px; font-weight: 500;">
+                      <svg style="width: 12px; height: 12px;" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+                      <span style="color: #fff !important;">Active</span>
                     </span>
                   @else
-                    <span style="color: #6c757d; font-style: italic; font-size: 12px;">Not set</span>
+                    <span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; background: #dc3545; color: #fff !important; border-radius: 20px; font-size: 12px; font-weight: 500;">
+                      <svg style="width: 12px; height: 12px;" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                      <span style="color: #fff !important;">Inactive</span>
+                    </span>
                   @endif
-                @else
-                  <span style="color: #6c757d; font-style: italic; font-size: 12px;">N/A</span>
-                @endif
-              </td>
-              <td style="padding: 16px; color: #495057; font-size: 14px;">
-                @php
-                  $bgColor = '#ffc107'; // default yellow
-                  $icon = '';
-                  switch($student->account_type) {
-                    case 'admin': $bgColor = '#dc3545'; $icon = '<svg style="width: 14px; height: 14px; margin-right: 4px; color: #ffffff;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>'; break;
-                    case 'dean': $bgColor = '#6f42c1'; $icon = '<svg style="width: 14px; height: 14px; margin-right: 4px; color: #ffffff;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5" /></svg>'; break;
-                    case 'registrar': $bgColor = '#fd7e14'; $icon = '<svg style="width: 14px; height: 14px; margin-right: 4px; color: #ffffff;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>'; break;
-                    case 'sec_osa': $bgColor = '#20c997'; $icon = '<svg style="width: 14px; height: 14px; margin-right: 4px; color: #ffffff;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" /></svg>'; break;
-                    case 'prog_coor': $bgColor = '#17a2b8'; $icon = '<svg style="width: 14px; height: 14px; margin-right: 4px; color: #ffffff;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" /></svg>'; break;
-                    case 'student': $bgColor = '#28a745'; $icon = '<svg style="width: 14px; height: 14px; margin-right: 4px; color: #ffffff;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5" /></svg>'; break;
-                    case 'alumni': $bgColor = '#6610f2'; $icon = '<svg style="width: 14px; height: 14px; margin-right: 4px; color: #ffffff;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5" /></svg>'; break;
-                  }
-                @endphp
-                <span style="display: inline-flex; align-items: center; padding: 6px 12px; background: {{ $bgColor }}; color: #ffffff !important; border-radius: 20px; font-size: 12px; font-weight: 500; text-transform: uppercase;">
-                  {!! $icon !!}<span style="color: #ffffff !important;">{{ str_replace('_', ' ', $student->account_type) }}</span>
-                </span>
-              </td>
-              <td style="padding: 16px; color: #495057; font-size: 14px;">
-                @if($student->status === 'active')
-                  <span style="display: inline-flex; align-items: center; padding: 6px 12px; background: #28a745; color: #ffffff !important; border-radius: 20px; font-size: 12px; font-weight: 500;">
-                    <svg style="width: 14px; height: 14px; margin-right: 4px; color: #ffffff;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                    </svg>
-                    <span style="color: #ffffff !important;">Active</span>
-                  </span>
-                @else
-                  <span style="display: inline-flex; align-items: center; padding: 6px 12px; background: #dc3545; color: #ffffff !important; border-radius: 20px; font-size: 12px; font-weight: 500;">
-                    <svg style="width: 14px; height: 14px; margin-right: 4px; color: #ffffff;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636" />
-                    </svg>
-                    <span style="color: #ffffff !important;">Inactive</span>
-                  </span>
-                @endif
-              </td>
-              <td style="padding: 16px; text-align: center;">
-                <div style="display: flex; gap: 8px; justify-content: center; align-items: center; flex-wrap: wrap;">
-                  <!-- Edit Button -->
-                  <button onclick="editAccount({{ $student->id }})"
-                          style="padding: 8px 14px; background: var(--primary-green); color: #ffffff !important; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(0, 176, 80, 0.3);"
-                          onmouseover="this.style.background='#0b5d1e'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(0, 176, 80, 0.4)'; this.style.color='#ffffff'"
-                          onmouseout="this.style.background='var(--primary-green)'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0, 176, 80, 0.3)'; this.style.color='#ffffff'"
-                          title="Edit Account">
-                    <svg style="width: 16px; height: 16px; color: #ffffff;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                    </svg>
-                    <span style="color: #ffffff !important;">Edit</span>
-                  </button>
-
-                  @if($student->account_type === 'student')
-                  <!-- Convert to Alumni Button -->
-                  <button onclick="convertToAlumni({{ $student->id }}, '{{ addslashes($student->fullname) }}')"
-                          style="padding: 8px 14px; background: #6610f2; color: #ffffff !important; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(102, 16, 242, 0.3);"
-                          onmouseover="this.style.background='#520dc2'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(102, 16, 242, 0.4)'; this.style.color='#ffffff'"
-                          onmouseout="this.style.background='#6610f2'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(102, 16, 242, 0.3)'; this.style.color='#ffffff'"
-                          title="Convert to Alumni">
-                    <svg style="width: 16px; height: 16px; color: #ffffff;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5" />
-                    </svg>
-                    <span style="color: #ffffff !important;">Alumni</span>
-                  </button>
-                  @endif
-
-                  <!-- Delete Button -->
-                  <button onclick="deleteAccount({{ $student->id }}, '{{ $student->fullname }}')"
-                          style="padding: 8px 14px; background: #dc3545; color: #ffffff !important; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);"
-                          onmouseover="this.style.background='#c82333'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(220, 53, 69, 0.4)'; this.style.color='#ffffff'"
-                          onmouseout="this.style.background='#dc3545'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(220, 53, 69, 0.3)'; this.style.color='#ffffff'"
-                          title="Delete Account">
-                    <svg style="width: 16px; height: 16px; color: #ffffff;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                    </svg>
-                    <span style="color: #ffffff !important;">Delete</span>
-                  </button>
-                </div>
-              </td>
-            </tr>
-            @empty
-            <tr>
-              <td colspan="9" style="padding: 40px; text-align: center; color: #6c757d;">
-                <div style="display: flex; flex-direction: column; align-items: center; gap: 16px;">
-                  <svg style="width: 48px; height: 48px; color: #dee2e6;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414a1 1 0 00-.707-.293H8"></path>
-                  </svg>
-                  <div>
-                    @if(request()->hasAny(['search_name', 'search_student_id', 'search_email', 'search_department', 'search_account_type', 'search_status']))
-                      <h4 style="margin: 0 0 8px 0; color: #495057; font-size: 18px;">No accounts found</h4>
-                      <p style="margin: 0; font-size: 14px;">Try adjusting your search criteria or <a href="{{ route('admin.AddAccount') }}" style="color: var(--primary-green); text-decoration: none; font-weight: 600;">clear all filters</a></p>
-                    @else
-                      <h4 style="margin: 0 0 8px 0; color: #495057; font-size: 18px;">No accounts available</h4>
-                      <p style="margin: 0; font-size: 14px;">Start by creating new user accounts using the tabs above</p>
-                    @endif
+                </td>
+                <td style="padding: 12px 14px; text-align: center;">
+                  <div style="display: flex; gap: 5px; justify-content: center;">
+                    <button onclick="editAccount({{ $student->id }})" title="Edit"
+                            style="padding: 7px; background: var(--primary-green); border: none; border-radius: 7px; cursor: pointer; display: flex; transition: all 0.2s;"
+                            onmouseover="this.style.background='#0b5d1e'; this.style.transform='translateY(-1px)'"
+                            onmouseout="this.style.background='var(--primary-green)'; this.style.transform='none'">
+                      <svg style="width: 15px; height: 15px;" fill="none" stroke="white" stroke-width="1.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"/>
+                      </svg>
+                    </button>
+                    <button onclick="convertToAlumni({{ $student->id }}, '{{ addslashes($student->fullname) }}')" title="Set Alumni"
+                            style="padding: 7px; background: #6c757d; border: none; border-radius: 7px; cursor: pointer; display: flex; transition: all 0.2s;"
+                            onmouseover="this.style.background='#545b62'; this.style.transform='translateY(-1px)'"
+                            onmouseout="this.style.background='#6c757d'; this.style.transform='none'">
+                      <svg style="width: 15px; height: 15px;" fill="none" stroke="white" stroke-width="1.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5"/>
+                      </svg>
+                    </button>
                   </div>
-                </div>
-              </td>
-            </tr>
-            @endforelse
-          </tbody>
-        </table>
+                </td>
+              </tr>
+              @empty
+              <tr>
+                <td colspan="7" style="padding: 32px; text-align: center; color: #6c757d;">
+                  @if(request()->hasAny(['search_name', 'search_student_id']))
+                    No students match the current search criteria.
+                  @else
+                    No student accounts found.
+                  @endif
+                </td>
+              </tr>
+              @endforelse
+            </tbody>
+          </table>
+        </div>
+
+        {{ $students->appends(['tab' => 'list', 'subtab' => 'students'])->appends(request()->except(['tab', 'subtab', 'page']))->links('vendor.pagination.custom') }}
       </div>
 
-      <!-- Pagination -->
-      @if($students->hasPages())
-      <div style="margin-top: 24px; display: flex; justify-content: center;">
-        {{ $students->appends(['tab' => 'list'])->appends(request()->query())->links() }}
+      <!-- Sub-tab: Administrative Accounts -->
+      <div id="subtab-admin-content" style="padding: 0 24px 24px; display: none;">
+        <div style="overflow-x: auto;">
+          <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 6px rgba(0,0,0,0.08);">
+            <thead>
+              <tr style="background: #f9fafb; border-bottom: 1px solid #e5e7eb;">
+                <th style="padding: 11px 14px; text-align: left; font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em;">Full Name</th>
+                <th style="padding: 11px 14px; text-align: left; font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em;">Email</th>
+                <th style="padding: 11px 14px; text-align: left; font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em;">Role</th>
+                <th style="padding: 11px 14px; text-align: left; font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em;">Department</th>
+                <th style="padding: 11px 14px; text-align: left; font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em;">Status</th>
+                <th style="padding: 11px 14px; text-align: center; font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @forelse ($adminAccounts as $account)
+              @php
+                $rColor = $roleColors[$account->account_type] ?? '#6c757d';
+                $rLabel = $roleLabels[$account->account_type] ?? ucfirst(str_replace('_', ' ', $account->account_type));
+              @endphp
+              <tr style="border-bottom: 1px solid #e9ecef;"
+                  onmouseover="this.style.backgroundColor='#f9fafb'"
+                  onmouseout="this.style.backgroundColor='transparent'">
+                <td style="padding: 12px 14px; color: #212529; font-size: 14px; font-weight: 500;">{{ $account->fullname }}</td>
+                <td style="padding: 12px 14px; color: #495057; font-size: 13px;">{{ $account->email }}</td>
+                <td style="padding: 12px 14px;">
+                  <span style="display: inline-block; padding: 4px 11px; background: {{ $rColor }}; color: #fff !important; border-radius: 20px; font-size: 12px; font-weight: 500;">
+                    <span style="color: #fff !important;">{{ $rLabel }}</span>
+                  </span>
+                </td>
+                <td style="padding: 12px 14px; color: #495057; font-size: 13px;">{{ $account->department ?? '—' }}</td>
+                <td style="padding: 12px 14px;">
+                  @if($account->status === 'active')
+                    <span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; background: #28a745; color: #fff !important; border-radius: 20px; font-size: 12px; font-weight: 500;">
+                      <svg style="width: 12px; height: 12px;" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+                      <span style="color: #fff !important;">Active</span>
+                    </span>
+                  @else
+                    <span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; background: #dc3545; color: #fff !important; border-radius: 20px; font-size: 12px; font-weight: 500;">
+                      <svg style="width: 12px; height: 12px;" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                      <span style="color: #fff !important;">Inactive</span>
+                    </span>
+                  @endif
+                </td>
+                <td style="padding: 12px 14px; text-align: center;">
+                  <div style="display: flex; gap: 5px; justify-content: center;">
+                    <button onclick="editAccount({{ $account->id }})" title="Edit"
+                            style="padding: 7px; background: var(--primary-green); border: none; border-radius: 7px; cursor: pointer; display: flex; transition: all 0.2s;"
+                            onmouseover="this.style.background='#0b5d1e'; this.style.transform='translateY(-1px)'"
+                            onmouseout="this.style.background='var(--primary-green)'; this.style.transform='none'">
+                      <svg style="width: 15px; height: 15px;" fill="none" stroke="white" stroke-width="1.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"/>
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              @empty
+              <tr>
+                <td colspan="6" style="padding: 32px; text-align: center; color: #6c757d;">
+                  @if(request()->filled('search_name'))
+                    No administrative accounts match the current search.
+                  @else
+                    No administrative accounts found.
+                  @endif
+                </td>
+              </tr>
+              @endforelse
+            </tbody>
+          </table>
+        </div>
+        {{ $adminAccounts->appends(['tab' => 'list', 'subtab' => 'admin'])->appends(request()->except(['tab', 'subtab', 'page']))->links('vendor.pagination.custom') }}
       </div>
-      @endif
+
     </div>
-  </div>
 
   <!-- Edit Account Modal -->
   <div id="editAccountModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
@@ -662,20 +702,12 @@
           </select>
         </div>
 
-        <div style="grid-column: 1 / -1; margin-top: 24px; display: flex; gap: 12px; justify-content: flex-end;">
-          <button type="button" onclick="closeEditModal()" class="btn-secondary" style="display: flex; align-items: center; gap: 8px;">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 16px; height: 16px;">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-            </svg>
-            Cancel
-          </button>
+        <div style="grid-column: 1 / -1; margin-top: 28px; display: flex; justify-content: flex-end;">
           <button type="submit" class="btn-primary" style="color: #ffffff !important; display: flex; align-items: center; gap: 8px;">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 16px; height: 16px;">
               <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
             </svg>
             Save Changes
-          </button>
-            <span style="color: #ffffff !important;">Update Account</span>
           </button>
         </div>
       </form>
@@ -791,6 +823,22 @@
       window.history.replaceState({}, '', url);
     }
 
+    function showAccountSubTab(name) {
+      const isStudents = name === 'students';
+      document.getElementById('subtab-students-content').style.display = isStudents ? 'block' : 'none';
+      document.getElementById('subtab-admin-content').style.display   = isStudents ? 'none'  : 'block';
+      document.getElementById('filter-students').style.display        = isStudents ? 'block' : 'none';
+      document.getElementById('filter-admin').style.display           = isStudents ? 'none'  : 'block';
+      document.getElementById('subtab-students').style.borderBottomColor = isStudents ? 'var(--primary-green)' : 'transparent';
+      document.getElementById('subtab-students').style.color            = isStudents ? 'var(--primary-green)' : '#6c757d';
+      document.getElementById('subtab-admin').style.borderBottomColor  = isStudents ? 'transparent' : 'var(--primary-green)';
+      document.getElementById('subtab-admin').style.color              = isStudents ? '#6c757d' : 'var(--primary-green)';
+      // Persist sub-tab in URL
+      const url = new URL(window.location);
+      if (name !== 'students') { url.searchParams.set('subtab', name); } else { url.searchParams.delete('subtab'); }
+      window.history.replaceState({}, '', url);
+    }
+
     // Initialize with appropriate tab active
     document.addEventListener('DOMContentLoaded', function() {
       const urlParams = new URLSearchParams(window.location.search);
@@ -809,6 +857,11 @@
       // Determine which tab to show
       if (tabParam === 'list' || hasSearchParams || hasMessages) {
         showTab('list');
+        // Restore sub-tab state
+        const subtabParam = urlParams.get('subtab');
+        if (subtabParam === 'admin') {
+          showAccountSubTab('admin');
+        }
       } else if (tabParam === 'import') {
         showTab('import');
       } else {
@@ -881,63 +934,6 @@
       document.getElementById('editAccountModal').style.display = 'none';
     }
 
-    function deleteAccount(accountId, accountName) {
-      // Store the data for later use
-      pendingDeleteId = accountId;
-      pendingDeleteName = accountName;
-      
-      // Update modal content
-      document.getElementById('deleteAccountName').textContent = accountName;
-      
-      // Show modal
-      document.getElementById('deleteConfirmModal').style.display = 'flex';
-      document.body.style.overflow = 'hidden'; // Prevent background scrolling
-    }
-
-    function closeDeleteModal() {
-      document.getElementById('deleteConfirmModal').style.display = 'none';
-      document.body.style.overflow = 'auto'; // Restore scrolling
-      pendingDeleteId = null;
-      pendingDeleteName = null;
-    }
-
-    function confirmDelete() {
-      if (!pendingDeleteId) return;
-      
-      const confirmBtn = document.getElementById('confirmDeleteBtn');
-      const originalText = confirmBtn.textContent;
-      
-      // Show loading state
-      confirmBtn.disabled = true;
-      confirmBtn.innerHTML = '<svg style="width: 16px; height: 16px; animation: spin 1s linear infinite; margin-right: 8px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>Deleting...';
-      
-      // Create a form to submit DELETE request
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = `/admin/account/${pendingDeleteId}/delete`;
-
-      // Add CSRF token
-      const csrfToken = document.createElement('input');
-      csrfToken.type = 'hidden';
-      csrfToken.name = '_token';
-      csrfToken.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-      form.appendChild(csrfToken);
-
-      // Add DELETE method
-      const methodField = document.createElement('input');
-      methodField.type = 'hidden';
-      methodField.name = '_method';
-      methodField.value = 'DELETE';
-      form.appendChild(methodField);
-
-      // Submit form
-      document.body.appendChild(form);
-      form.submit();
-      
-      // Close modal
-      closeDeleteModal();
-    }
-
     // Close modals when clicking outside
     document.getElementById('editAccountModal').addEventListener('click', function(e) {
       if (e.target === this) {
@@ -945,17 +941,10 @@
       }
     });
 
-    document.getElementById('deleteConfirmModal').addEventListener('click', function(e) {
-      if (e.target === this) {
-        closeDeleteModal();
-      }
-    });
-
     // Close modals with Escape key
     document.addEventListener('keydown', function(event) {
       if (event.key === 'Escape') {
         closeEditModal();
-        closeDeleteModal();
       }
     });
 
@@ -1083,51 +1072,6 @@
     });
   </script>
 
-  {{-- Custom Delete Confirmation Modal --}}
-  <x-shared.modals.confirm-action
-      id="deleteConfirmModal"
-      title="Confirm Account Deletion"
-      title-color="#c53030"
-      close-fn="closeDeleteModal()"
-      z-index="10000">
-
-    <div style="text-align: center;">
-      {{-- Warning Icon --}}
-      <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #ff6b6b, #ee5a52); border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; animation: pulse 2s infinite;">
-        <svg style="width: 32px; height: 32px; color: white;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M3 12a9 9 0 1118 0 9 9 0 01-18 0z"></path>
-        </svg>
-      </div>
-      <p style="margin: 0 0 8px 0; color: #4a5568; font-size: 16px; line-height: 1.5;">
-        Are you sure you want to delete the account for:
-      </p>
-      <p id="deleteAccountName" style="margin: 0 0 16px 0; color: #2d3748; font-size: 18px; font-weight: 600; background: #f7fafc; padding: 12px; border-radius: 8px; border-left: 4px solid #ff6b6b;"></p>
-      <div style="background: #fff5f5; padding: 16px; border-radius: 8px; border: 1px solid #fed7d7; margin-bottom: 4px;">
-        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-          <svg style="width: 16px; height: 16px; color: #e53e3e;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01"></path>
-          </svg>
-          <strong style="color: #c53030; font-size: 14px;">Warning:</strong>
-        </div>
-        <p style="margin: 0; color: #c53030; font-size: 14px; line-height: 1.4;">
-          This action cannot be undone. All data associated with this account will be permanently deleted.
-        </p>
-      </div>
-    </div>
-
-    <x-slot name="footer">
-      <div style="display: flex; gap: 12px; margin-top: 20px;">
-        <button onclick="closeDeleteModal()" style="flex: 1; padding: 12px 20px; background: #e2e8f0; color: #2d3748; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
-          Cancel
-        </button>
-        <button id="confirmDeleteBtn" onclick="confirmDelete()" style="flex: 1; padding: 12px 20px; background: linear-gradient(135deg, #ff6b6b, #ee5a52); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);">
-          Delete Account
-        </button>
-      </div>
-    </x-slot>
-
-  </x-shared.modals.confirm-action>
-
   <style>
     @keyframes spin {
       from {
@@ -1165,34 +1109,14 @@
       background: linear-gradient(135deg, #c0392b 0%, #e74c3c 100%) !important;
     }
     
-    #confirmDeleteBtn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 25px rgba(255, 107, 107, 0.4);
-      background: linear-gradient(135deg, #ee5a52, #ff6b6b);
-    }
-    
-    button[onclick="closeDeleteModal()"]:hover {
-      background: #cbd5e0;
-      transform: translateY(-1px);
-    }
-    
-    /* Enhance existing edit and delete buttons */
+    /* Enhance existing edit buttons */
     button[onclick^="editAccount"]:hover {
       transform: translateY(-2px) !important;
       box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4) !important;
     }
-    
-    button[onclick^="deleteAccount"]:hover {
-      transform: translateY(-2px) !important;
-      box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4) !important;
-      background: linear-gradient(135deg, #dc2626, #ef4444) !important;
-    }
   </style>
 
   <script>
-    let pendingDeleteId = null;
-    let pendingDeleteName = null;
-
     /**
      * Toggle visibility of student-specific fields based on account type
      */
