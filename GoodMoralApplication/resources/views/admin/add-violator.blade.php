@@ -14,15 +14,13 @@
           <p class="welcome-text">Add students who have committed violations (both minor and major)</p>
           <div class="accent-line"></div>
         </div>
-        <div style="display: flex; gap: 12px;">
+        <div style="display: flex; gap: 12px; align-items: center;">
           <a href="{{ route('admin.AddViolator') }}"
-             class="btn-secondary"
-             style="text-decoration: none; padding: 12px 20px; background: #6366f1; color: white; border-radius: 8px; font-weight: 600;">
+             class="{{ request()->routeIs('admin.AddViolator') ? 'tab-active' : 'tab-inactive' }}">
             Single Violator
           </a>
           <a href="{{ route('admin.AddMultipleViolators') }}"
-             class="btn-primary"
-             style="text-decoration: none; padding: 12px 20px; background: #10B981; color: white; border-radius: 8px; font-weight: 600;">
+             class="{{ request()->routeIs('admin.AddMultipleViolators') ? 'tab-active' : 'tab-inactive' }}">
             Multiple Violators
           </a>
         </div>
@@ -49,7 +47,7 @@
     @endif
 
     <!-- Single Violator Form -->
-    <div style="background: white; padding: 24px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+    <div class="card shadow-sm card-standard">
       <h3 style="margin: 0 0 20px; color: var(--primary-green); font-size: 1.25rem; font-weight: 600;">Add Single Violator</h3>
 
       <form method="POST" action="{{ route('admin.storeViolator') }}" onsubmit="return validateAndPrepareForm()" style="display: grid; gap: 20px;">
@@ -346,4 +344,42 @@
       return true;
     }
   </script>
+
+  <style>
+    .tab-active {
+      text-decoration: none;
+      padding: 12px 20px;
+      background: #D4AF37;
+      color: white !important;
+      border: 2px solid #D4AF37;
+      border-radius: 8px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s ease;
+    }
+    .tab-inactive {
+      text-decoration: none;
+      padding: 12px 20px;
+      background: transparent;
+      color: #15803d !important;
+      border: 2px solid #15803d;
+      border-radius: 8px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s ease;
+    }
+    .tab-inactive:hover {
+      background: #f0fdf4;
+    }
+    .card-standard {
+      background: white;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+    }
+  </style>
 </x-dashboard-layout>

@@ -10,25 +10,27 @@
     <div class="header-section">
       <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
         <div>
-          <h1 class="page-title" style="color: var(--primary-green); margin: 0 0 8px;">Add Multiple Violators</h1>
-          <p style="margin: 0; color: #6b7280; font-size: 14px;">Add violations to multiple students efficiently</p>
+          <h1 class="role-title">Add Multiple Violators</h1>
+          <p class="welcome-text">Add violations to multiple students efficiently</p>
+          <div class="accent-line"></div>
         </div>
         
         <div style="display: flex; gap: 12px; align-items: center;">
-          <a href="{{ route('admin.AddViolator') }}" 
-             style="background: #6b7280; color: white; padding: 10px 16px; border-radius: 8px; text-decoration: none; font-size: 14px; display: flex; align-items: center; gap: 8px; transition: all 0.3s ease;">
-            <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-            </svg>
-            Add Single Violator
+          <a href="{{ route('admin.AddViolator') }}"
+             class="{{ request()->routeIs('admin.AddViolator') ? 'tab-active' : 'tab-inactive' }}">
+            Single Violator
+          </a>
+          <a href="{{ route('admin.AddMultipleViolators') }}"
+             class="{{ request()->routeIs('admin.AddMultipleViolators') ? 'tab-active' : 'tab-inactive' }}">
+            Multiple Violators
           </a>
         </div>
       </div>
     </div>
 
     @if ($errors->any())
-    <div style="background: #fef2f2; border: 1px solid #fca5a5; color: #dc2626; padding: 16px; border-radius: 8px; margin-bottom: 24px;">
-      <h4>Validation Errors:</h4>
+    <div style="background: #fee; border: 1px solid #fcc; color: #c33; padding: 16px; border-radius: 8px; margin-bottom: 24px;">
+      <strong>Please fix the following errors:</strong>
       <ul style="margin: 0; padding-left: 20px;">
         @foreach ($errors->all() as $error)
         <li>{{ $error }}</li>
@@ -40,13 +42,13 @@
     @include('shared.alerts.flash')
 
     @if (session('warning'))
-    <div style="background: #fff3cd; border: 1px solid #ffecb5; color: #856404; padding: 16px; border-radius: 8px; margin-bottom: 24px;">
+    <div style="background: #fff8e1; border: 1px solid #ffe082; color: #f57f17; padding: 16px; border-radius: 8px; margin-bottom: 24px;">
       {{ session('warning') }}
     </div>
     @endif
 
     <!-- Main Form -->
-    <div style="background: white; padding: 24px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+    <div class="card shadow-sm card-standard">
       <h3 style="margin: 0 0 20px; color: var(--primary-green); font-size: 1.25rem; font-weight: 600;">Add Multiple Violators</h3>
       
       <form method="POST" action="{{ route('admin.storeMultipleViolators') }}" id="multiple-violators-form">
@@ -225,31 +227,70 @@
     function addViolation() {
       const offenseType = document.getElementById('offense_type').value;
       const filteredViolations = violations.filter(v => v.offense_type === offenseType);
-      
-      // Create a simple selection dialog
-      const violationOptions = filteredViolations
-        .filter(v => !selectedViolations.some(sv => sv.description === v.description))
-        .map(v => `<option value="${v.description}">${v.description}</option>`)
-        .join('');
-      
-      if (violationOptions === '') {
-        alert('All violations for this offense type have been selected.');
+
+      const available = filteredViolations.filter(
+        v => !selectedViolations.some(sv => sv.description === v.description)
+      );
+
+      if (available.length === 0) {
+        openViolationModal([], true);
         return;
       }
 
-      const selectedValue = prompt(`Available violations:\n${filteredViolations.map(v => v.description).join('\n')}\n\nEnter the exact violation description:`);
-      
-      if (selectedValue) {
-        const violation = filteredViolations.find(v => v.description === selectedValue);
-        if (violation && !selectedViolations.some(sv => sv.description === violation.description)) {
-          selectedViolations.push(violation);
-          updateMultipleViolationsList();
-          updateFormState();
-        } else {
-          alert('Invalid violation or violation already selected.');
-        }
-      }
+      openViolationModal(available, false);
     }
+
+    function openViolationModal(available, allSelected) {
+      const modal = document.getElementById('addViolationModal');
+      const list  = document.getElementById('avViolationList');
+      const msg   = document.getElementById('avAllSelectedMsg');
+
+      list.innerHTML = '';
+      document.getElementById('avSearchInput').value = '';
+
+      if (allSelected) {
+        list.style.display  = 'none';
+        msg.style.display   = 'block';
+      } else {
+        list.style.display  = 'block';
+        msg.style.display   = 'none';
+        available.forEach(v => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'av-item';
+          btn.textContent = v.description;
+          btn.dataset.description = v.description;
+          btn.addEventListener('click', () => {
+            selectedViolations.push(v);
+            updateMultipleViolationsList();
+            updateFormState();
+            closeViolationModal();
+          });
+          list.appendChild(btn);
+        });
+      }
+
+      modal.style.display = 'flex';
+    }
+
+    function closeViolationModal() {
+      document.getElementById('addViolationModal').style.display = 'none';
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Close modal on backdrop click
+      document.getElementById('addViolationModal').addEventListener('click', function(e) {
+        if (e.target === this) closeViolationModal();
+      });
+
+      // Live search inside modal
+      document.getElementById('avSearchInput').addEventListener('input', function() {
+        const term = this.value.toLowerCase();
+        document.querySelectorAll('#avViolationList .av-item').forEach(btn => {
+          btn.style.display = btn.dataset.description.toLowerCase().includes(term) ? '' : 'none';
+        });
+      });
+    });
 
     // Update multiple violations display
     function updateMultipleViolationsList() {
@@ -478,11 +519,158 @@
       margin-bottom: 24px;
     }
 
-    .page-title {
-      font-size: 28px;
-      font-weight: 700;
-      margin-bottom: 8px;
+    .tab-active {
+      text-decoration: none;
+      padding: 12px 20px;
+      background: #D4AF37;
+      color: white !important;
+      border: 2px solid #D4AF37;
+      border-radius: 8px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s ease;
+    }
+    .tab-inactive {
+      text-decoration: none;
+      padding: 12px 20px;
+      background: transparent;
+      color: #15803d !important;
+      border: 2px solid #15803d;
+      border-radius: 8px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s ease;
+    }
+    .tab-inactive:hover {
+      background: #f0fdf4;
+    }
+    .card-standard {
+      background: white;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
     }
 
+    /* Violation picker modal */
+    #addViolationModal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.45);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+    }
+    .av-modal-box {
+      background: #fff;
+      border-radius: 12px;
+      width: min(480px, 92vw);
+      box-shadow: 0 8px 32px rgba(0,0,0,.18);
+      overflow: hidden;
+    }
+    .av-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 20px 14px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .av-modal-header h3 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+      color: #111827;
+    }
+    .av-modal-close {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #6b7280;
+      padding: 4px;
+      border-radius: 4px;
+      line-height: 1;
+    }
+    .av-modal-close:hover { color: #111827; background: #f3f4f6; }
+    .av-modal-body {
+      padding: 16px 20px;
+    }
+    #avSearchInput {
+      width: 100%;
+      padding: 9px 12px;
+      border: 2px solid #e1e5e9;
+      border-radius: 8px;
+      font-size: 14px;
+      margin-bottom: 12px;
+      box-sizing: border-box;
+    }
+    #avSearchInput:focus { outline: none; border-color: #10B981; }
+    #avViolationList {
+      max-height: 280px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .av-item {
+      width: 100%;
+      text-align: left;
+      padding: 10px 14px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      background: #f9fafb;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background .15s, border-color .15s;
+    }
+    .av-item:hover { background: #d1fae5; border-color: #10B981; }
+    #avAllSelectedMsg {
+      text-align: center;
+      padding: 24px 0;
+      color: #6b7280;
+      font-size: 14px;
+    }
+    .av-modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      padding: 12px 20px 16px;
+      border-top: 1px solid #e5e7eb;
+    }
+    .av-cancel-btn {
+      padding: 9px 18px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      background: white;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      color: #374151;
+    }
+    .av-cancel-btn:hover { background: #f9fafb; }
   </style>
+
+  <!-- Violation Picker Modal -->
+  <div id="addViolationModal" role="dialog" aria-modal="true" aria-labelledby="avModalTitle">
+    <div class="av-modal-box">
+      <div class="av-modal-header">
+        <h3 id="avModalTitle">Select a Violation</h3>
+        <button type="button" class="av-modal-close" onclick="closeViolationModal()" aria-label="Close">
+          <svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="av-modal-body">
+        <input type="text" id="avSearchInput" placeholder="Search violations..." autocomplete="off">
+        <div id="avViolationList"></div>
+        <p id="avAllSelectedMsg" style="display:none;">All violations for this offense type have already been selected.</p>
+      </div>
+      <div class="av-modal-footer">
+        <button type="button" class="av-cancel-btn" onclick="closeViolationModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
 </x-dashboard-layout>
