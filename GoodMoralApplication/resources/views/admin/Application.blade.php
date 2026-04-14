@@ -237,7 +237,7 @@
         'title'     => 'Application Details',
         'contentId' => 'modalContent',
         'closeFn'   => 'closeModal()',
-        'maxWidth'  => '800px',
+        'maxWidth'  => '600px',
     ])
 
     {{-- Approve Modal --}}
