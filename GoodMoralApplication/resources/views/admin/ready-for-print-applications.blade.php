@@ -1,9 +1,17 @@
-<x-dashboard-layout>
+﻿<x-dashboard-layout>
   <x-slot name="roleTitle">Admin</x-slot>
 
   <x-slot name="navigation">
     <x-admin-navigation />
   </x-slot>
+
+  <style>
+    .btn-outline-secondary:hover {
+      color: #fff;
+      background-color: #6c757d;
+      border-color: #6c757d;
+    }
+  </style>
 
   <!-- Header Section -->
   <div class="header-section">
@@ -118,9 +126,16 @@
             </td>
             <td style="padding: 16px; color: #495057; font-size: 14px;">
               <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                <button data-application='@json($application)' onclick="openGoodMoralModal(this)"
-                        style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer;">
-                  View Details
+                <button data-application='@json($application)' data-receipt='@json($receipt)'
+                        @if($receipt && $receipt->document_path)
+                        data-receipt-url="{{ route('files.serve', $receipt->document_path) }}"
+                        @endif
+                        onclick="openGoodMoralModal(this)"
+                        style="background: transparent; color: #6c757d; border: 1.5px solid #6c757d; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px;"
+                        onmouseover="this.style.background='#6c757d'; this.style.color='white'"
+                        onmouseout="this.style.background='transparent'; this.style.color='#6c757d'">
+                  <svg style="width: 12px; height: 12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                  View
                 </button>
 
                 @if(in_array($application->application_status, ['Approved by Administrator', 'Ready for Moderator Print']) && $receipt && $receipt->document_path)
@@ -156,8 +171,9 @@
 
                             onclick="return confirm('Are you sure you want to reprint this certificate?')"
 
-                            style="background: #ffc107; color: #212529; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer;">
+                            style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
 
+                      <svg style="width: 12px; height: 12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
                       Reprint
 
                     </button>
@@ -172,7 +188,7 @@
 
                             onclick="return confirm('Mark this certificate as claimed by the student?')"
 
-                            style="background: #6f42c1; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer;">
+                            style="background: #495057; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer;">
 
                       Mark as Claimed
 
@@ -190,25 +206,15 @@
 
                             onclick="return confirm('Are you sure you want to reprint this certificate?')"
 
-                            style="background: #ffc107; color: #212529; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer;">
+                            style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
 
+                      <svg style="width: 12px; height: 12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
                       Reprint
 
                     </button>
 
                   </form>
 
-                @endif
-
-                @if($receipt && $receipt->document_path)
-                <a href="{{ route('files.serve', $receipt->document_path) }}" target="_blank"
-                   style="background: #6f42c1; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; text-decoration: none; display: inline-block;">
-                  View Receipt
-                </a>
-                @else
-                <span style="color: #6c757d; font-size: 12px; font-style: italic; padding: 8px 12px; background: #f8f9fa; border-radius: 6px;">
-                  No receipt uploaded
-                </span>
                 @endif
               </div>
             </td>
@@ -309,9 +315,16 @@
             </td>
             <td style="padding: 16px; color: #495057; font-size: 14px;">
               <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                <button data-application='@json($application)' onclick="openGoodMoralModal(this)"
-                        style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer;">
-                  View Details
+                <button data-application='@json($application)' data-receipt='@json($receipt)'
+                        @if($receipt && $receipt->document_path)
+                        data-receipt-url="{{ route('files.serve', $receipt->document_path) }}"
+                        @endif
+                        onclick="openGoodMoralModal(this)"
+                        style="background: transparent; color: #6c757d; border: 1.5px solid #6c757d; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px;"
+                        onmouseover="this.style.background='#6c757d'; this.style.color='white'"
+                        onmouseout="this.style.background='transparent'; this.style.color='#6c757d'">
+                  <svg style="width: 12px; height: 12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                  View
                 </button>
 
                 @if(in_array($application->application_status, ['Approved by Administrator', 'Ready for Moderator Print']) && $receipt && $receipt->document_path)
@@ -347,8 +360,9 @@
 
                             onclick="return confirm('Are you sure you want to reprint this certificate?')"
 
-                            style="background: #ffc107; color: #212529; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer;">
+                            style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
 
+                      <svg style="width: 12px; height: 12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
                       Reprint
 
                     </button>
@@ -363,7 +377,7 @@
 
                             onclick="return confirm('Mark this certificate as claimed by the student?')"
 
-                            style="background: #6f42c1; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer;">
+                            style="background: #495057; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer;">
 
                       Mark as Claimed
 
@@ -381,25 +395,15 @@
 
                             onclick="return confirm('Are you sure you want to reprint this certificate?')"
 
-                            style="background: #ffc107; color: #212529; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer;">
+                            style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
 
+                      <svg style="width: 12px; height: 12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
                       Reprint
 
                     </button>
 
                   </form>
 
-                @endif
-
-                @if($receipt && $receipt->document_path)
-                <a href="{{ route('files.serve', $receipt->document_path) }}" target="_blank"
-                   style="background: #6f42c1; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; text-decoration: none; display: inline-block;">
-                  View Receipt
-                </a>
-                @else
-                <span style="color: #6c757d; font-size: 12px; font-style: italic; padding: 8px 12px; background: #f8f9fa; border-radius: 6px;">
-                  No receipt uploaded
-                </span>
                 @endif
               </div>
             </td>
@@ -495,9 +499,16 @@
             </td>
             <td style="padding: 16px; color: #495057; font-size: 14px;">
               <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                <button data-application='@json($application)' onclick="openGoodMoralModal(this)"
-                        style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer;">
-                  View Details
+                <button data-application='@json($application)' data-receipt='@json($receipt)'
+                        @if($receipt && $receipt->document_path)
+                        data-receipt-url="{{ route('files.serve', $receipt->document_path) }}"
+                        @endif
+                        onclick="openGoodMoralModal(this)"
+                        style="background: transparent; color: #6c757d; border: 1.5px solid #6c757d; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px;"
+                        onmouseover="this.style.background='#6c757d'; this.style.color='white'"
+                        onmouseout="this.style.background='transparent'; this.style.color='#6c757d'">
+                  <svg style="width: 12px; height: 12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                  View
                 </button>
 
                 @if(in_array($application->application_status, ['Approved by Administrator', 'Ready for Moderator Print']) && $receipt && $receipt->document_path)
@@ -533,8 +544,9 @@
 
                             onclick="return confirm('Are you sure you want to reprint this certificate?')"
 
-                            style="background: #ffc107; color: #212529; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer;">
+                            style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
 
+                      <svg style="width: 12px; height: 12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
                       Reprint
 
                     </button>
@@ -549,7 +561,7 @@
 
                             onclick="return confirm('Mark this certificate as claimed by the student?')"
 
-                            style="background: #6f42c1; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer;">
+                            style="background: #495057; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer;">
 
                       Mark as Claimed
 
@@ -567,25 +579,15 @@
 
                             onclick="return confirm('Are you sure you want to reprint this certificate?')"
 
-                            style="background: #ffc107; color: #212529; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer;">
+                            style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
 
+                      <svg style="width: 12px; height: 12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
                       Reprint
 
                     </button>
 
                   </form>
 
-                @endif
-
-                @if($receipt && $receipt->document_path)
-                <a href="{{ route('files.serve', $receipt->document_path) }}" target="_blank"
-                   style="background: #6f42c1; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; text-decoration: none; display: inline-block;">
-                  View Receipt
-                </a>
-                @else
-                <span style="color: #6c757d; font-size: 12px; font-style: italic; padding: 8px 12px; background: #f8f9fa; border-radius: 6px;">
-                  No receipt uploaded
-                </span>
                 @endif
               </div>
             </td>
@@ -685,6 +687,12 @@
         </div>
       </div>
 
+      {{-- Payment Receipt section --}}
+      <div style="margin-top: 16px;">
+        <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding-bottom: 6px; border-bottom: 1px solid #dee2e6; margin-bottom: 12px; color: #6c757d;">Payment Receipt</div>
+        <div id="modalReceiptContent"></div>
+      </div>
+
       <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 28px; padding-top: 20px; border-top: 1px solid #e9ecef;">
         <button onclick="closeModal()" style="background: #6c757d; color: white; border: none; padding: 12px 28px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s;" onmouseover="this.style.background='#5a6268'" onmouseout="this.style.background='#6c757d'">
           Close
@@ -750,6 +758,37 @@
         document.getElementById('modalClaimedAt').innerText = claimedAt;
       } else {
         claimSection.style.display = 'none';
+      }
+
+      // Payment Receipt
+      const receiptData = JSON.parse(button.getAttribute('data-receipt') || 'null');
+      const receiptUrl = button.getAttribute('data-receipt-url');
+      const receiptContent = document.getElementById('modalReceiptContent');
+      if (receiptData && receiptData.official_receipt_no) {
+        const datePaid = receiptData.date_paid
+          ? new Date(receiptData.date_paid).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+          : 'N/A';
+        receiptContent.innerHTML = `
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: ${receiptUrl ? '12px' : '0'}">
+            <div style="padding: 14px; background: linear-gradient(135deg, #e8f5e8 0%, #f8f9fa 100%); border-radius: 8px; border-left: 3px solid #28a745;">
+              <div style="font-size: 11px; color: #6c757d; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">Official Receipt No.</div>
+              <div style="font-family: monospace; font-weight: 600; font-size: 14px; color: #155724;">${receiptData.official_receipt_no}</div>
+            </div>
+            <div style="padding: 14px; background: #f8f9fa; border-radius: 8px;">
+              <div style="font-size: 11px; color: #6c757d; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">Date Paid</div>
+              <div style="font-size: 14px; font-weight: 600; color: #495057;">${datePaid}</div>
+            </div>
+          </div>
+          ${receiptUrl ? `<a href="${receiptUrl}" target="_blank" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; background: #28a745; border-radius: 6px; font-size: 13px; font-weight: 600; text-decoration: none; color: white;">
+            <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+            </svg>
+            View Receipt
+          </a>` : ''}
+        `;
+      } else {
+        receiptContent.innerHTML = '<div style="padding: 14px; background: #f8f9fa; border-radius: 8px; color: #6c757d; font-size: 13px; font-style: italic; font-weight: 500;">No receipt uploaded.</div>';
       }
     }
 

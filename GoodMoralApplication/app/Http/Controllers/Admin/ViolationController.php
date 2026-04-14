@@ -280,20 +280,27 @@ class ViolationController extends Controller
     $baseQuery = StudentViolation::with('studentAccount');
 
     // Apply search filters
-    if ($request->filled('ref_num')) {
-      $baseQuery->where('ref_num', 'like', '%' . $request->ref_num . '%');
-    }
-    if ($request->filled('student_id')) {
-      $baseQuery->where('student_id', 'like', '%' . $request->student_id . '%');
-    }
-    if ($request->filled('last_name')) {
-      $baseQuery->where('last_name', 'like', '%' . $request->last_name . '%');
+    if ($request->filled('search')) {
+      $search = $request->search;
+      $baseQuery->where(function ($q) use ($search) {
+        $q->where('student_id', 'like', '%' . $search . '%')
+          ->orWhere('first_name', 'like', '%' . $search . '%')
+          ->orWhere('last_name', 'like', '%' . $search . '%')
+          ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ['%' . $search . '%']);
+      });
     }
     if ($request->filled('course')) {
       $baseQuery->where('course', 'like', '%' . $request->course . '%');
     }
     if ($request->filled('offense_type')) {
       $baseQuery->where('offense_type', $request->offense_type);
+    }
+    if ($request->filled('status')) {
+      if ($request->status === 'resolved') {
+        $baseQuery->where('status', 2);
+      } elseif ($request->status === 'pending') {
+        $baseQuery->where('status', '<', 2);
+      }
     }
 
     $baseQuery->orderBy('created_at', 'desc');

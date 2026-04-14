@@ -73,25 +73,11 @@
 
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 20px;">
         <div>
-          <label for="student_id" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Student ID</label>
-          <input type="text" id="student_id" name="student_id"
+          <label for="search" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Student Name or ID</label>
+          <input type="text" id="search" name="search"
                  style="width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px; transition: border-color 0.3s ease;"
-                 value="{{ old('student_id', request('student_id')) }}"
-                 placeholder="Enter Student ID">
-        </div>
-        <div>
-          <label for="ref_num" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Reference Number</label>
-          <input type="text" id="ref_num" name="ref_num"
-                 style="width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px; transition: border-color 0.3s ease;"
-                 value="{{ old('ref_num', request('ref_num')) }}"
-                 placeholder="Enter Reference Number">
-        </div>
-        <div>
-          <label for="last_name" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Last Name</label>
-          <input type="text" id="last_name" name="last_name"
-                 style="width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px; transition: border-color 0.3s ease;"
-                 value="{{ old('last_name', request('last_name')) }}"
-                 placeholder="Enter Last Name">
+                 value="{{ old('search', request('search')) }}"
+                 placeholder="Enter name or student ID">
         </div>
         <div>
           <label for="course" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Course</label>
@@ -101,12 +87,21 @@
                  placeholder="Enter Course">
         </div>
         <div>
-          <label for="offense_type" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Offense Type</label>
+          <label for="offense_type" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Violation Type</label>
           <select id="offense_type" name="offense_type"
                   style="width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px; transition: border-color 0.3s ease;">
-            <option value="">-- All --</option>
+            <option value="">-- All Types --</option>
             <option value="minor" {{ request('offense_type') == 'minor' ? 'selected' : '' }}>Minor</option>
             <option value="major" {{ request('offense_type') == 'major' ? 'selected' : '' }}>Major</option>
+          </select>
+        </div>
+        <div>
+          <label for="status" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Status</label>
+          <select id="status" name="status"
+                  style="width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px; transition: border-color 0.3s ease;">
+            <option value="">-- All Statuses --</option>
+            <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
+            <option value="resolved" {{ request('status') == 'resolved' ? 'selected' : '' }}>Resolved</option>
           </select>
         </div>
       </div>
@@ -167,50 +162,10 @@
                 onmouseout="this.style.backgroundColor='transparent'">
               
               <!-- Student Name Column -->
-              <td style="padding: 20px 16px; color: #495057; font-size: 14px;">
-                <div style="font-weight: 600; color: #333; margin-bottom: 4px; font-size: 15px;">{{ $student->first_name }} {{ $student->last_name }}</div>
-                <div style="font-size: 12px; color: #666; margin-bottom: 2px;">ID: {{ $student->student_id }}</div>
-                <div style="font-size: 12px; color: #666; margin-bottom: 2px;">
-                  {{ $student->course ?? 'N/A' }} • {{ $student->department ?? 'N/A' }}
-                </div>
-                <div style="font-size: 12px; color: #666;">
-                  <span style="font-weight: 600; color: #007bff;">Year Level:</span> {{ $student->getStudentYearLevel() }}
-                </div>
-                @if($student->offense_type === 'minor')
-                  @php
-                    // Always show escalation status for minor violations
-                    if (isset($escalationData[$student->student_id])) {
-                      $escalationStatus = $escalationData[$student->student_id];
-                    } else {
-                      // Fallback calculation if not in escalationData
-                      $minorCount = \App\Models\StudentViolation::where('student_id', $student->student_id)
-                        ->where('offense_type', 'minor')
-                        ->count(); // Count all minor violations regardless of status
-
-                      $statusColor = '#28a745'; // Green
-                      $statusIcon = '✅';
-                      if ($minorCount >= 3) {
-                        $statusColor = '#dc3545'; // Red
-                        $statusIcon = '🚨';
-                      } elseif ($minorCount == 2) {
-                        $statusColor = '#fd7e14'; // Orange
-                        $statusIcon = '⚠️';
-                      } elseif ($minorCount == 1) {
-                        $statusColor = '#ffc107'; // Yellow
-                        $statusIcon = '⚠️';
-                      }
-
-                      $escalationStatus = [
-                        'status_color' => $statusColor,
-                        'status_icon' => $statusIcon,
-                        'minor_count' => $minorCount
-                      ];
-                    }
-                  @endphp
-                  <div style="font-size: 11px; padding: 2px 6px; border-radius: 3px; display: inline-block; background: {{ $escalationStatus['status_color'] }}20; color: {{ $escalationStatus['status_color'] }}; border: 1px solid {{ $escalationStatus['status_color'] }}40; margin-top: 4px;">
-                    {{ $escalationStatus['status_icon'] }} {{ $escalationStatus['minor_count'] }}/3 Minor Violations
-                  </div>
-                @endif
+              <td style="padding: 16px; color: #495057; font-size: 14px;">
+                <div style="font-weight: 600; color: #333; margin-bottom: 2px;">{{ $student->first_name }} {{ $student->last_name }}</div>
+                <div style="font-size: 12px; color: #888; margin-bottom: 1px;">ID: {{ $student->student_id }}</div>
+                <div style="font-size: 12px; color: #888;">{{ $student->course ?? 'N/A' }}</div>
               </td>
 
               <!-- Violation Column -->
@@ -229,15 +184,15 @@
                     <div style="font-weight: 600; color: #333; margin-bottom: 4px; line-height: 1.4;">{{ $student->violation }}</div>
                     <div style="font-size: 12px; color: #666;">
                       @if($student->status == 2)
-                        <span style="color: #10b981; font-weight: 500;">✅ Case Closed</span>
+                        <span style="color: #10b981; font-weight: 500; display: inline-flex; align-items: center; gap: 4px;"><svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Case Closed</span>
                       @elseif($student->status == 1.5 && $student->offense_type == 'major')
-                        <span style="color: #e17055; font-weight: 500;">🔄 Ready for Admin Closure</span>
+                        <span style="color: #e17055; font-weight: 500; display: inline-flex; align-items: center; gap: 4px;"><svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg> Ready for Admin Closure</span>
                       @elseif($student->status == 1)
-                        <span style="color: #3b82f6; font-weight: 500;">⏳ Dean Approved</span>
+                        <span style="color: #3b82f6; font-weight: 500; display: inline-flex; align-items: center; gap: 4px;"><svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Dean Approved</span>
                       @elseif($student->status == 0 && $student->offense_type == 'major')
-                        <span style="color: #f59e0b; font-weight: 500;">📋 Awaiting Proceedings</span>
+                        <span style="color: #f59e0b; font-weight: 500; display: inline-flex; align-items: center; gap: 4px;"><svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2m-6 9 2 2 4-4"/></svg> Awaiting Proceedings</span>
                       @else
-                        <span style="color: #fbbf24; font-weight: 500;">⏳ Pending</span>
+                        <span style="color: #fbbf24; font-weight: 500; display: inline-flex; align-items: center; gap: 4px;"><svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Pending</span>
                       @endif
                     </div>
                   </div>
@@ -465,15 +420,15 @@
 
   function getStatusDisplay(status, offenseType) {
     if (status == 2) {
-      return '<span style="background: #10b981; color: white;">✅ Case Closed</span>';
+      return '<span style="background: #10b981; color: white; display:inline-flex; align-items:center; gap:4px; padding:2px 6px; border-radius:4px;"><svg style="width:11px;height:11px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Case Closed</span>';
     } else if (status == 1.5 && offenseType == 'major') {
-      return '<span style="background: #e17055; color: white;">🔄 Ready for Admin Closure</span>';
+      return '<span style="background: #e17055; color: white; display:inline-flex; align-items:center; gap:4px; padding:2px 6px; border-radius:4px;"><svg style="width:11px;height:11px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg> Ready for Admin Closure</span>';
     } else if (status == 1) {
-      return '<span style="background: #3b82f6; color: white;">⏳ Dean Approved</span>';
+      return '<span style="background: #3b82f6; color: white; display:inline-flex; align-items:center; gap:4px; padding:2px 6px; border-radius:4px;"><svg style="width:11px;height:11px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Dean Approved</span>';
     } else if (status == 0 && offenseType == 'major') {
-      return '<span style="background: #f59e0b; color: white;">📋 Awaiting Proceedings</span>';
+      return '<span style="background: #f59e0b; color: white; display:inline-flex; align-items:center; gap:4px; padding:2px 6px; border-radius:4px;"><svg style="width:11px;height:11px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2m-6 9 2 2 4-4"/></svg> Awaiting Proceedings</span>';
     } else {
-      return '<span style="background: #fbbf24; color: #111827;">⏳ Pending</span>';
+      return '<span style="background: #fbbf24; color: #111827; display:inline-flex; align-items:center; gap:4px; padding:2px 6px; border-radius:4px;"><svg style="width:11px;height:11px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Pending</span>';
     }
   }
 
