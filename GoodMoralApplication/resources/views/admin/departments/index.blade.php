@@ -34,34 +34,44 @@
           <p>No departments found. Add one to get started.</p>
         </div>
       @else
-        <div class="overflow-x-auto">
-          <table class="min-w-full bg-white border border-gray-300 rounded-lg">
-            <thead class="bg-gray-50">
-              <tr>
-                <th class="px-6 py-3 text-left text-sm font-medium text-gray-500">Code</th>
-                <th class="px-6 py-3 text-left text-sm font-medium text-gray-500">Department Name</th>
-                <th class="px-6 py-3 text-left text-sm font-medium text-gray-500">Courses</th>
-                <th class="px-6 py-3 text-left text-sm font-medium text-gray-500">Actions</th>
+        <div style="overflow-x: auto;">
+          <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 6px rgba(0,0,0,0.08);">
+            <thead>
+              <tr style="background: #f9fafb; border-bottom: 1px solid #e5e7eb;">
+                <th style="padding: 11px 16px; text-align: left; font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em;">Code</th>
+                <th style="padding: 11px 16px; text-align: left; font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em;">Department Name</th>
+                <th style="padding: 11px 16px; text-align: left; font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em;">Courses</th>
+                <th style="padding: 11px 16px; text-align: center; font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em;">Actions</th>
               </tr>
             </thead>
             <tbody>
               @foreach($departments as $department)
-                <tr class="border-b hover:bg-gray-50">
-                  <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ $department->department_code }}</td>
-                  <td class="px-6 py-4 text-sm text-gray-600">{{ $department->department_name }}</td>
-                  <td class="px-6 py-4 text-sm text-gray-600">
-                    <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">{{ $department->courses_count }}</span>
+                <tr style="border-bottom: 1px solid #f3f4f6;" onmouseover="this.style.background='#fafafa'" onmouseout="this.style.background='white'">
+                  <td style="padding: 14px 16px;">
+                    <span style="display: inline-block; padding: 3px 10px; background: #f3f4f6; color: #374151; border-radius: 999px; font-size: 12px; font-weight: 600; letter-spacing: 0.03em;">{{ $department->department_code }}</span>
                   </td>
-                  <td class="px-6 py-4 text-sm">
-                    <div class="flex gap-2">
-                      <button onclick="openEditModal({{ json_encode($department) }})" class="bg-blue-500 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-xs">
-                        Edit
+                  <td style="padding: 14px 16px; font-size: 14px; color: #374151;">{{ $department->department_name }}</td>
+                  <td style="padding: 14px 16px;">
+                    <span style="display: inline-block; padding: 3px 10px; background: #f3f4f6; color: #374151; border-radius: 999px; font-size: 12px; font-weight: 600;">{{ $department->courses_count }}</span>
+                  </td>
+                  <td style="padding: 14px 16px; text-align: center;">
+                    <div style="display: inline-flex; gap: 6px; align-items: center;">
+                      <button onclick="openEditModal({{ json_encode($department) }})" title="Edit"
+                              style="display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; background: #f3f4f6; border: none; border-radius: 6px; cursor: pointer; color: #374151;"
+                              onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487a2.1 2.1 0 1 1 2.97 2.97L7.5 19.79l-4 1 1-4 12.362-12.303z"/>
+                        </svg>
                       </button>
                       <form action="{{ route('admin.departments.destroy', $department) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure? This department must have no courses assigned.');">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="bg-red-500 hover:bg-red-700 text-white px-3 py-1 rounded-md text-xs">
-                          Delete
+                        <button type="submit" title="Delete"
+                                style="display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; background: #fff0f0; border: none; border-radius: 6px; cursor: pointer; color: #dc2626;"
+                                onmouseover="this.style.background='#fde8e8'" onmouseout="this.style.background='#fff0f0'">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/>
+                          </svg>
                         </button>
                       </form>
                     </div>
@@ -99,7 +109,7 @@
 
   <!-- Edit Department Modal -->
   <div id="editModal" style="display:none; position:fixed; inset:0; z-index:50; background:rgba(0,0,0,0.5); align-items:center; justify-content:center;">
-    <div style="background:#fff; border-radius:12px; padding:32px; max-width:500px; width:90%; max-height:20vh; overflow-y:auto;">
+    <div style="background:#fff; border-radius:12px; padding:32px; max-width:500px; width:90%; max-height:90vh; overflow-y:auto;">
       <h2 style="font-size:20px; font-weight:600; margin-bottom:20px;">Edit Department</h2>
       <form id="editForm" method="POST">
         @csrf
@@ -113,7 +123,7 @@
           <input type="text" name="department_name" id="edit_department_name" required maxlength="255" style="width:100%; padding:8px 12px; border:1px solid #d1d5db; border-radius:6px;">
         </div>
         <div style="display:flex; gap:12px; justify-content:flex-end;">
-          <button type="button" onclick="closeEditModal()" class="btn-secondary" style="padding:8px 20px;">Cancel</button>
+          <button type="button" onclick="closeEditModal()" style="padding:8px 20px; background:#f3f4f6; color:#374151; border:none; border-radius:6px; font-size:14px; cursor:pointer;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">Cancel</button>
           <button type="submit" class="btn-primary" style="padding:8px 20px;">Update Department</button>
         </div>
       </form>
