@@ -42,16 +42,18 @@
 <div id="{{ $id }}"
      style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0,0,0,0.5); z-index: 1000;
-            align-items: center; justify-content: center;"
+            align-items: center; justify-content: center; padding: 20px;"
      onclick="if(event.target===this){ {{ $jsClose }} }">
 
-  <div style="background: white; padding: 24px; border-radius: 12px;
+  <div style="background: white; padding: 0; border-radius: 12px;
               box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-              width: 100%; max-width: {{ $maxWidth }}; margin: 20px;
-              max-height: 90vh; overflow-y: auto;">
+              width: 100%; max-width: {{ $maxWidth }};
+              max-height: 80vh; overflow: hidden;
+              display: flex; flex-direction: column;">
 
     {{-- Header --}}
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <div style="display: flex; justify-content: space-between; align-items: center;
+                padding: 20px 24px 16px; flex-shrink: 0; border-bottom: 1px solid #e9ecef;">
       <h2 style="margin: 0; color: var(--primary-green, #2d7a4f); font-size: 1.25rem; font-weight: 600;">
         {{ $title }}
       </h2>
@@ -63,15 +65,15 @@
     </div>
 
     {{-- JavaScript-populated content grid --}}
-    <div id="{{ $contentId }}" style="display: grid; gap: 16px;">
+    <div id="{{ $contentId }}" style="padding: 20px 24px; overflow-y: auto; flex: 1;">
       {{-- Populated by JavaScript --}}
     </div>
 
     {{-- Footer: custom HTML string or default Close button --}}
     @if($footerHtml)
-      {!! $footerHtml !!}
+      <div style="padding: 0 24px 20px; flex-shrink: 0;">{!! $footerHtml !!}</div>
     @else
-      <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+      <div style="display: flex; justify-content: flex-end; gap: 12px; padding: 12px 24px 20px; flex-shrink: 0; border-top: 1px solid #e9ecef;">
         <button type="button"
                 onclick="{{ $jsClose }}"
                 style="background: #6c757d; color: white; border: none;

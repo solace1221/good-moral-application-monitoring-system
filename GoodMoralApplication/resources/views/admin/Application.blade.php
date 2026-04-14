@@ -237,6 +237,7 @@
         'title'     => 'Application Details',
         'contentId' => 'modalContent',
         'closeFn'   => 'closeModal()',
+        'maxWidth'  => '800px',
     ])
 
     {{-- Approve Modal --}}
@@ -343,13 +344,36 @@
     /* Decline button hover */
     .main-content .btn-outline-decline:hover,
     .main-content .btn-outline-decline:hover * { color: white !important; }
+
+    /* Application Details Modal — responsive layout */
+    .ad-section-header { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; padding-bottom:6px; border-bottom:1px solid #dee2e6; margin-bottom:6px; }
+    .ad-label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; }
+    .main-content .ad-section-header,
+    .main-content .ad-label { color:#6c757d !important; }
+    .ad-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .ad-card { padding:14px; background:#f8f9fa; border-radius:8px; }
+    .ad-span-2 { grid-column:span 2; }
+    .ad-amount { font-size:18px; font-weight:700; }
+    .main-content .ad-amount { color:#28a745 !important; }
+    .ad-amount-sub { font-size:12px; margin-top:4px; }
+    .main-content .ad-amount-sub { color:#155724 !important; }
+    .ad-receipt-no { font-family:monospace; font-weight:600; font-size:14px; }
+    .main-content .ad-receipt-no { color:#155724 !important; }
+    .ad-view-btn { display:inline-flex; align-items:center; gap:6px; padding:8px 14px; background:#28a745; border-radius:6px; font-size:13px; font-weight:600; text-decoration:none; }
+    .main-content .ad-view-btn,
+    .main-content .ad-view-btn * { color:white !important; }
+    .ad-view-btn:hover { background:#218838 !important; }
+    @media (max-width: 640px) {
+      .ad-grid { grid-template-columns:1fr !important; }
+      .ad-span-2 { grid-column:span 1 !important; }
+    }
   </style>
   <script>
     function viewDetails(application, receipt) {
       const modal = document.getElementById('detailsModal');
       const content = document.getElementById('modalContent');
 
-      // Build Payment Receipt section
+      // Build receipt card
       let receiptSection;
       if (receipt && receipt.official_receipt_no) {
         const datePaid = receipt.date_paid
@@ -359,77 +383,111 @@
           ? `{{ asset('storage/') }}/${receipt.document_path}`
           : null;
         receiptSection = `
-          <div style="padding:14px 16px; background:#e8f5e8; border-radius:8px; border-left:4px solid #28a745;">
-            <div style="font-size:11px; font-weight:700; color:#155724; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:10px;">Payment Receipt</div>
-            <div style="display:grid; gap:8px; font-size:13px;">
-              <div style="display:grid; grid-template-columns:1fr 2fr; gap:8px;">
-                <strong style="color:#333;">Official Receipt No:</strong>
-                <span style="font-family:monospace; font-weight:600; color:#155724;">${receipt.official_receipt_no}</span>
+          <div>
+            <div class="ad-grid" style="margin-bottom:${docUrl ? '12px' : '0'}">
+              <div class="ad-card" style="background:linear-gradient(135deg,#e8f5e8 0%,#f8f9fa 100%); border-left:3px solid #28a745;">
+                <div class="ad-label" style="margin-bottom:4px;">Official Receipt No.</div>
+                <div class="ad-receipt-no">${receipt.official_receipt_no}</div>
               </div>
-              <div style="display:grid; grid-template-columns:1fr 2fr; gap:8px;">
-                <strong style="color:#333;">Date Paid:</strong>
-                <span>${datePaid}</span>
+              <div class="ad-card">
+                <div class="ad-label" style="margin-bottom:4px;">Date Paid</div>
+                <div style="font-size:14px; font-weight:600; color:#495057;">${datePaid}</div>
               </div>
-              ${docUrl ? `<div style="margin-top:6px;"><a href="${docUrl}" target="_blank"
-                style="display:inline-flex; align-items:center; gap:6px; padding:8px 14px; background:#28a745; color:white; border-radius:6px; font-size:13px; font-weight:600; text-decoration:none;"
-                onmouseover="this.style.background='#218838'" onmouseout="this.style.background='#28a745'">
-                <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                </svg>
-                View Receipt
-              </a></div>` : ''}
             </div>
+            ${docUrl ? `<a href="${docUrl}" target="_blank" class="ad-view-btn">
+              <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              </svg>
+              View Receipt
+            </a>` : ''}
           </div>`;
       } else {
         receiptSection = `
-          <div style="padding:14px 16px; background:#f8f9fa; border-radius:8px; border-left:4px solid #dee2e6;">
-            <div style="font-size:11px; font-weight:700; color:#888; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px;">Payment Receipt</div>
-            <span style="font-size:13px; color:#6c757d; font-style:italic;">No receipt uploaded.</span>
+          <div class="ad-card" style="color:#6c757d;">
+            <span style="font-size:13px; font-weight:500; font-style:italic;">No receipt uploaded.</span>
           </div>`;
       }
 
+      // Compute payment totals
+      const reasonCount = Array.isArray(application.reason) ? application.reason.length : 1;
+      const copies = application.number_of_copies;
+      const amount = (reasonCount * copies * 50).toFixed(2);
+      const statusColor = application.application_status === 'Pending'
+        ? '#e67e22'
+        : application.application_status.includes('Approved') ? '#28a745' : '#dc3545';
+
       content.innerHTML = `
-        <div style="display: grid; gap: 12px;">
-          <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; padding: 12px; background: #f8f9fa; border-radius: 6px;">
-            <strong>Student ID:</strong>
-            <span>${application.student_id}</span>
+        <div style="display:grid; gap:16px;">
+
+          <div class="ad-card" style="background:linear-gradient(135deg,#e8f5e8 0%,#f8f9fa 100%); border-left:4px solid var(--primary-green,#2d7a4f);">
+            <div class="ad-label" style="margin-bottom:4px;">Full Name</div>
+            <div style="font-size:16px; font-weight:600; color:#333;">${application.fullname}</div>
           </div>
-          <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; padding: 12px; background: #f8f9fa; border-radius: 6px;">
-            <strong>Full Name:</strong>
-            <span>${application.fullname}</span>
+
+          <div class="ad-grid">
+            <div class="ad-card">
+              <div class="ad-label" style="margin-bottom:4px;">Reference No.</div>
+              <div style="font-size:14px; font-weight:600; color:#495057;">${application.reference_number ?? 'N/A'}</div>
+            </div>
+            <div class="ad-card">
+              <div class="ad-label" style="margin-bottom:4px;">Number of Copies</div>
+              <div style="font-size:14px; font-weight:600; color:#495057;">${copies}</div>
+            </div>
           </div>
-          <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; padding: 12px; background: #f8f9fa; border-radius: 6px;">
-            <strong>Gender:</strong>
-            <span style="text-transform: capitalize;">${application.gender || 'Not specified'}</span>
+
+          <div class="ad-card" style="background:linear-gradient(135deg,#d4edda 0%,#e8f5e8 100%); border:2px solid var(--primary-green,#2d7a4f);">
+            <div class="ad-label" style="margin-bottom:6px; color:var(--primary-green,#2d7a4f);">Payment Amount</div>
+            <div class="ad-amount">&#x20B1;${amount}</div>
+            <div class="ad-amount-sub">${reasonCount} ${reasonCount === 1 ? 'reason' : 'reasons'} &times; ${copies} ${copies == 1 ? 'copy' : 'copies'} &times; &#x20B1;50.00</div>
           </div>
-          <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; padding: 12px; background: #f8f9fa; border-radius: 6px;">
-            <strong>Department:</strong>
-            <span>${application.department}</span>
+
+          <div class="ad-grid">
+            <div class="ad-card">
+              <div class="ad-label" style="margin-bottom:4px;">Certificate Type</div>
+              <div style="font-size:14px; font-weight:600; color:#495057;">${application.certificate_type === 'good_moral' ? 'Good Moral Certificate' : 'Certificate of Residency'}</div>
+            </div>
+            <div class="ad-card">
+              <div class="ad-label" style="margin-bottom:4px;">Status</div>
+              <div style="font-size:14px; font-weight:600; color:${statusColor};">${application.application_status}</div>
+            </div>
           </div>
-          <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; padding: 12px; background: #f8f9fa; border-radius: 6px;">
-            <strong>Purpose:</strong>
-            <span>${Array.isArray(application.reason) ? application.reason.join(', ') : application.reason}</span>
+
+          <div class="ad-card">
+            <div class="ad-label" style="margin-bottom:4px;">Reason</div>
+            <div style="font-size:14px; color:#495057;">${Array.isArray(application.reason) ? application.reason.join(', ') : (application.reason ?? 'N/A')}</div>
           </div>
-          <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; padding: 12px; background: #f8f9fa; border-radius: 6px;">
-            <strong>Number of Copies:</strong>
-            <span>${application.number_of_copies}</span>
+
+          <div class="ad-card">
+            <div class="ad-label" style="margin-bottom:4px;">Course Completed</div>
+            <div style="font-size:14px; color:#495057;">${application.course_completed ?? 'N/A'}</div>
           </div>
-          <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; padding: 12px; background: #e8f5e8; border-radius: 6px;">
-            <strong>Payment Amount:</strong>
-            <span style="color: var(--primary-green); font-weight: 600;">₱${((Array.isArray(application.reason) ? application.reason.length : 1) * application.number_of_copies * 50).toFixed(2)} (${Array.isArray(application.reason) ? application.reason.length : 1} ${Array.isArray(application.reason) && application.reason.length === 1 ? 'reason' : 'reasons'} × ${application.number_of_copies} ${application.number_of_copies == 1 ? 'copy' : 'copies'} × ₱50.00)</span>
+
+          <div class="ad-card">
+            <div class="ad-label" style="margin-bottom:4px;">Graduation Date</div>
+            <div style="font-size:14px; color:#495057;">${application.graduation_date ?? 'N/A'}</div>
           </div>
-          <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; padding: 12px; background: #f8f9fa; border-radius: 6px;">
-            <strong>Status:</strong>
-            <span style="color: ${application.application_status === 'Pending' ? '#ffc107' : application.application_status.includes('Approved') ? '#28a745' : '#dc3545'}; font-weight: 600;">
-              ${application.application_status}
-            </span>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px;">
+            <div class="ad-card">
+              <div style="font-size:10px; color:#6c757d; font-weight:600; text-transform:uppercase; margin-bottom:4px;">Undergraduate</div>
+              <div style="font-size:14px; font-weight:600; color:#495057;">${application.is_undergraduate ? 'Yes' : 'No'}</div>
+            </div>
+            <div class="ad-card">
+              <div style="font-size:10px; color:#6c757d; font-weight:600; text-transform:uppercase; margin-bottom:4px;">Last Course Year Level</div>
+              <div style="font-size:14px; font-weight:600; color:#495057;">${application.last_course_year_level ?? 'N/A'}</div>
+            </div>
+            <div class="ad-card">
+              <div style="font-size:10px; color:#6c757d; font-weight:600; text-transform:uppercase; margin-bottom:4px;">Last Semester SY</div>
+              <div style="font-size:14px; font-weight:600; color:#495057;">${application.last_semester_sy ?? 'N/A'}</div>
+            </div>
           </div>
-          <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; padding: 12px; background: #f8f9fa; border-radius: 6px;">
-            <strong>Applied On:</strong>
-            <span>${new Date(application.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+
+          <div>
+            <div class="ad-section-header">Payment Receipt</div>
+            ${receiptSection}
           </div>
-          ${receiptSection}
+
         </div>
       `;
 
@@ -513,6 +571,14 @@
       modal.style.opacity = '';
       modal.style.transform = '';
     }
+
+    // Move modals to <body> so position:fixed isn't affected by parent transforms
+    document.addEventListener('DOMContentLoaded', function () {
+      ['detailsModal', 'adminApproveModal', 'adminDeclineModal'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) document.body.appendChild(el);
+      });
+    });
 
     // Close modal when clicking outside
     document.getElementById('detailsModal').addEventListener('click', function(e) {
