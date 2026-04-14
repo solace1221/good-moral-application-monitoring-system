@@ -103,12 +103,11 @@ class ViolationService
      */
     public function getEscalationNotificationsList(): array
     {
-        $escalatedStudents = StudentViolation::select('student_id', 'first_name', 'last_name', 'department')
-            ->selectRaw('COUNT(*) as minor_violation_count')
+        $escalatedStudents = StudentViolation::selectRaw('student_id, COUNT(*) as minor_violation_count')
             ->where('offense_type', 'minor')
-            ->groupBy('student_id', 'first_name', 'last_name', 'department')
+            ->groupBy('student_id')
             ->havingRaw('COUNT(*) >= 3')
-            ->orderBy('minor_violation_count', 'desc')
+            ->orderByRaw('COUNT(*) DESC')
             ->get();
 
         $notifications = [];
@@ -118,6 +117,8 @@ class ViolationService
                 ->orderBy('created_at', 'desc')
                 ->get();
 
+            $latestRecord = $minorViolations->first();
+
             $autoMajorViolation = StudentViolation::where('student_id', $student->student_id)
                 ->where('offense_type', 'major')
                 ->where('violation', 'LIKE', '%Escalated from 3 minor violations%')
@@ -125,8 +126,8 @@ class ViolationService
 
             $notifications[] = [
                 'student_id' => $student->student_id,
-                'fullname' => $student->first_name . ' ' . $student->last_name,
-                'department' => $student->department,
+                'fullname' => $latestRecord ? ($latestRecord->first_name . ' ' . $latestRecord->last_name) : $student->student_id,
+                'department' => $latestRecord->department ?? null,
                 'course' => null,
                 'minor_violation_count' => $student->minor_violation_count,
                 'minor_violations' => $minorViolations,
