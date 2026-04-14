@@ -34,18 +34,18 @@
 
         <div style="margin-top: 24px;">
           <label for="department_id" style="display: block; margin-bottom: 8px; font-weight: 500; color: #374151;">Department</label>
-          <select name="department_id" id="department_id" required style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
-            <option value="">Select Department</option>
+          <select name="department_id" id="department_id" style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
+            <option value="">University-wide</option>
             @foreach($departments as $department)
             <option value="{{ $department->id }}" {{ old('department_id') == $department->id ? 'selected' : '' }}>
-              {{ $department->department_name }}
+              {{ $department->department_code }} — {{ $department->department_name }}
             </option>
             @endforeach
           </select>
         </div>
 
         <div style="margin-top: 24px;">
-          <label for="description" style="display: block; margin-bottom: 8px; font-weight: 500; color: #374151;">Description</label>
+          <label for="description" style="display: block; margin-bottom: 8px; font-weight: 500; color: #374151;">Organization Name</label>
           <input type="text" name="description" id="description" value="{{ old('description') }}" required style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
         </div>
 
@@ -53,7 +53,8 @@
           <button type="submit" class="btn-primary" style="padding: 10px 20px;">
             Create Organization
           </button>
-          <a href="{{ route('admin.organizations.index') }}" class="btn-secondary" style="padding: 10px 20px; text-decoration: none; display: inline-block;">
+          <a href="{{ route('admin.organizations.index') }}" style="padding: 10px 20px; background: #f3f4f6; color: #374151; border-radius: 6px; text-decoration: none; font-size: 14px; display: inline-block;"
+             onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
             Cancel
           </a>
         </div>

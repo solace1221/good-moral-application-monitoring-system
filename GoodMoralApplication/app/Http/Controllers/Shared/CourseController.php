@@ -13,14 +13,20 @@ class CourseController extends Controller
     /**
      * Display the course management page
      */
-    public function index()
+    public function index(Request $request)
     {
-        $courses = Course::orderBy('department')
+        $query = Course::orderBy('department')
             ->orderBy('sort_order')
-            ->orderBy('course_name')
-            ->get()
-            ->groupBy('department');
+            ->orderBy('course_name');
 
+        if ($request->filled('search_name')) {
+            $query->where('course_name', 'LIKE', '%' . $request->search_name . '%');
+        }
+        if ($request->filled('search_department')) {
+            $query->where('department', $request->search_department);
+        }
+
+        $courses = $query->paginate(10)->appends($request->query());
         $departments = Course::getDepartments();
         $totalCourses = Course::count();
 

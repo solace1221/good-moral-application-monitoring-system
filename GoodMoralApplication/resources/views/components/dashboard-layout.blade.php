@@ -427,6 +427,13 @@
       font-weight: 700 !important;
     }
 
+    .modal-plain-title {
+      color: #111827 !important;
+    }
+    .modal-white-title {
+      color: #ffffff !important;
+    }
+
     .main-content p, .main-content div {
       color: #2c3e50 !important;
     }

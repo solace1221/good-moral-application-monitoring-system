@@ -63,10 +63,11 @@
                           <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487a2.1 2.1 0 1 1 2.97 2.97L7.5 19.79l-4 1 1-4 12.362-12.303z"/>
                         </svg>
                       </button>
-                      <form action="{{ route('admin.departments.destroy', $department) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure? This department must have no courses assigned.');">
+                      <form id="dept-delete-form-{{ $department->id }}" action="{{ route('admin.departments.destroy', $department) }}" method="POST" style="display:inline;">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" title="Delete"
+                        <button type="button" title="Delete"
+                                onclick="openDeleteModal('dept-delete-form-{{ $department->id }}')"
                                 style="display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; background: #fff0f0; border: none; border-radius: 6px; cursor: pointer; color: #dc2626;"
                                 onmouseover="this.style.background='#fde8e8'" onmouseout="this.style.background='#fff0f0'">
                           <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -82,6 +83,26 @@
           </table>
         </div>
       @endif
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div id="deleteModal" style="display:none; position:fixed; inset:0; z-index:60; background:rgba(0,0,0,0.5); align-items:center; justify-content:center;">
+    <div style="background:#fff; border-radius:12px; padding:32px; max-width:440px; width:90%; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
+        <div style="display:inline-flex; align-items:center; justify-content:center; width:40px; height:40px; background:#fff0f0; border-radius:8px; flex-shrink:0;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#dc2626" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/>
+          </svg>
+        </div>
+        <h3 class="modal-white-title" style="margin:0; font-size:18px; font-weight:600;">Delete Department</h3>
+      </div>
+      <p style="font-size:14px; color:#6b7280; margin:0 0 8px; line-height:1.6;">This department cannot be deleted if courses are assigned to it.</p>
+      <p style="font-size:14px; color:#6b7280; margin:0 0 24px; line-height:1.6;">Please ensure that all courses are removed or reassigned before deleting.</p>
+      <div style="display:flex; gap:10px; justify-content:flex-end;">
+        <button onclick="closeDeleteModal()" style="padding:8px 20px; background:#f3f4f6; color:#374151; border:none; border-radius:6px; font-size:14px; cursor:pointer;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">Cancel</button>
+        <button id="deleteConfirmBtn" onclick="submitDelete()" style="padding:8px 20px; background:#dc2626; color:#fff; border:none; border-radius:6px; font-size:14px; font-weight:600; cursor:pointer;" onmouseover="this.style.background='#b91c1c'" onmouseout="this.style.background='#dc2626'">Delete Department</button>
+      </div>
     </div>
   </div>
 
@@ -131,6 +152,25 @@
   </div>
 
   <script>
+    let pendingDeleteFormId = null;
+
+    function openDeleteModal(formId) {
+      pendingDeleteFormId = formId;
+      document.getElementById('deleteModal').style.display = 'flex';
+    }
+    function closeDeleteModal() {
+      pendingDeleteFormId = null;
+      document.getElementById('deleteModal').style.display = 'none';
+    }
+    function submitDelete() {
+      if (pendingDeleteFormId) {
+        document.getElementById(pendingDeleteFormId).submit();
+      }
+    }
+    document.getElementById('deleteModal').addEventListener('click', function(e) {
+      if (e.target === this) closeDeleteModal();
+    });
+
     function openCreateModal() {
       document.getElementById('createModal').style.display = 'flex';
     }

@@ -13,10 +13,26 @@ class OrganizationController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $organizations = Organization::with('department')->paginate(10);
-        return view('organizations.index', compact('organizations'));
+        $query = Organization::with('department');
+
+        if ($request->filled('search_name')) {
+            $query->where('description', 'LIKE', '%' . $request->search_name . '%');
+        }
+        if ($request->filled('search_department')) {
+            if ($request->search_department === 'none') {
+                $query->whereNull('department_id');
+            } else {
+                $query->whereHas('department', function ($q) use ($request) {
+                    $q->where('department_code', $request->search_department);
+                });
+            }
+        }
+
+        $organizations = $query->orderBy('created_at', 'desc')->paginate(10)->appends($request->query());
+        $departments = Department::orderBy('department_code')->whereNotIn('department_code', ['SOM', 'GRADSCH'])->get();
+        return view('organizations.index', compact('organizations', 'departments'));
     }
 
     /**
@@ -24,7 +40,7 @@ class OrganizationController extends Controller
      */
     public function create()
     {
-        $departments = Department::all();
+        $departments = Department::orderBy('department_code')->whereNotIn('department_code', ['SOM', 'GRADSCH'])->get();
         return view('organizations.create', compact('departments'));
     }
 
@@ -56,7 +72,7 @@ class OrganizationController extends Controller
     public function edit(string $id)
     {
         $organization = Organization::findOrFail($id);
-        $departments = Department::all();
+        $departments = Department::orderBy('department_code')->whereNotIn('department_code', ['SOM', 'GRADSCH'])->get();
         return view('organizations.edit', compact('organization', 'departments'));
     }
 
