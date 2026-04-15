@@ -341,20 +341,8 @@
             <span id="modalReason"></span>
           </div>
           <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; padding: 10px 12px; background: #f8f9fa; border-radius: 6px; font-size: 14px;">
-            <strong>Course Completed:</strong>
-            <span id="modalCourseCompleted"></span>
-          </div>
-          <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; padding: 10px 12px; background: #f8f9fa; border-radius: 6px; font-size: 14px;">
-            <strong>Graduation Date:</strong>
-            <span id="modalGraduationDate"></span>
-          </div>
-          <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; padding: 10px 12px; background: #f8f9fa; border-radius: 6px; font-size: 14px;">
-            <strong>Undergraduate:</strong>
-            <span id="modalUndergraduate"></span>
-          </div>
-          <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; padding: 10px 12px; background: #f8f9fa; border-radius: 6px; font-size: 14px;">
-            <strong>Last Course Year Level:</strong>
-            <span id="modalLastCourseYearLevel"></span>
+            <strong>Course & Year Level:</strong>
+            <span id="modalCourseYearLevel"></span>
           </div>
           <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; padding: 10px 12px; background: #f8f9fa; border-radius: 6px; font-size: 14px;">
             <strong>Last Semester SY:</strong>
@@ -476,10 +464,12 @@
       };
       document.getElementById('modalStatus').innerText = statusMap[app.application_status] ?? (app.application_status ?? 'N/A');
       document.getElementById('modalReason').innerText = app.reason ?? 'N/A';
-      document.getElementById('modalCourseCompleted').innerText = app.course_completed ?? 'N/A';
-      document.getElementById('modalGraduationDate').innerText = app.graduation_date ?? 'N/A';
-      document.getElementById('modalUndergraduate').innerText = (app.is_undergraduate) ? 'Yes' : 'No';
-      document.getElementById('modalLastCourseYearLevel').innerText = app.last_course_year_level ?? 'N/A';
+
+      let courseYearLevel = app.course_completed ?? 'N/A';
+      if (app.last_course_year_level) {
+        courseYearLevel += ' - ' + app.last_course_year_level;
+      }
+      document.getElementById('modalCourseYearLevel').innerText = courseYearLevel;
       document.getElementById('modalLastSemesterSY').innerText = app.last_semester_sy ?? 'N/A';
 
       const claimSection = document.getElementById('modalClaimSection');
