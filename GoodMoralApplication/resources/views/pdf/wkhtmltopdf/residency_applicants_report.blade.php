@@ -159,8 +159,7 @@
         <div class="header">
             <img src="data:image/png;base64,{{ $header }}" alt="University Header" style="width: 100%; height: auto; margin-bottom: 0px; display: block;" />
             <div style="text-align: center; margin: 2px 0;">
-                <div style="font-size: 8pt; color: black; margin-bottom: 2px; font-family: 'Times New Roman', Times, serif;">STUDENT AFFAIRS AND ACADEMIC SUPPORT SERVICES</div>
-                <div style="font-size: 13pt; font-weight: bold; color: #333; margin-bottom: 5px;">OFFICE OF STUDENT AFFAIRS</div>
+                <div style="font-size: 13pt; font-weight: bold; color: #333; margin-bottom: 5px;">STUDENT AFFAIRS AND ACADEMIC SUPPORT SERVICES</div>
             </div>
             <div class="two-tone-line"></div>
         </div>

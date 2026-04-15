@@ -57,7 +57,7 @@
         $header = base64_encode(file_get_contents(public_path('images/header.png')));
     @endphp
     <img src="data:image/png;base64,{{ $header }}" alt="University Header" />
-    <h3>OFFICE OF STUDENT AFFAIRS</h3>
+    <h3>STUDENT AFFAIRS AND ACADEMIC SUPPORT SERVICES</h3>
     <div class="two-tone-line"></div>
 </body>
 </html>
