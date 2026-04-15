@@ -276,9 +276,9 @@
                       onfocus="this.style.borderColor='#4a90e2'; this.style.boxShadow='0 0 0 3px rgba(74, 144, 226, 0.1)'; this.style.backgroundImage='url(\'data:image/svg+xml,%3csvg xmlns=\\\'http://www.w3.org/2000/svg\\\' fill=\\\'none\\\' viewBox=\\\'0 0 20 20\\\'%3e%3cpath stroke=\\\'%234a90e2\\\' stroke-linecap=\\\'round\\\' stroke-linejoin=\\\'round\\\' stroke-width=\\\'2\\\' d=\\\'M6 8l4 4 4-4\\\'/%3e%3c/svg%3e')'"
                       onblur="this.style.borderColor='#dbe9ff'; this.style.boxShadow='none'; this.style.backgroundImage='url(\'data:image/svg+xml,%3csvg xmlns=\\\'http://www.w3.org/2000/svg\\\' fill=\\\'none\\\' viewBox=\\\'0 0 20 20\\\'%3e%3cpath stroke=\\\'%234a90e2\\\' stroke-linecap=\\\'round\\\' stroke-linejoin=\\\'round\\\' stroke-width=\\\'1.5\\\' d=\\\'M6 8l4 4 4-4\\\'/%3e%3c/svg%3e')'">
                 <option value="" disabled selected style="color: #94a3b8;">Select semester</option>
-                <option value="First Semester" {{ old('last_semester') == 'First Semester' ? 'selected' : '' }}>🎓 First Semester</option>
-                <option value="Second Semester" {{ old('last_semester') == 'Second Semester' ? 'selected' : '' }}>📚 Second Semester</option>
-                <option value="Summer Term" {{ old('last_semester') == 'Summer Term' ? 'selected' : '' }}>☀️ Summer Term</option>
+                <option value="First Semester" {{ old('last_semester') == 'First Semester' ? 'selected' : '' }}>First Semester</option>
+                <option value="Second Semester" {{ old('last_semester') == 'Second Semester' ? 'selected' : '' }}>Second Semester</option>
+                <option value="Summer Term" {{ old('last_semester') == 'Summer Term' ? 'selected' : '' }}>Summer Term</option>
               </select>
               @error('last_semester')
                 <span style="color: #dc3545; font-size: 13px; margin-top: 6px; display: block;">{{ $message }}</span>
@@ -302,7 +302,7 @@
                     $nextYear = $year + 1;
                     $schoolYear = $year . '-' . $nextYear;
                     $selected = old('last_school_year') == $schoolYear ? 'selected' : '';
-                    echo "<option value=\"{$schoolYear}\" {$selected}>📅 {$schoolYear}</option>";
+                    echo "<option value=\"{$schoolYear}\" {$selected}>{$schoolYear}</option>";
                   }
                 @endphp
               </select>
@@ -343,7 +343,7 @@
     <!-- Review Modal -->
     <div id="reviewModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); z-index: 9999; overflow-y: auto; backdrop-filter: blur(5px);">
       <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px;">
-        <div style="background: white; border-radius: 16px; max-width: 800px; width: 100%; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); animation: slideDown 0.3s ease; max-height: 90vh; overflow-y: auto;">
+        <div style="background: white; border-radius: 16px; max-width: 560px; width: 100%; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); animation: slideDown 0.3s ease; max-height: 90vh; overflow-y: auto;">
           <!-- Modal Header -->
           <div style="background: linear-gradient(135deg, var(--primary-green) 0%, #009944 100%); color: #ffffff !important; padding: 24px; border-radius: 16px 16px 0 0; position: sticky; top: 0; z-index: 10;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -367,7 +367,7 @@
           </div>
 
           <!-- Modal Body -->
-          <div style="padding: 32px;" id="reviewContent">
+          <div style="padding: 24px;" id="reviewContent">
             <!-- Content will be populated by JavaScript -->
           </div>
 
@@ -383,7 +383,7 @@
               Edit Application
             </button>
             <button type="button" onclick="submitApplication()" 
-                    style="background: linear-gradient(135deg, var(--primary-green) 0%, #009944 100%); color: white; padding: 12px 32px; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(0, 176, 80, 0.3); transition: all 0.3s ease;"
+                    style="background: linear-gradient(135deg, var(--primary-green) 0%, #009944 100%); color: white !important; padding: 12px 32px; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(0, 176, 80, 0.3); transition: all 0.3s ease;"
                     onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(0, 176, 80, 0.4)'"
                     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(0, 176, 80, 0.3)'">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 20px; height: 20px;">
@@ -596,35 +596,11 @@
       const reviewContent = document.getElementById('reviewContent');
       
       // Build review content
-      let html = '<div style="display: grid; gap: 24px;">';
-      
-      // Certificate Type
       const certType = formData.get('certificate_type');
       const certName = certType === 'good_moral' ? 'Good Moral Certificate' : 'Certificate of Residency';
-      html += `
-        <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; border-left: 4px solid var(--primary-green);">
-          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="var(--primary-green)" style="width: 20px; height: 20px;">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z" />
-            </svg>
-            <h3 style="margin: 0; color: #333; font-size: 16px; font-weight: 600;">Certificate Type</h3>
-          </div>
-          <p style="margin: 0; color: var(--primary-green); font-size: 18px; font-weight: 700; padding-left: 30px;">${certName}</p>
-        </div>
-      `;
-      
-      // Number of Copies
       const numCopies = formData.get('num_copies');
-      html += `
-        <div style="background: #fff; padding: 18px; border-radius: 10px; border: 2px solid #e9ecef;">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span style="color: #6c757d; font-size: 14px; font-weight: 500;">Number of Copies:</span>
-            <span style="color: #333; font-size: 18px; font-weight: 700;">${numCopies}</span>
-          </div>
-        </div>
-      `;
-      
-      // Reasons
+
+      // Collect reasons
       const reasons = [];
       checkedReasons.forEach(checkbox => {
         if (checkbox.value === 'Others') {
@@ -634,113 +610,67 @@
           reasons.push(checkbox.value);
         }
       });
-      
-      html += `
-        <div style="background: #fff3cd; padding: 20px; border-radius: 10px; border-left: 4px solid #ffc107;">
-          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="#856404" style="width: 20px; height: 20px;">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
-            </svg>
-            <h3 style="margin: 0; color: #856404; font-size: 16px; font-weight: 600;">Reason(s) for Application</h3>
-          </div>
-          <ul style="margin: 0; padding-left: 30px; color: #856404; line-height: 1.8;">
-            ${reasons.map(r => `<li style="font-size: 15px;">${r}</li>`).join('')}
-          </ul>
-        </div>
-      `;
-      
-      // For Students - show last attendance info
+
       const accountType = '{{ $accountType }}';
+      const copies = parseInt(numCopies) || 1;
+      const ratePerUnit = 50;
+      const totalAmount = reasons.length * copies * ratePerUnit;
+
+      // Helper to build a summary row
+      function summaryRow(label, value, last = false) {
+        const border = last ? '' : 'border-bottom: 1px solid #f1f3f5;';
+        return `<div style="display: flex; justify-content: space-between; align-items: flex-start; padding: 11px 20px; ${border} gap: 16px;">
+          <span style="color: #6c757d; font-size: 14px; white-space: nowrap; flex-shrink: 0;">${label}</span>
+          <span style="color: #1a1a1a; font-size: 14px; font-weight: 600; text-align: right;">${value}</span>
+        </div>`;
+      }
+
+      // Application Summary rows
+      let rows = '';
+      rows += summaryRow('Certificate Type', certName);
+      rows += summaryRow('Number of Copies', numCopies);
+      rows += summaryRow('Purpose', reasons.join(', '));
+
       if (accountType === 'student') {
         const lastCourse = formData.get('last_course_year_level');
         const lastSemester = formData.get('last_semester');
         const lastSchoolYear = formData.get('last_school_year');
-        
-        if (lastCourse || (lastSemester && lastSchoolYear)) {
-          html += `
-            <div style="background: #d1ecf1; padding: 20px; border-radius: 10px; border-left: 4px solid #17a2b8;">
-              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="#0c5460" style="width: 20px; height: 20px;">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" />
-                </svg>
-                <h3 style="margin: 0; color: #0c5460; font-size: 16px; font-weight: 600;">Academic Information</h3>
-              </div>
-              <div style="padding-left: 30px; color: #0c5460;">
-          `;
-          
-          if (lastCourse) {
-            html += `<p style="margin: 8px 0; font-size: 15px;"><strong>Course & Year Level:</strong> ${lastCourse}</p>`;
-          }
-          if (lastSemester && lastSchoolYear) {
-            html += `<p style="margin: 8px 0; font-size: 15px;"><strong>Last Attendance:</strong> ${lastSemester} of ${lastSchoolYear}</p>`;
-          }
-          
-          html += `
-              </div>
-            </div>
-          `;
-        }
+        if (lastCourse) rows += summaryRow('Course &amp; Year Level', lastCourse);
+        if (lastSemester && lastSchoolYear) rows += summaryRow('Last Attendance', `${lastSemester} ${lastSchoolYear}`);
       }
-      
-      // For Alumni - show graduation info
+
       if (accountType === 'alumni') {
         const courseCompleted = formData.get('course_completed');
         const graduationDate = formData.get('graduation_date');
-        
-        if (courseCompleted || graduationDate) {
-          html += `
-            <div style="background: #d1ecf1; padding: 20px; border-radius: 10px; border-left: 4px solid #17a2b8;">
-              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="#0c5460" style="width: 20px; height: 20px;">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" />
-                </svg>
-                <h3 style="margin: 0; color: #0c5460; font-size: 16px; font-weight: 600;">Graduation Information</h3>
-              </div>
-              <div style="padding-left: 30px; color: #0c5460;">
-          `;
-          
-          if (courseCompleted) {
-            html += `<p style="margin: 8px 0; font-size: 15px;"><strong>Course Completed:</strong> ${courseCompleted}</p>`;
-          }
-          if (graduationDate) {
-            html += `<p style="margin: 8px 0; font-size: 15px;"><strong>Graduation Date:</strong> ${new Date(graduationDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>`;
-          }
-          
-          html += `
-              </div>
-            </div>
-          `;
-        }
+        if (courseCompleted) rows += summaryRow('Course Completed', courseCompleted);
+        if (graduationDate) rows += summaryRow('Graduation Date', new Date(graduationDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }));
       }
-      
-      // Payment Summary
-      const copies = parseInt(numCopies) || 1;
-      const ratePerUnit = 50;
-      const totalAmount = reasons.length * copies * ratePerUnit;
-      
-      html += `
-        <div style="background: linear-gradient(135deg, var(--primary-green) 0%, #009944 100%); padding: 20px; border-radius: 10px; border: 2px solid var(--primary-green); box-shadow: 0 4px 12px rgba(0, 176, 80, 0.2);">
-          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="white" style="width: 20px; height: 20px;">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" />
-            </svg>
-            <h3 style="margin: 0 !important; color: white !important; font-size: 16px; font-weight: 600;">Payment Summary</h3>
+
+      // Payment rows (last row has no border)
+      let paymentRows = '';
+      paymentRows += summaryRow('Rate', `₱${ratePerUnit}.00 per copy per reason`);
+      paymentRows += summaryRow('Calculation', `${reasons.length} reason(s) × ${copies} cop${copies > 1 ? 'ies' : 'y'} × ₱${ratePerUnit}.00`);
+      paymentRows += summaryRow('Total Amount', `₱${totalAmount.toFixed(2)}`, true);
+
+      const html = `
+        <div style="border: 1px solid #e9ecef; border-radius: 10px; overflow: hidden;">
+
+          <div style="padding: 12px 20px; background: #f8f9fa; border-bottom: 1px solid #e9ecef;">
+            <span style="font-size: 11px; font-weight: 700; color: #6c757d; text-transform: uppercase; letter-spacing: 0.08em;">Application Summary</span>
           </div>
-          <div style="padding-left: 30px;">
-            <p style="margin: 8px 0 !important; color: rgba(255, 255, 255, 0.95) !important; font-size: 14px;">${reasons.length} reason(s) × ${copies} cop${copies > 1 ? 'ies' : 'y'} × ₱${ratePerUnit}.00</p>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding-top: 12px; border-top: 2px solid rgba(255, 255, 255, 0.3);">
-              <span style="color: white !important; font-size: 16px; font-weight: 600;">Total Amount:</span>
-              <span style="color: white !important; font-size: 24px; font-weight: 700;">₱${totalAmount.toFixed(2)}</span>
-            </div>
-            <p style="margin: 12px 0 0 0 !important; font-size: 13px; color: rgba(255, 255, 255, 0.9) !important; font-style: italic;">
-              💡 Payment receipt upload required after admin approval
-            </p>
+
+          ${rows}
+
+          <div style="padding: 12px 20px; background: #f8f9fa; border-top: 1px solid #e9ecef; border-bottom: 1px solid #e9ecef;">
+            <span style="font-size: 11px; font-weight: 700; color: #6c757d; text-transform: uppercase; letter-spacing: 0.08em;">Payment Summary</span>
           </div>
+
+          ${paymentRows}
+
         </div>
+        <p style="margin: 14px 0 0 0; font-size: 13px; color: #6c757d; text-align: center;">Payment receipt upload is required after admin approval.</p>
       `;
-      
-      html += '</div>';
-      
+
       reviewContent.innerHTML = html;
       document.getElementById('reviewModal').style.display = 'block';
       document.body.style.overflow = 'hidden';
