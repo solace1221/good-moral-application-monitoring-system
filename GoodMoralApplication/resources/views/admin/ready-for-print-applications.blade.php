@@ -1,4 +1,4 @@
-﻿<x-dashboard-layout>
+<x-dashboard-layout>
   <x-slot name="roleTitle">Admin</x-slot>
 
   <x-slot name="navigation">
@@ -167,9 +167,9 @@
 
                     @csrf
 
-                    <button type="submit"
+                    <button type="button"
 
-                            onclick="return confirm('Are you sure you want to reprint this certificate?')"
+                            onclick="openReprintModal(this.closest('form'))"
 
                             style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
 
@@ -202,9 +202,9 @@
 
                     @csrf
 
-                    <button type="submit"
+                    <button type="button"
 
-                            onclick="return confirm('Are you sure you want to reprint this certificate?')"
+                            onclick="openReprintModal(this.closest('form'))"
 
                             style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
 
@@ -356,9 +356,9 @@
 
                     @csrf
 
-                    <button type="submit"
+                    <button type="button"
 
-                            onclick="return confirm('Are you sure you want to reprint this certificate?')"
+                            onclick="openReprintModal(this.closest('form'))"
 
                             style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
 
@@ -391,9 +391,9 @@
 
                     @csrf
 
-                    <button type="submit"
+                    <button type="button"
 
-                            onclick="return confirm('Are you sure you want to reprint this certificate?')"
+                            onclick="openReprintModal(this.closest('form'))"
 
                             style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
 
@@ -540,9 +540,9 @@
 
                     @csrf
 
-                    <button type="submit"
+                    <button type="button"
 
-                            onclick="return confirm('Are you sure you want to reprint this certificate?')"
+                            onclick="openReprintModal(this.closest('form'))"
 
                             style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
 
@@ -575,9 +575,9 @@
 
                     @csrf
 
-                    <button type="submit"
+                    <button type="button"
 
-                            onclick="return confirm('Are you sure you want to reprint this certificate?')"
+                            onclick="openReprintModal(this.closest('form'))"
 
                             style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
 
@@ -739,7 +739,7 @@
       const totalAmount = reasonCount * copies * 50;
       const reasonText = reasonCount === 1 ? 'reason' : 'reasons';
       const copyText = copies === 1 ? 'copy' : 'copies';
-      document.getElementById('modalPaymentAmount').innerText = `₱${totalAmount.toFixed(2)} (${reasonCount} ${reasonText} × ${copies} ${copyText} × ₱50.00)`;
+      document.getElementById('modalPaymentAmount').innerText = `?${totalAmount.toFixed(2)} (${reasonCount} ${reasonText} � ${copies} ${copyText} � ?50.00)`;
       document.getElementById('modalCertificateType').innerText = app.certificate_type === 'good_moral' ? 'Good Moral Certificate' : 'Certificate of Residency';
       document.getElementById('modalStatus').innerText = app.application_status ?? 'N/A';
       document.getElementById('modalReason').innerText = Array.isArray(app.reason) ? app.reason.join(', ') : (app.reason ?? 'N/A');
@@ -803,11 +803,61 @@
       }
     });
 
+    // --- Reprint confirmation modal ---
+    let _reprintForm = null;
+
+    function openReprintModal(form) {
+      _reprintForm = form;
+      document.getElementById('reprintModal').style.display = 'flex';
+    }
+
+    function closeReprintModal() {
+      document.getElementById('reprintModal').style.display = 'none';
+      _reprintForm = null;
+    }
+
+    document.getElementById('reprintConfirmBtn').addEventListener('click', function () {
+      if (_reprintForm) _reprintForm.submit();
+    });
+
+    document.getElementById('reprintModal').addEventListener('click', function (e) {
+      if (e.target === this) closeReprintModal();
+    });
+
     // Initialize first tab as active
     document.addEventListener('DOMContentLoaded', function() {
       showTab('all');
     });
   </script>
+
+  <!-- Reprint Confirmation Modal -->
+  <div id="reprintModal" style="display:none; position:fixed; inset:0; z-index:9999; align-items:center; justify-content:center; background:rgba(0,0,0,0.5);">
+    <div style="background:#fff; border-radius:12px; padding:28px 32px; max-width:440px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
+        <div style="width:42px; height:42px; border-radius:8px; background:#f0fdf4; display:flex; align-items:center; justify-content:center; flex-shrink:0; border:1px solid #bbf7d0;">
+          <svg xmlns="http://www.w3.org/2000/svg" style="width:20px; height:20px; color:#16a34a;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+          </svg>
+        </div>
+        <h3 class="modal-plain-title" style="margin:0; font-size:17px; font-weight:700;">Confirm Reprint</h3>
+      </div>
+      <p style="margin:0 0 6px; font-size:14px; color:#111827; font-weight:500;">You are about to reprint this certificate.</p>
+      <p style="margin:0 0 24px; font-size:14px; color:#6b7280;">This will generate another copy for the student.</p>
+      <div style="display:flex; gap:10px; justify-content:flex-end;">
+        <button onclick="closeReprintModal()"
+          style="padding:9px 20px; background:#f3f4f6; color:#374151; border:none; border-radius:6px; font-size:14px; cursor:pointer; font-weight:500;"
+          onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">Cancel</button>
+        <button id="reprintConfirmBtn"
+          style="padding:9px 20px; background:var(--primary-green); color:#fff; border:none; border-radius:6px; font-size:14px; cursor:pointer; font-weight:500; display:inline-flex; align-items:center; gap:7px;"
+          onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+          <svg xmlns="http://www.w3.org/2000/svg" style="width:14px; height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+          </svg>
+          Reprint Certificate
+        </button>
+      </div>
+    </div>
+  </div>
 
 </x-dashboard-layout>
 

@@ -155,7 +155,7 @@ class ApplicationController extends Controller
     return $this->certificateService->generateCertificate(
       $id,
       'download',
-      ['Ready for Moderator Print', 'Ready for Pickup'],
+      ['Ready for Moderator Print', 'Ready for Pickup', 'Claimed'],
       'admin.readyForPrintApplications',
       true
     );
@@ -169,7 +169,7 @@ class ApplicationController extends Controller
     return $this->certificateService->generateCertificate(
       $id,
       'download',
-      ['Ready for Pickup', 'Ready for Moderator Print'],
+      ['Ready for Pickup', 'Ready for Moderator Print', 'Claimed'],
       'admin.readyForPrintApplications',
       false
     );

@@ -38,7 +38,7 @@
             <option value="">Select Organization</option>
             @foreach($organizations as $organization)
             <option value="{{ $organization->id }}" {{ old('organization_id') == $organization->id ? 'selected' : '' }}>
-              {{ $organization->description }} ({{ $organization->department ? $organization->department->department_name : 'N/A' }})
+              {{ $organization->description }}{{ $organization->department ? ' — ' . $organization->department->department_code : '' }}
             </option>
             @endforeach
           </select>
@@ -53,7 +53,8 @@
           <button type="submit" class="btn-primary" style="padding: 10px 20px;">
             Create Position
           </button>
-          <a href="{{ route('admin.positions.index') }}" class="btn-secondary" style="padding: 10px 20px; text-decoration: none; display: inline-block;">
+          <a href="{{ route('admin.positions.index') }}" style="padding: 10px 20px; background: #f3f4f6; color: #374151; border-radius: 6px; text-decoration: none; font-size: 14px; display: inline-block;"
+             onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
             Cancel
           </a>
         </div>

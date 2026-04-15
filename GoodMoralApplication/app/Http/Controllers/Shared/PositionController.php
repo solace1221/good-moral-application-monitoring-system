@@ -13,10 +13,22 @@ class PositionController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $positions = Position::with('organization.department')->paginate(10);
-        return view('positions.index', compact('positions'));
+        $query = Position::with('organization.department');
+
+        if ($request->filled('search_title')) {
+            $query->where('position_title', 'like', '%' . $request->search_title . '%');
+        }
+
+        if ($request->filled('search_organization')) {
+            $query->where('organization_id', $request->search_organization);
+        }
+
+        $positions = $query->orderBy('position_title')->paginate(15)->appends($request->query());
+        $allOrganizations = Organization::orderBy('description')->get();
+
+        return view('positions.index', compact('positions', 'allOrganizations'));
     }
 
     /**
@@ -24,7 +36,7 @@ class PositionController extends Controller
      */
     public function create()
     {
-        $organizations = Organization::with('department')->get();
+        $organizations = Organization::with('department')->orderBy('description')->get();
         return view('positions.create', compact('organizations'));
     }
 
@@ -56,7 +68,7 @@ class PositionController extends Controller
     public function edit(string $id)
     {
         $position = Position::findOrFail($id);
-        $organizations = Organization::with('department')->get();
+        $organizations = Organization::with('department')->orderBy('description')->get();
         return view('positions.edit', compact('position', 'organizations'));
     }
 
