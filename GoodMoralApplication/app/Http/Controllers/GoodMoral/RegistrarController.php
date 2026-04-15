@@ -102,7 +102,7 @@ class RegistrarController extends Controller
 
     DB::transaction(function () use ($application, $registrar, $student) {
       $application->status = 'approved';
-      $application->application_status = 'Approved By Registrar ' . $registrar->fullname;
+      $application->application_status = 'Approved by Registrar ' . $registrar->fullname;
       $application->save();
 
       // 4. Create the dean record for the single Head OSA
@@ -149,7 +149,7 @@ class RegistrarController extends Controller
     DB::transaction(function () use ($application, $registrar, $rejectionReason, $request) {
       // Update the application status to 'rejected' with reason
       $application->status = 'rejected';
-      $application->application_status = 'Rejected By Registrar ' . $registrar->fullname;
+      $application->application_status = 'Rejected by Registrar ' . $registrar->fullname;
       $application->rejection_reason = $rejectionReason;
       $application->rejection_details = $request->rejection_details;
       $application->rejected_by = 'Registrar: ' . $registrar->fullname;

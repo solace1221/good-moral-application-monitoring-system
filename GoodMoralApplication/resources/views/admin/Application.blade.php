@@ -307,7 +307,7 @@
       <x-slot name="footer">
         <form id="adminDeclineForm" method="POST" style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px;">
           @csrf
-          @method('DELETE')
+          @method('PATCH')
           <button type="button" onclick="closeAdminDeclineModal()"
                   style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500;">
             Cancel
@@ -505,8 +505,8 @@
       const studentNameElement = document.getElementById('adminApproveStudentName');
       const refNumberElement = document.getElementById('adminApproveRefNumber');
       
-      // Fix: Use correct route URL - PATCH /admin/application/{id}/approve
-      form.action = `/admin/application/${applicationId}/approve`;
+      // Fix: Use correct route URL - PATCH /admin/good-moral/{id}/approve
+      form.action = `/admin/good-moral/${applicationId}/approve`;
       studentNameElement.textContent = studentName;
       refNumberElement.textContent = refNumber;
       
@@ -542,8 +542,8 @@
       const studentNameElement = document.getElementById('adminDeclineStudentName');
       const refNumberElement = document.getElementById('adminDeclineRefNumber');
       
-      // Fix: Use correct route URL - DELETE /admin/application/{id}/reject
-      form.action = `/admin/application/${applicationId}/reject`;
+      // Fix: Use correct route URL - PATCH /admin/good-moral/{id}/reject
+      form.action = `/admin/good-moral/${applicationId}/reject`;
       studentNameElement.textContent = studentName;
       refNumberElement.textContent = refNumber;
       

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\SecOSA;
 use App\Http\Controllers\Controller;
 use App\Models\RoleAccount;
 use App\Models\StudentViolation;
+use App\Models\Violation;
 use App\Models\ViolationNotif;
 use App\Services\ViolationService;
 use App\Traits\RoleCheck;
@@ -164,15 +165,55 @@ class ViolationController extends Controller
 
     public function minor()
     {
-        $students = StudentViolation::with('studentAccount')
+        $students = StudentViolation::with(['studentAccount', 'violation'])
             ->minor()
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
+        $departments = StudentViolation::minor()
+            ->whereNotNull('department')
+            ->where('department', '!=', '')
+            ->distinct()
+            ->orderBy('department')
+            ->pluck('department');
+
+        $articleMap = Violation::whereNotNull('description')
+            ->pluck('article', 'description');
+
         $statusCounts = $this->violationService->getMinorStatusCounts();
         extract($statusCounts);
 
-        return view('sec_osa.minor', compact('students', 'pendingCount', 'approvedCount', 'closedCount'));
+        return view('sec_osa.minor', compact('students', 'departments', 'articleMap', 'pendingCount', 'approvedCount', 'closedCount'));
+    }
+
+    public function showMinorDetail($id)
+    {
+        $violation = StudentViolation::with('violation')->findOrFail($id);
+
+        $violationText = $violation->getRawOriginal('violation');
+        $article = $violation->violation?->article;
+        if (!$article && $violationText) {
+            $article = Violation::where('description', $violationText)->value('article');
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'id' => $violation->id,
+                'ref_num' => $violation->ref_num,
+                'first_name' => $violation->first_name,
+                'last_name' => $violation->last_name,
+                'student_id' => $violation->student_id,
+                'department' => $violation->department,
+                'course' => $violation->course,
+                'offense_type' => $violation->offense_type,
+                'status' => $violation->status,
+                'added_by' => $violation->added_by,
+                'article' => $article,
+                'violation' => $violationText,
+                'created_at' => $violation->created_at?->format('M d, Y'),
+            ],
+        ]);
     }
 
     public function uploadDocument(UploadViolationDocumentRequest $request, $id)
@@ -200,96 +241,50 @@ class ViolationController extends Controller
 
     public function searchMinor(Request $request)
     {
-        $query = StudentViolation::minor();
+        $query = StudentViolation::with(['studentAccount', 'violation'])->minor();
 
-        if ($request->filled('ref_num')) {
-            $query->where('ref_num', 'like', '%' . $request->ref_num . '%');
-        }
-
-        if ($request->filled('student_id')) {
-            $query->where('student_id', 'like', '%' . $request->student_id . '%');
-        }
-
-        if ($request->filled('last_name')) {
-            $query->where('last_name', 'like', '%' . $request->last_name . '%');
-        }
-
-        if ($request->filled('first_name')) {
-            $query->where('first_name', 'like', '%' . $request->first_name . '%');
+        if ($request->filled('name')) {
+            $term = $request->name;
+            $query->where(function ($q) use ($term) {
+                $q->where('first_name', 'like', '%' . $term . '%')
+                  ->orWhere('last_name', 'like', '%' . $term . '%');
+            });
         }
 
         if ($request->filled('department') && $request->department !== '') {
             $query->where('department', $request->department);
         }
 
-        if ($request->filled('status') && $request->status !== '') {
-            $query->where('status', $request->status);
-        }
-
-        if ($request->filled('added_by')) {
-            $query->where('added_by', 'like', '%' . $request->added_by . '%');
-        }
-
-        if ($request->filled('violation_count') && $request->violation_count !== '') {
-            $countFilter = $request->violation_count;
-
-            if ($countFilter === '1') {
-                $query->whereIn('student_id', function ($subquery) {
-                    $subquery->select('student_id')
-                        ->from('student_violations')
-                        ->where('offense_type', 'minor')
-                        ->groupBy('student_id')
-                        ->havingRaw('COUNT(*) = 1');
-                });
-            } elseif ($countFilter === '2-3') {
-                $query->whereIn('student_id', function ($subquery) {
-                    $subquery->select('student_id')
-                        ->from('student_violations')
-                        ->where('offense_type', 'minor')
-                        ->groupBy('student_id')
-                        ->havingRaw('COUNT(*) BETWEEN 2 AND 3');
-                });
-            } elseif ($countFilter === '4+') {
-                $query->whereIn('student_id', function ($subquery) {
-                    $subquery->select('student_id')
-                        ->from('student_violations')
-                        ->where('offense_type', 'minor')
-                        ->groupBy('student_id')
-                        ->havingRaw('COUNT(*) >= 4');
-                });
-            }
-        }
-
-        if ($request->filled('date_from')) {
-            $query->whereDate('created_at', '>=', $request->date_from);
-        }
-
-        if ($request->filled('date_to')) {
-            $query->whereDate('created_at', '<=', $request->date_to);
-        }
-
         $students = $query->orderBy('created_at', 'desc')->paginate(10);
+
+        $departments = StudentViolation::minor()
+            ->whereNotNull('department')
+            ->where('department', '!=', '')
+            ->distinct()
+            ->orderBy('department')
+            ->pluck('department');
+
+        $articleMap = Violation::whereNotNull('description')
+            ->pluck('article', 'description');
 
         $statusCounts = $this->violationService->getMinorStatusCounts();
         extract($statusCounts);
 
-        return view('sec_osa.minor', compact('students', 'pendingCount', 'approvedCount', 'closedCount'));
+        return view('sec_osa.minor', compact('students', 'departments', 'articleMap', 'pendingCount', 'approvedCount', 'closedCount'));
     }
 
     public function searchMajor(Request $request)
     {
         $query = StudentViolation::major();
 
-        if ($request->filled('first_name')) {
-            $query->where('first_name', 'like', '%' . $request->first_name . '%');
-        }
-
-        if ($request->filled('last_name')) {
-            $query->where('last_name', 'like', '%' . $request->last_name . '%');
-        }
-
-        if ($request->filled('student_id')) {
-            $query->where('student_id', 'like', '%' . $request->student_id . '%');
+        if ($request->filled('search')) {
+            $term = $request->search;
+            $query->where(function ($q) use ($term) {
+                $q->where('student_id', 'like', '%' . $term . '%')
+                  ->orWhere('first_name', 'like', '%' . $term . '%')
+                  ->orWhere('last_name', 'like', '%' . $term . '%')
+                  ->orWhere('ref_num', 'like', '%' . $term . '%');
+            });
         }
 
         if ($request->filled('department') && $request->department !== '') {
@@ -298,14 +293,6 @@ class ViolationController extends Controller
 
         if ($request->filled('status') && $request->status !== '') {
             $query->where('status', $request->status);
-        }
-
-        if ($request->filled('has_proceedings') && $request->has_proceedings !== '') {
-            if ($request->has_proceedings === 'yes') {
-                $query->whereNotNull('document_path');
-            } else {
-                $query->whereNull('document_path');
-            }
         }
 
         if ($request->filled('date_from')) {

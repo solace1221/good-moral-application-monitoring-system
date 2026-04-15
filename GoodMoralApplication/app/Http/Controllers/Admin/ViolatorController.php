@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use App\Models\Violation;
 use App\Models\StudentViolation;
 use App\Models\RoleAccount;
+use App\Models\StudentRegistration;
 use App\Helpers\CourseHelper;
 use App\Services\ViolationService;
 
@@ -277,23 +278,33 @@ class ViolatorController extends Controller
       return response()->json([]);
     }
 
-    // Search in Good Moral system tables (role_account)
-    $students = RoleAccount::where(function($q) use ($query) {
+    // Query student_registrations so ALL registered students are included,
+    // regardless of their account status. The old query used role_account with
+    // a status='active' filter, which silently excluded inactive/pending students.
+    $students = StudentRegistration::where(function($q) use ($query) {
         $q->where('student_id', 'LIKE', "%{$query}%")
-          ->orWhere('fullname', 'LIKE', "%{$query}%")
-          ->orWhere('email', 'LIKE', "%{$query}%");
+          ->orWhere('fname', 'LIKE', "%{$query}%")
+          ->orWhere('lname', 'LIKE', "%{$query}%")
+          ->orWhereRaw("CONCAT(fname, ' ', lname) LIKE ?", ["%{$query}%"])
+          ->orWhere('email', 'LIKE', "%{$query}%")
+          ->orWhere('department', 'LIKE', "%{$query}%");
       })
       ->where('account_type', 'student')
-      ->where('status', 'active')
-      ->select('student_id', 'fullname', 'department', 'course', 'year_level')
-      ->limit(10)
+      ->select('student_id', 'fname', 'mname', 'lname', 'department', 'course', 'year_level')
+      ->orderBy('lname')
+      ->limit(20)
       ->get()
       ->map(function($student) {
+        $fullname = trim(strtoupper(
+          $student->fname . ' '
+          . ($student->mname ? $student->mname . ' ' : '')
+          . $student->lname
+        ));
         return [
           'student_id' => $student->student_id,
-          'fullname' => strtoupper($student->fullname),
+          'fullname'   => $fullname,
           'department' => $student->department ?? 'N/A',
-          'course' => $student->course ?? ($student->year_level ? $student->year_level : 'N/A')
+          'course'     => $student->course ?? ($student->year_level ?? 'N/A'),
         ];
       });
 

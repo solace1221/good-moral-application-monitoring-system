@@ -183,20 +183,9 @@ class ApplicationController extends Controller
    */
   public function markAsClaimed($id)
   {
-    $application = GoodMoralApplication::findOrFail($id);
+    $result = $this->certificateService->markCertificateAsClaimed($id);
 
-    if ($application->application_status !== 'Ready for Pickup') {
-      return redirect()->route('admin.readyForPrintApplications')->with('error', 'Only printed certificates can be marked as claimed.');
-    }
-
-    $application->application_status = 'Claimed';
-    $application->claimed_at = now();
-    $application->claimed_by = \Illuminate\Support\Facades\Auth::id();
-    $application->save();
-
-    $this->notifService->createFromApplication($application, '6');
-
-    return redirect()->route('admin.readyForPrintApplications')->with('status', 'Certificate marked as claimed successfully.');
+    return redirect()->route('admin.readyForPrintApplications')->with($result['type'], $result['message']);
   }
 
   public function approveApplication($id)

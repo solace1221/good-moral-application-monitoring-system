@@ -18,7 +18,7 @@ class StoreMultipleViolatorsRequest extends FormRequest
             'violation' => ['required_without:multiple_violations_data', 'nullable', 'string'],
             'multiple_violations_data' => ['nullable', 'string'],
             'student_ids' => ['required', 'array', 'min:1'],
-            'student_ids.*' => ['required', 'string', 'exists:role_account,student_id'],
+            'student_ids.*' => ['required', 'string', 'exists:student_registrations,student_id'],
         ];
     }
 

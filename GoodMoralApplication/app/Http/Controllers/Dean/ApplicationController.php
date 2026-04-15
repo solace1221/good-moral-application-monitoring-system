@@ -278,7 +278,8 @@ class ApplicationController extends Controller
     }
 
     // Check if application is in correct status
-    if (!str_contains($application->application_status, 'Approved By Registrar')) {
+    if (!str_contains($application->application_status, 'Approved By Registrar') &&
+        !str_contains($application->application_status, 'Approved by Registrar')) {
       return redirect()->route('dean.application')->with('error', 'Application is not ready for dean action.');
     }
 
@@ -326,7 +327,13 @@ class ApplicationController extends Controller
     // Reset application status
     DB::transaction(function () use ($application, $dean, $request) {
       $application->status = 'pending';
-      $application->application_status = 'Approved By Registrar ' . ($application->application_status ? explode('Approved By Registrar', $application->application_status)[1] ?? '' : '');
+      $registrarName = '';
+      if (str_contains($application->application_status, 'Approved By Registrar')) {
+        $registrarName = explode('Approved By Registrar', $application->application_status)[1] ?? '';
+      } elseif (str_contains($application->application_status, 'Approved by Registrar')) {
+        $registrarName = explode('Approved by Registrar', $application->application_status)[1] ?? '';
+      }
+      $application->application_status = 'Approved by Registrar' . $registrarName;
       $application->action_history = ($application->action_history ?? '') . "\n" . now()->format('Y-m-d H:i:s') . " - Reconsidered by Dean: {$dean->fullname}" . ($request->reconsider_notes ? " (Notes: {$request->reconsider_notes})" : "");
       $application->save();
 
@@ -416,5 +423,25 @@ class ApplicationController extends Controller
 
       return back()->with('success', "Approve the proceedings with Case number: {$caseNumber}");
     }
+  }
+
+  public function deanviolationdecline($id)
+  {
+    $userDepartment = Auth::user()->department;
+
+    $violation = StudentViolation::findOrFail($id);
+
+    // Delete the violation record — dean has declined it
+    $studentId = $violation->student_id;
+    $violation->delete();
+
+    ViolationNotif::create([
+      'ref_num'    => 'DEAN-DECLINED',
+      'student_id' => $studentId,
+      'status'     => 0,
+      'notif'      => "Your minor violation has been declined by the Dean ({$userDepartment}). The record has been removed.",
+    ]);
+
+    return back()->with('success', 'Minor violation has been declined and removed.');
   }
 }

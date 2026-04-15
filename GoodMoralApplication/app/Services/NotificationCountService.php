@@ -3,7 +3,7 @@
 namespace App\Services;
 
 use App\Models\GoodMoralApplication;
-use App\Models\PsgApplication;
+use App\Models\StudentOfficerApplication;
 use App\Models\RoleAccount;
 use App\Models\StudentViolation;
 
@@ -18,7 +18,7 @@ class NotificationCountService
             'pendingApplications' => GoodMoralApplication::where('application_status', 'LIKE', 'Approved by Dean:%')
                 ->whereNotIn('application_status', ['Approved by Administrator', 'Rejected by Administrator'])
                 ->count(),
-            'psgApplications' => PsgApplication::where('status', 'pending')->count(),
+            'psgApplications' => StudentOfficerApplication::where('status', 'pending')->count(),
             'pendingViolations' => StudentViolation::where('status', 0)->count(),
             'escalationNotifications' => $this->getEscalationCount(),
         ];

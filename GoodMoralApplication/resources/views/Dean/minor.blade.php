@@ -65,20 +65,16 @@
                     ->count(); // Count all minor violations (pending, approved, resolved)
 
                   $statusColor = '#28a745'; // Green
-                  $statusIcon = '✅';
                   if ($minorCount >= 3) {
                     $statusColor = '#dc3545'; // Red
-                    $statusIcon = '🚨';
                   } elseif ($minorCount == 2) {
                     $statusColor = '#fd7e14'; // Orange
-                    $statusIcon = '⚠️';
                   } elseif ($minorCount == 1) {
                     $statusColor = '#ffc107'; // Yellow
-                    $statusIcon = '⚠️';
                   }
                 @endphp
                 <div style="font-size: 11px; padding: 2px 6px; border-radius: 3px; display: inline-block; background: {{ $statusColor }}20; color: {{ $statusColor }}; border: 1px solid {{ $statusColor }}40;">
-                  {{ $statusIcon }} {{ $minorCount }}/3 Minor Violations
+                  {{ $minorCount }}/3 Minor Violations
                 </div>
               </td>
               <td style="padding: 16px; color: #495057; font-size: 14px;">
@@ -94,14 +90,9 @@
               </td>
               <td style="padding: 16px; color: #495057; font-size: 14px;">
                 @if($student->added_by)
-                  <div style="display: flex; align-items: center; gap: 8px;">
-                    <svg style="width: 16px; height: 16px; color: #6c757d;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                    </svg>
-                    <div>
-                      <div style="font-weight: 500; color: #495057; font-size: 13px;">{{ $student->added_by }}</div>
-                      <div style="font-size: 11px; color: #6c757d;">PSG Officer</div>
-                    </div>
+                  <div>
+                    <div style="font-weight: 500; color: #495057; font-size: 13px;">{{ $student->added_by }}</div>
+                    <div style="font-size: 11px; color: #6c757d;">PSG Officer</div>
                   </div>
                 @else
                   <span style="color: #6c757d; font-size: 12px; font-style: italic;">Unknown</span>
@@ -110,41 +101,58 @@
               <td style="padding: 16px; color: #495057; font-size: 14px;">
                 @if($student->status == 0)
                   <span style="display: inline-block; padding: 6px 12px; background: #ffc107; color: #333; border-radius: 20px; font-size: 12px; font-weight: 500;">
-                    ⏳ Pending
+                    Pending
                   </span>
                 @elseif($student->status == 2)
                   <span style="display: inline-block; padding: 6px 12px; background: #28a745; color: white; border-radius: 20px; font-size: 12px; font-weight: 500;">
-                    ✅ Resolved
+                    Resolved
                   </span>
                 @else
                   <span style="display: inline-block; padding: 6px 12px; background: #17a2b8; color: white; border-radius: 20px; font-size: 12px; font-weight: 500;">
-                    🔄 In Progress
+                    In Progress
                   </span>
                 @endif
               </td>
               <td style="padding: 16px; color: #495057; font-size: 14px;">
                 @if($student->status == 2)
-                  <span style="color: #28a745; font-size: 12px; font-style: italic; padding: 8px 12px; background: #d4edda; border-radius: 6px; border: 1px solid #c3e6cb;">
-                    ✅ Fully Approved (Dean + Admin)
+                  <span style="color: #28a745; font-size: 12px; padding: 8px 12px; background: #d4edda; border-radius: 6px; border: 1px solid #c3e6cb; display: inline-block;">
+                    Fully Approved
                   </span>
                 @elseif($student->status == 1)
-                  <span style="color: #17a2b8; font-size: 12px; font-style: italic; padding: 8px 12px; background: #d1ecf1; border-radius: 6px; border: 1px solid #bee5eb;">
-                    📤 Dean Approved - Pending Admin Approval
+                  <span style="color: #17a2b8; font-size: 12px; padding: 8px 12px; background: #d1ecf1; border-radius: 6px; border: 1px solid #bee5eb; display: inline-block;">
+                    Pending Admin Approval
                   </span>
                 @else
-                  <form id="approve-form-{{ $student->id }}" action="{{ route('dean.violation.approve', $student->id) }}" method="POST" style="display: inline;">
-                    @csrf
-                    <button type="button"
-                            onclick="showApproveModal({{ $student->id }}, '{{ $student->first_name }} {{ $student->last_name }}')"
-                            style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s ease;"
-                            onmouseover="this.style.background='#218838'"
-                            onmouseout="this.style.background='#28a745'">
-                      <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                      </svg>
-                      Approve (Send to Admin)
-                    </button>
-                  </form>
+                  <div style="display: flex; gap: 8px; align-items: center;">
+                    <form id="approve-form-{{ $student->id }}" action="{{ route('dean.violation.approve', $student->id) }}" method="POST" style="display: inline;">
+                      @csrf
+                      <button type="button"
+                              onclick="showApproveModal({{ $student->id }}, '{{ $student->first_name }} {{ $student->last_name }}')"
+                              style="background: #28a745; color: #ffffff; border: none; padding: 8px 16px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 6px;"
+                              onmouseover="this.style.background='#218838'"
+                              onmouseout="this.style.background='#28a745'">
+                        <svg style="width: 13px; height: 13px; flex-shrink: 0;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Approve
+                      </button>
+                    </form>
+                    <form id="decline-form-{{ $student->id }}" action="{{ route('dean.violation.decline', $student->id) }}" method="POST" style="display: inline;">
+                      @csrf
+                      @method('DELETE')
+                      <button type="button"
+                              class="dean-btn-danger"
+                              onclick="showDeclineModal({{ $student->id }}, '{{ $student->first_name }} {{ $student->last_name }}')"
+                              style="color: #ffffff; border: none; padding: 8px 16px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 6px;"
+                              onmouseover="this.style.background='#c82333'"
+                              onmouseout="this.style.background='#dc3545'">
+                        <svg style="width: 13px; height: 13px; flex-shrink: 0;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                        Decline
+                      </button>
+                    </form>
+                  </div>
                 @endif
               </td>
             </tr>
@@ -185,12 +193,7 @@
     <div style="background: white; border-radius: 12px; padding: 0; max-width: 500px; width: 90%; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2); animation: slideDown 0.3s ease;">
       <!-- Modal Header -->
       <div style="padding: 24px; border-bottom: 1px solid #e9ecef; display: flex; align-items: center; gap: 12px;">
-        <div style="width: 48px; height: 48px; background: #28a74520; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-          <svg style="width: 24px; height: 24px; color: #28a745;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
-        </div>
-        <div style="flex: 1;">
+        <div>
           <h3 style="margin: 0; font-size: 18px; color: #333; font-weight: 600;">Approve Minor Violation</h3>
           <p style="margin: 4px 0 0; font-size: 13px; color: #6c757d;">Confirm your action</p>
         </div>
@@ -218,19 +221,60 @@
           Cancel
         </button>
         <button onclick="confirmApprove()" 
-                style="padding: 10px 24px; background: #28a745; color: white; border: none; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 8px;"
+                style="padding: 10px 24px; background: #28a745; color: white; border: none; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s ease;"
                 onmouseover="this.style.background='#218838'"
                 onmouseout="this.style.background='#28a745'">
-          <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-          </svg>
           Approve Violation
         </button>
       </div>
     </div>
   </div>
 
-  <style>
+  <!-- Decline Confirmation Modal -->
+  <div id="declineModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 9999; align-items: center; justify-content: center;">
+    <div style="background: white; border-radius: 12px; padding: 0; max-width: 500px; width: 90%; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2); animation: slideDown 0.3s ease;">
+      <!-- Modal Header -->
+      <div style="padding: 24px; border-bottom: 1px solid #e9ecef; display: flex; align-items: center; gap: 12px;">
+        <div>
+          <h3 style="margin: 0; font-size: 18px; color: #333; font-weight: 600;">Decline Minor Violation</h3>
+          <p style="margin: 4px 0 0; font-size: 13px; color: #6c757d;">Confirm your action</p>
+        </div>
+      </div>
+
+      <!-- Modal Body -->
+      <div style="padding: 24px;">
+        <p style="margin: 0 0 16px; font-size: 15px; color: #495057; line-height: 1.6;">
+          Are you sure you want to decline this minor violation for <strong id="declineStudentName" style="color: #dc3545;"></strong>?
+        </p>
+        <div style="background: #f8f9fa; padding: 16px; border-radius: 8px; border-left: 4px solid #dc3545;">
+          <p style="margin: 0; font-size: 13px; color: #495057; line-height: 1.5;">
+            This will permanently remove the violation record.<br>
+            This action <strong>cannot be undone</strong>.
+          </p>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div style="padding: 20px 24px; background: #f8f9fa; border-top: 1px solid #e9ecef; display: flex; gap: 12px; justify-content: flex-end; border-radius: 0 0 12px 12px;">
+        <button onclick="closeDeclineModal()"
+                style="padding: 10px 20px; background: white; color: #6c757d; border: 1px solid #dee2e6; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s ease;"
+                onmouseover="this.style.background='#e9ecef'"
+                onmouseout="this.style.background='white'">
+          Cancel
+        </button>
+        <button onclick="confirmDecline()"
+                class="dean-btn-danger"
+                style="padding: 10px 24px; color: white; border: none; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 8px;"
+                onmouseover="this.style.background='#c82333'"
+                onmouseout="this.style.background='#dc3545'">
+          <svg style="width: 15px; height: 15px; flex-shrink: 0;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+          Decline Violation
+        </button>
+      </div>
+    </div>
+  </div>
     @keyframes slideDown {
       from {
         opacity: 0;
@@ -241,10 +285,30 @@
         transform: translateY(0);
       }
     }
+
+    /* Ensure action button text stays white regardless of layout overrides */
+    .main-content table td button,
+    .main-content table td button:hover,
+    .main-content table td button:focus,
+    .main-content table td button:active,
+    .main-content table td button * {
+      color: #ffffff !important;
+    }
+
+    /* Force the Decline button red — the layout rule
+       button[type="submit"]:not([class]) overrides inline background on classless submit buttons */
+    .dean-btn-danger,
+    .dean-btn-danger:hover,
+    .dean-btn-danger:focus,
+    .dean-btn-danger:active {
+      background: #dc3545 !important;
+      color: #ffffff !important;
+    }
   </style>
 
   <script>
     let currentFormId = null;
+    let currentDeclineFormId = null;
 
     function showApproveModal(violationId, studentName) {
       currentFormId = 'approve-form-' + violationId;
@@ -267,17 +331,41 @@
       }
     }
 
-    // Close modal when clicking outside
-    document.getElementById('approveModal').addEventListener('click', function(e) {
-      if (e.target === this) {
-        closeApproveModal();
+    function showDeclineModal(violationId, studentName) {
+      currentDeclineFormId = 'decline-form-' + violationId;
+      document.getElementById('declineStudentName').textContent = studentName;
+      const modal = document.getElementById('declineModal');
+      modal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeDeclineModal() {
+      const modal = document.getElementById('declineModal');
+      modal.style.display = 'none';
+      document.body.style.overflow = 'auto';
+      currentDeclineFormId = null;
+    }
+
+    function confirmDecline() {
+      if (currentDeclineFormId) {
+        document.getElementById(currentDeclineFormId).submit();
       }
+    }
+
+    // Close modals when clicking outside
+    document.getElementById('approveModal').addEventListener('click', function(e) {
+      if (e.target === this) closeApproveModal();
     });
 
-    // Close modal with Escape key
+    document.getElementById('declineModal').addEventListener('click', function(e) {
+      if (e.target === this) closeDeclineModal();
+    });
+
+    // Close modals with Escape key
     document.addEventListener('keydown', function(e) {
       if (e.key === 'Escape') {
         closeApproveModal();
+        closeDeclineModal();
       }
     });
   </script>

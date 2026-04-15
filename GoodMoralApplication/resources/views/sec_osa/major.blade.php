@@ -2,86 +2,40 @@
   <x-slot name="roleTitle">Moderator</x-slot>
 
   <x-slot name="navigation">
-    <x-sec-osa-navigation />
+    <x-moderator-navigation />
   </x-slot>
 
   <!-- Header Section -->
   <div class="header-section">
-    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
-      <div>
-        <h1 class="role-title">Major Violations - Proceedings Management</h1>
-        <p class="welcome-text">Upload proceedings and forward cases to Admin</p>
-        <div class="accent-line"></div>
-      </div>
-
-      <!-- Statistics Cards -->
-      <div style="display: flex; gap: 16px; flex-wrap: wrap;">
-        <div style="background: #fff3cd; padding: 12px 16px; border-radius: 8px; border-left: 4px solid #ffc107;">
-          <div style="font-size: 24px; font-weight: 700; color: #856404;">{{ $pendingCount ?? 0 }}</div>
-          <div style="font-size: 12px; color: #856404; font-weight: 500;">Needs Proceedings</div>
-        </div>
-        <div style="background: #d1ecf1; padding: 12px 16px; border-radius: 8px; border-left: 4px solid #17a2b8;">
-          <div style="font-size: 24px; font-weight: 700; color: #0c5460;">{{ $proceedingsUploadedCount ?? 0 }}</div>
-          <div style="font-size: 12px; color: #0c5460; font-weight: 500;">Proceedings Uploaded</div>
-        </div>
-        <div style="background: #f8d7da; padding: 12px 16px; border-radius: 8px; border-left: 4px solid #e17055;">
-          <div style="font-size: 24px; font-weight: 700; color: #721c24;">{{ $forwardedCount ?? 0 }}</div>
-          <div style="font-size: 12px; color: #721c24; font-weight: 500;">Forwarded to Admin</div>
-        </div>
-        <div style="background: #d4edda; padding: 12px 16px; border-radius: 8px; border-left: 4px solid #28a745;">
-          <div style="font-size: 24px; font-weight: 700; color: #155724;">{{ $closedCount ?? 0 }}</div>
-          <div style="font-size: 12px; color: #155724; font-weight: 500;">Cases Closed</div>
-        </div>
-      </div>
-    </div>
+    <h1 class="role-title">Major Violations - Proceedings Management</h1>
+    <p class="welcome-text">Upload proceedings and forward cases to Admin</p>
+    <div class="accent-line"></div>
   </div>
   <!-- Status Messages -->
   @include('shared.alerts.flash')
 
-  <!-- Enhanced Search and Filter Form -->
+  <!-- Search and Filter Form -->
   <div style="background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow: hidden; margin-top: 24px;">
-    <div style="padding: 24px; border-bottom: 1px solid #e9ecef;">
-      <h3 style="margin: 0; color: var(--primary-green); font-size: 1.1rem; font-weight: 600;">Search & Filter Major Violations</h3>
+    <div style="padding: 16px 24px; border-bottom: 1px solid #e9ecef;">
+      <h3 style="margin: 0; color: var(--primary-green); font-size: 1rem; font-weight: 600;">Search & Filter Major Violations</h3>
     </div>
-    <form method="GET" action="{{ route('sec_osa.searchMajor') }}" style="padding: 24px;">
-      <!-- Primary Search Fields -->
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-bottom: 20px;">
+    <form method="GET" action="{{ route('sec_osa.searchMajor') }}" style="padding: 20px 24px;">
+      <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 12px; align-items: end;">
+
+        <!-- Search -->
         <div>
-          <label for="student_id" style="display: block; margin-bottom: 8px; font-weight: 500; color: #495057;">Student ID</label>
-          <input type="text" id="student_id" name="student_id"
-                 style="width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px;"
-                 value="{{ old('student_id', request('student_id')) }}"
-                 placeholder="Enter Student ID">
+          <label for="search" style="display: block; margin-bottom: 6px; font-weight: 500; color: #495057; font-size: 13px;">Search</label>
+          <input type="text" id="search" name="search"
+                 style="width: 100%; padding: 9px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;"
+                 value="{{ old('search', request('search') ?? implode(' ', array_filter([request('student_id'), request('ref_num')]))) }}"
+                 placeholder="Search student name, student ID, or case reference">
         </div>
+
+        <!-- Department -->
         <div>
-          <label for="first_name" style="display: block; margin-bottom: 8px; font-weight: 500; color: #495057;">First Name</label>
-          <input type="text" id="first_name" name="first_name"
-                 style="width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px;"
-                 value="{{ old('first_name', request('first_name')) }}"
-                 placeholder="Enter First Name">
-        </div>
-        <div>
-          <label for="last_name" style="display: block; margin-bottom: 8px; font-weight: 500; color: #495057;">Last Name</label>
-          <input type="text" id="last_name" name="last_name"
-                 style="width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px;"
-                 value="{{ old('last_name', request('last_name')) }}"
-                 placeholder="Enter Last Name">
-        </div>
-        <div>
-          <label for="ref_num" style="display: block; margin-bottom: 8px; font-weight: 500; color: #495057;">Case Reference</label>
-          <input type="text" id="ref_num" name="ref_num"
-                 style="width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px;"
-                 value="{{ old('ref_num', request('ref_num')) }}"
-                 placeholder="Enter Case Reference">
-        </div>
-      </div>
-      
-      <!-- Filter Fields -->
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px; padding-top: 20px; border-top: 1px solid #e9ecef;">
-        <div>
-          <label for="department" style="display: block; margin-bottom: 8px; font-weight: 500; color: #495057;">Department</label>
-          <select id="department" name="department" 
-                  style="width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px;">
+          <label for="department" style="display: block; margin-bottom: 6px; font-weight: 500; color: #495057; font-size: 13px;">Department</label>
+          <select id="department" name="department"
+                  style="width: 100%; padding: 9px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
             <option value="">All Departments</option>
             <option value="BSIT" {{ request('department') == 'BSIT' ? 'selected' : '' }}>BSIT</option>
             <option value="BLIS" {{ request('department') == 'BLIS' ? 'selected' : '' }}>BLIS</option>
@@ -101,10 +55,12 @@
             <option value="BSBAMOP" {{ request('department') == 'BSBAMOP' ? 'selected' : '' }}>BSBAMOP</option>
           </select>
         </div>
+
+        <!-- Case Status -->
         <div>
-          <label for="status" style="display: block; margin-bottom: 8px; font-weight: 500; color: #495057;">Case Status</label>
-          <select id="status" name="status" 
-                  style="width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px;">
+          <label for="status" style="display: block; margin-bottom: 6px; font-weight: 500; color: #495057; font-size: 13px;">Case Status</label>
+          <select id="status" name="status"
+                  style="width: 100%; padding: 9px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
             <option value="">All Status</option>
             <option value="0" {{ request('status') == '0' ? 'selected' : '' }}>Needs Proceedings</option>
             <option value="1" {{ request('status') == '1' ? 'selected' : '' }}>Proceedings Uploaded</option>
@@ -112,40 +68,29 @@
             <option value="2" {{ request('status') == '2' ? 'selected' : '' }}>Case Closed</option>
           </select>
         </div>
+
+        <!-- Date Range -->
         <div>
-          <label for="has_proceedings" style="display: block; margin-bottom: 8px; font-weight: 500; color: #495057;">Proceedings</label>
-          <select id="has_proceedings" name="has_proceedings" 
-                  style="width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px;">
-            <option value="">All Cases</option>
-            <option value="1" {{ request('has_proceedings') == '1' ? 'selected' : '' }}>With Proceedings</option>
-            <option value="0" {{ request('has_proceedings') == '0' ? 'selected' : '' }}>No Proceedings</option>
-          </select>
+          <label style="display: block; margin-bottom: 6px; font-weight: 500; color: #495057; font-size: 13px;">Date Range</label>
+          <div style="display: flex; gap: 4px; align-items: center;">
+            <input type="date" name="date_from"
+                   style="width: 100%; padding: 9px 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px;"
+                   value="{{ old('date_from', request('date_from')) }}"
+                   title="Date From">
+            <span style="color: #adb5bd; font-size: 12px; flex-shrink: 0;">–</span>
+            <input type="date" name="date_to"
+                   style="width: 100%; padding: 9px 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px;"
+                   value="{{ old('date_to', request('date_to')) }}"
+                   title="Date To">
+          </div>
         </div>
-        <div>
-          <label for="date_from" style="display: block; margin-bottom: 8px; font-weight: 500; color: #495057;">Date From</label>
-          <input type="date" id="date_from" name="date_from"
-                 style="width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px;"
-                 value="{{ old('date_from', request('date_from')) }}">
+
+        <!-- Buttons -->
+        <div style="display: flex; gap: 6px;">
+          <button type="submit" class="btn btn-success btn-sm">Apply</button>
+          <a href="{{ route('sec_osa.major') }}" class="btn btn-secondary btn-sm">Clear</a>
         </div>
-        <div>
-          <label for="date_to" style="display: block; margin-bottom: 8px; font-weight: 500; color: #495057;">Date To</label>
-          <input type="date" id="date_to" name="date_to"
-                 style="width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px;"
-                 value="{{ old('date_to', request('date_to')) }}">
-        </div>
-      </div>
-      
-      <!-- Action Buttons -->
-      <div style="display: flex; gap: 12px; align-items: center;">
-        <button type="submit" class="btn-primary">Apply Filters</button>
-        <a href="{{ route('sec_osa.major') }}" class="btn-secondary">Clear All</a>
-        <div style="margin-left: auto; color: #6c757d; font-size: 14px;">
-          @if(request()->hasAny(['student_id', 'first_name', 'last_name', 'ref_num', 'department', 'status', 'has_proceedings', 'date_from', 'date_to']))
-            <span style="background: #007bff; color: white; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 500;">
-              Filters Active
-            </span>
-          @endif
-        </div>
+
       </div>
     </form>
   </div>

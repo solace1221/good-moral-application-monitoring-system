@@ -4,6 +4,7 @@ namespace App\Http\Controllers\GoodMoral;
 use App\Http\Controllers\Controller;
 
 use App\Models\ViolationNotif;
+use App\Models\Violation;
 use App\Models\Receipt;
 use Illuminate\Support\Str;
 use App\Models\GoodMoralApplication;
@@ -269,9 +270,10 @@ class ApplicationController extends Controller
 
     $studentId = $roleAccount->student_id;
 
-    // Fetch notifications for the authenticated user using the student_id
-    $notifications = ViolationNotif::where('student_id', $studentId)
-      ->orderBy('created_at', 'desc') // Optional: Order by latest notifications first
+    // Fetch all notifications for the authenticated user
+    $allNotifications = ViolationNotif::with('studentViolation.violation')
+      ->where('student_id', $studentId)
+      ->orderBy('created_at', 'desc')
       ->get();
 
     // Mark all violation notifications as read when viewed
@@ -279,8 +281,15 @@ class ApplicationController extends Controller
       ->where('status', 0)
       ->update(['status' => 1]);
 
+    // Group by ref_num — keep latest notification per violation case for table display
+    $notifications = $allNotifications->groupBy('ref_num')->map(fn ($group) => $group->first());
+
+    // Build article lookup from violations table (since violation_id may be NULL on student_violations)
+    $violationTexts = $notifications->pluck('studentViolation.violation')->filter()->unique()->values();
+    $articleMap = Violation::whereIn('description', $violationTexts)->pluck('article', 'description');
+
     // Return the view with the notifications
-    return view('notificationViolation', compact('notifications'));
+    return view('notificationViolation', compact('notifications', 'articleMap'));
   }
 
   /**

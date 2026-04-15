@@ -1,4 +1,4 @@
-<x-dashboard-layout>
+﻿<x-dashboard-layout>
   <x-slot name="roleTitle">Dean</x-slot>
 
   <x-slot name="navigation">
@@ -95,12 +95,7 @@
                 </span>
               </td>
               <td style="padding: 16px; color: #495057; font-size: 14px;">
-                <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                  <!-- Debug: Show application status -->
-                  <small style="display: block; color: #666; margin-bottom: 4px; font-size: 10px; background: #f8f9fa; padding: 2px 6px; border-radius: 3px; width: 100%;">
-                    Status: "{{ $application->application_status }}" | ID: {{ $application->id }}
-                  </small>
-                  
+                <div style="display: flex; gap: 8px; align-items: center;">
                   <!-- View Details Button -->
                   <button onclick="viewGoodMoralDetails({{ json_encode($application) }})"
                           style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s ease;"
@@ -129,56 +124,17 @@
                       </button>
                     </form>
 
-                    <!-- Reject Button (Direct Form) -->
+                                        <!-- Reject Button -->
                     <button type="button"
-                            data-bs-toggle="modal" 
-                            data-bs-target="#rejectFormModal{{ $application->id }}"
+                            onclick="openRejectModal({{ $application->id }})"
                             style="background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s ease;"
                             onmouseover="this.style.background='#c82333'"
                             onmouseout="this.style.background='#dc3545'">
-                      <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg style="width: 14px; height: 14px;" fill="none" stroke="white" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                       </svg>
                       Reject
                     </button>
-                    
-                    <!-- Reject Modal for this specific application -->
-                    <div class="modal fade" id="rejectFormModal{{ $application->id }}" tabindex="-1" aria-labelledby="rejectFormModalLabel{{ $application->id }}" aria-hidden="true">
-                      <div class="modal-dialog">
-                        <div class="modal-content">
-                          <div class="modal-header">
-                            <h5 class="modal-title" id="rejectFormModalLabel{{ $application->id }}" style="color: #dc3545; font-weight: 600;">Reject Application</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                          </div>
-                          <form action="{{ route('dean.reject', $application->id) }}" method="POST">
-                            @csrf
-                            @method('PATCH')
-                            <div class="modal-body">
-                              <div class="mb-3">
-                                <label for="rejection_reason{{ $application->id }}" class="form-label" style="font-weight: 600; color: #333; margin-bottom: 8px;">Rejection Reason <span style="color: #dc3545;">*</span></label>
-                                <select class="form-control" id="rejection_reason{{ $application->id }}" name="rejection_reason" required style="width: 100%; padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px;">
-                                  <option value="">Select a reason</option>
-                                  <option value="Incomplete Documents">Incomplete Documents</option>
-                                  <option value="Invalid Information">Invalid Information</option>
-                                  <option value="Outstanding Violations">Outstanding Violations</option>
-                                  <option value="Eligibility Requirements Not Met">Eligibility Requirements Not Met</option>
-                                  <option value="Department Policy Violation">Department Policy Violation</option>
-                                  <option value="Other">Other</option>
-                                </select>
-                              </div>
-                              <div class="mb-3">
-                                <label for="rejection_details{{ $application->id }}" class="form-label" style="font-weight: 600; color: #333; margin-bottom: 8px;">Additional Details</label>
-                                <textarea class="form-control" id="rejection_details{{ $application->id }}" name="rejection_details" rows="4" placeholder="Please provide additional details about the rejection..." style="width: 100%; padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px; resize: vertical;"></textarea>
-                              </div>
-                            </div>
-                            <div class="modal-footer">
-                              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">Cancel</button>
-                              <button type="submit" class="btn btn-danger" style="background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">Reject Application</button>
-                            </div>
-                          </form>
-                        </div>
-                      </div>
-                    </div>
                   @else
                     <span style="color: #6c757d; font-size: 12px; font-style: italic; padding: 8px 12px; background: #f8f9fa; border-radius: 6px;">
                       Already Processed
@@ -236,12 +192,7 @@
                 </span>
               </td>
               <td style="padding: 16px; color: #495057; font-size: 14px;">
-                <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                  <!-- Debug: Show application status for Good Moral tab -->
-                  <small style="display: block; color: #666; margin-bottom: 4px; font-size: 10px; background: #e3f2fd; padding: 2px 6px; border-radius: 3px; width: 100%;">
-                    Good Moral Tab - Status: "{{ $application->application_status }}" | ID: {{ $application->id }}
-                  </small>
-                  
+                <div style="display: flex; gap: 8px; align-items: center;">
                   <!-- View Details Button -->
                   <button onclick="viewGoodMoralDetails({{ json_encode($application) }})"
                           style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s ease;"
@@ -270,56 +221,17 @@
                       </button>
                     </form>
 
-                    <!-- Reject Button (Direct Form) -->
+                                        <!-- Reject Button -->
                     <button type="button"
-                            data-bs-toggle="modal" 
-                            data-bs-target="#rejectFormModal{{ $application->id }}"
+                            onclick="openRejectModal({{ $application->id }})"
                             style="background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s ease;"
                             onmouseover="this.style.background='#c82333'"
                             onmouseout="this.style.background='#dc3545'">
-                      <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg style="width: 14px; height: 14px;" fill="none" stroke="white" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                       </svg>
                       Reject
                     </button>
-                    
-                    <!-- Reject Modal for this specific application -->
-                    <div class="modal fade" id="rejectFormModal{{ $application->id }}" tabindex="-1" aria-labelledby="rejectFormModalLabel{{ $application->id }}" aria-hidden="true">
-                      <div class="modal-dialog">
-                        <div class="modal-content">
-                          <div class="modal-header">
-                            <h5 class="modal-title" id="rejectFormModalLabel{{ $application->id }}" style="color: #dc3545; font-weight: 600;">Reject Application</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                          </div>
-                          <form action="{{ route('dean.reject', $application->id) }}" method="POST">
-                            @csrf
-                            @method('PATCH')
-                            <div class="modal-body">
-                              <div class="mb-3">
-                                <label for="rejection_reason{{ $application->id }}" class="form-label" style="font-weight: 600; color: #333; margin-bottom: 8px;">Rejection Reason <span style="color: #dc3545;">*</span></label>
-                                <select class="form-control" id="rejection_reason{{ $application->id }}" name="rejection_reason" required style="width: 100%; padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px;">
-                                  <option value="">Select a reason</option>
-                                  <option value="Incomplete Documents">Incomplete Documents</option>
-                                  <option value="Invalid Information">Invalid Information</option>
-                                  <option value="Outstanding Violations">Outstanding Violations</option>
-                                  <option value="Eligibility Requirements Not Met">Eligibility Requirements Not Met</option>
-                                  <option value="Department Policy Violation">Department Policy Violation</option>
-                                  <option value="Other">Other</option>
-                                </select>
-                              </div>
-                              <div class="mb-3">
-                                <label for="rejection_details{{ $application->id }}" class="form-label" style="font-weight: 600; color: #333; margin-bottom: 8px;">Additional Details</label>
-                                <textarea class="form-control" id="rejection_details{{ $application->id }}" name="rejection_details" rows="4" placeholder="Please provide additional details about the rejection..." style="width: 100%; padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px; resize: vertical;"></textarea>
-                              </div>
-                            </div>
-                            <div class="modal-footer">
-                              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">Cancel</button>
-                              <button type="submit" class="btn btn-danger" style="background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">Reject Application</button>
-                            </div>
-                          </form>
-                        </div>
-                      </div>
-                    </div>
                   @else
                     <span style="color: #6c757d; font-size: 12px; font-style: italic; padding: 8px 12px; background: #f8f9fa; border-radius: 6px;">
                       Already Processed
@@ -377,7 +289,7 @@
                 </span>
               </td>
               <td style="padding: 16px; color: #495057; font-size: 14px;">
-                <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                <div style="display: flex; gap: 8px; align-items: center;">
                   <!-- View Details Button -->
                   <button onclick="viewGoodMoralDetails({{ json_encode($application) }})"
                           style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s ease;"
@@ -406,56 +318,17 @@
                       </button>
                     </form>
 
-                    <!-- Reject Button (Direct Form) -->
+                                        <!-- Reject Button -->
                     <button type="button"
-                            data-bs-toggle="modal" 
-                            data-bs-target="#rejectFormModal{{ $application->id }}"
+                            onclick="openRejectModal({{ $application->id }})"
                             style="background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s ease;"
                             onmouseover="this.style.background='#c82333'"
                             onmouseout="this.style.background='#dc3545'">
-                      <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg style="width: 14px; height: 14px;" fill="none" stroke="white" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                       </svg>
                       Reject
                     </button>
-                    
-                    <!-- Reject Modal for this specific application -->
-                    <div class="modal fade" id="rejectFormModal{{ $application->id }}" tabindex="-1" aria-labelledby="rejectFormModalLabel{{ $application->id }}" aria-hidden="true">
-                      <div class="modal-dialog">
-                        <div class="modal-content">
-                          <div class="modal-header">
-                            <h5 class="modal-title" id="rejectFormModalLabel{{ $application->id }}" style="color: #dc3545; font-weight: 600;">Reject Application</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                          </div>
-                          <form action="{{ route('dean.reject', $application->id) }}" method="POST">
-                            @csrf
-                            @method('PATCH')
-                            <div class="modal-body">
-                              <div class="mb-3">
-                                <label for="rejection_reason{{ $application->id }}" class="form-label" style="font-weight: 600; color: #333; margin-bottom: 8px;">Rejection Reason <span style="color: #dc3545;">*</span></label>
-                                <select class="form-control" id="rejection_reason{{ $application->id }}" name="rejection_reason" required style="width: 100%; padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px;">
-                                  <option value="">Select a reason</option>
-                                  <option value="Incomplete Documents">Incomplete Documents</option>
-                                  <option value="Invalid Information">Invalid Information</option>
-                                  <option value="Outstanding Violations">Outstanding Violations</option>
-                                  <option value="Eligibility Requirements Not Met">Eligibility Requirements Not Met</option>
-                                  <option value="Department Policy Violation">Department Policy Violation</option>
-                                  <option value="Other">Other</option>
-                                </select>
-                              </div>
-                              <div class="mb-3">
-                                <label for="rejection_details{{ $application->id }}" class="form-label" style="font-weight: 600; color: #333; margin-bottom: 8px;">Additional Details</label>
-                                <textarea class="form-control" id="rejection_details{{ $application->id }}" name="rejection_details" rows="4" placeholder="Please provide additional details about the rejection..." style="width: 100%; padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px; resize: vertical;"></textarea>
-                              </div>
-                            </div>
-                            <div class="modal-footer">
-                              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">Cancel</button>
-                              <button type="submit" class="btn btn-danger" style="background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">Reject Application</button>
-                            </div>
-                          </form>
-                        </div>
-                      </div>
-                    </div>
                   @else
                     <span style="color: #6c757d; font-size: 12px; font-style: italic; padding: 8px 12px; background: #f8f9fa; border-radius: 6px;">
                       Already Processed
@@ -472,23 +345,59 @@
     @endif
   </div>
 
+  <!-- Shared Reject Modal -->
+  <div id="deanRejectModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; padding: 16px;">
+    <div style="background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); width: 100%; max-width: 500px; max-height: 90vh; display: flex; flex-direction: column;">
+      <!-- Fixed Header -->
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid #e9ecef; flex-shrink: 0;">
+        <h2 style="margin: 0; color: #dc3545; font-size: 1.25rem; font-weight: 600;">Reject Application</h2>
+        <button onclick="closeDeanRejectModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #6c757d; line-height: 1;">&times;</button>
+      </div>
+      <!-- Scrollable Body + Fixed Footer inside form -->
+      <form id="deanRejectForm" method="POST" action="" style="display: flex; flex-direction: column; overflow: hidden; flex: 1;">
+        @csrf
+        @method('PATCH')
+        <div style="padding: 24px; overflow-y: auto; flex: 1; display: grid; gap: 16px;">
+          <div>
+            <label style="display: block; font-weight: 600; color: #333; margin-bottom: 8px;">Rejection Reason <span style="color: #dc3545;">*</span></label>
+            <select name="rejection_reason" required style="width: 100%; padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px; background: white;">
+              <option value="">Select a reason</option>
+              <option value="Incomplete Documents">Incomplete Documents</option>
+              <option value="Invalid Information">Invalid Information</option>
+              <option value="Outstanding Violations">Outstanding Violations</option>
+              <option value="Eligibility Requirements Not Met">Eligibility Requirements Not Met</option>
+              <option value="Department Policy Violation">Department Policy Violation</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label style="display: block; font-weight: 600; color: #333; margin-bottom: 8px;">Additional Details</label>
+            <textarea name="rejection_details" rows="4" placeholder="Please provide additional details about the rejection..." style="width: 100%; padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px; resize: vertical; box-sizing: border-box;"></textarea>
+          </div>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 12px; padding: 16px 24px; border-top: 1px solid #e9ecef; flex-shrink: 0;">
+          <button type="button" onclick="closeDeanRejectModal()" style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500;">Cancel</button>
+          <button type="submit" style="background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500;">Reject Application</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- View Details Modal -->
-  <div id="detailsModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
-    <div style="background: white; padding: 24px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 600px; margin: 20px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+  <div id="detailsModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 16px;">
+    <div style="background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 600px; max-height: 90vh; display: flex; flex-direction: column;">
+      <!-- Modal Header -->
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid #dee2e6; flex-shrink: 0;">
         <h2 style="margin: 0; color: var(--primary-green); font-size: 1.25rem; font-weight: 600;">Application Details</h2>
         <button onclick="closeModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #6c757d;">&times;</button>
       </div>
 
-      <div id="modalContent" style="display: grid; gap: 16px;">
+      <!-- Modal Body (scrollable) -->
+      <div id="modalContent" style="display: grid; gap: 16px; padding: 24px; overflow-y: auto; flex: 1 1 auto;">
         <!-- Content will be populated by JavaScript -->
       </div>
 
-      <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
-        <button onclick="closeModal()" style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">
-          Close
-        </button>
-      </div>
+
     </div>
   </div>
 
@@ -543,6 +452,17 @@
     @keyframes spin {
       from { transform: rotate(0deg); }
       to { transform: rotate(360deg); }
+    }
+
+    /* Override the layout's .main-content * { color: inherit !important } rule.
+       That rule causes action buttons to pick up the dark #2c3e50 parent color
+       instead of their own white. Higher specificity wins among !important rules. */
+    .main-content table td button,
+    .main-content table td button:hover,
+    .main-content table td button:focus,
+    .main-content table td button:active,
+    .main-content table td button * {
+      color: #ffffff !important;
     }
   </style>
 
@@ -751,6 +671,20 @@
       }
     });
 
+    // Dean Reject Modal Functions
+    function openRejectModal(applicationId) {
+      const modal = document.getElementById('deanRejectModal');
+      const form = document.getElementById('deanRejectForm');
+      form.action = `/dean/good-moral/${applicationId}/reject`;
+      form.querySelector('select[name="rejection_reason"]').value = '';
+      form.querySelector('textarea[name="rejection_details"]').value = '';
+      modal.style.display = 'flex';
+    }
+
+    function closeDeanRejectModal() {
+      document.getElementById('deanRejectModal').style.display = 'none';
+    }
+
     // Close modal when clicking outside
     document.getElementById('detailsModal').addEventListener('click', function(e) {
       if (e.target === this) {
@@ -761,6 +695,12 @@
     document.getElementById('approveModal').addEventListener('click', function(e) {
       if (e.target === this) {
         closeApproveModal();
+      }
+    });
+
+    document.getElementById('deanRejectModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeDeanRejectModal();
       }
     });
   </script>

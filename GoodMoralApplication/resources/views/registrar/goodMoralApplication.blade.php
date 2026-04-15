@@ -107,7 +107,7 @@
             <th style="padding: 16px; text-align: left; font-weight: 600; color: #495057; font-size: 14px; width: 15%;">Department</th>
             <th style="padding: 16px; text-align: left; font-weight: 600; color: #495057; font-size: 14px; width: 12%;">Status</th>
             <th style="padding: 16px; text-align: left; font-weight: 600; color: #495057; font-size: 14px; width: 13%;">Date</th>
-            <th style="padding: 16px; text-align: left; font-weight: 600; color: #495057; font-size: 14px; width: 28%;">Actions</th>
+            <th style="padding: 16px; text-align: left; font-weight: 600; color: #495057; font-size: 14px; width: 10%;">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -134,62 +134,58 @@
             <td style="padding: 16px; color: #495057; font-size: 14px;">
               {{ $application->status === 'pending' ? $application->created_at->format('M d, Y') : $application->updated_at->format('M d, Y') }}
             </td>
-            <td style="padding: 16px; color: #495057; font-size: 14px; min-width: 260px;">
-              <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; min-height: 38px;">
-                <!-- View Details Button -->
+            <td style="padding: 16px; color: #495057; font-size: 14px;">
+              <div style="display: flex; gap: 6px; align-items: center;">
+                <!-- View -->
                 <button onclick="viewDetails({{ json_encode($application) }})"
-                        style="background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; display: inline-block; transition: all 0.2s ease; min-width: 90px; text-align: center; line-height: 1.5;"
+                        style="background: #007bff; border: none; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.2s ease;"
                         onmouseover="this.style.background='#0056b3'"
-                        onmouseout="this.style.background='#007bff'">
-                  <span style="display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
-                    <svg style="width: 14px; height: 14px; flex-shrink: 0;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                    </svg>
-                    View
-                  </span>
+                        onmouseout="this.style.background='#007bff'"
+                        title="View application details">
+                  <svg style="width: 15px; height: 15px;" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                  </svg>
                 </button>
 
                 @if($application->status == 'pending')
-                  <!-- Approve Button -->
+                  <!-- Approve -->
                   <button type="button"
                           onclick="openApproveModal({{ $application->id }}, '{{ $application->student->fullname }}', '{{ $application->reference_number }}')"
-                          style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s ease;"
+                          style="background: #28a745; border: none; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.2s ease;"
                           onmouseover="this.style.background='#218838'"
-                          onmouseout="this.style.background='#28a745'">
-                    <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                          onmouseout="this.style.background='#28a745'"
+                          title="Approve application">
+                    <svg style="width: 15px; height: 15px;" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
                     </svg>
-                    Approve
                   </button>
 
-                  <!-- Reject Button -->
+                  <!-- Reject -->
                   <button type="button"
                           onclick="openRejectModal({{ $application->id }}, 'registrar')"
-                          style="background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s ease;"
+                          style="background: #dc3545; border: none; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.2s ease;"
                           onmouseover="this.style.background='#c82333'"
-                          onmouseout="this.style.background='#dc3545'">
-                    <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                          onmouseout="this.style.background='#dc3545'"
+                          title="Reject application">
+                    <svg style="width: 15px; height: 15px;" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
-                    Reject
                   </button>
                 @elseif($application->status == 'rejected')
-                  <!-- Reconsider Button -->
+                  <!-- Reconsider -->
                   <button type="button"
                           onclick="openReconsiderModal({{ $application->id }}, 'registrar')"
-                          style="background: #ffc107; color: #212529; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s ease;"
+                          style="background: #ffc107; border: none; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.2s ease;"
                           onmouseover="this.style.background='#e0a800'"
-                          onmouseout="this.style.background='#ffc107'">
-                    <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                          onmouseout="this.style.background='#ffc107'"
+                          title="Reconsider application">
+                    <svg style="width: 15px; height: 15px;" fill="none" stroke="#212529" stroke-width="2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                     </svg>
-                    Reconsider
                   </button>
                 @else
-                  <span style="color: #6c757d; font-size: 12px; font-style: italic; padding: 8px 12px; background: #f8f9fa; border-radius: 6px;">
-                    {{ $application->status == 'approved' ? 'Already Approved' : 'Already Processed' }}
-                  </span>
+                  <span style="color: #6c757d; font-size: 11px; font-style: italic;">—</span>
                 @endif
               </div>
             </td>
@@ -204,64 +200,6 @@
       {{ $applications->appends(request()->query())->links() }}
     </div>
   </div>
-
-  <!-- Recent Activity Section -->
-  @if($recentProcessed->isNotEmpty())
-  <div style="background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow: hidden;">
-    <div style="padding: 24px; border-bottom: 1px solid #e9ecef;">
-      <h2 style="margin: 0; color: var(--primary-green); font-size: 1.25rem; font-weight: 600;">Recent Activity</h2>
-      <p style="margin: 8px 0 0 0; color: #6c757d; font-size: 14px;">Recently processed applications</p>
-    </div>
-    <div style="padding: 24px;">
-      @foreach($recentProcessed as $recent)
-      <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px; border: 1px solid #e9ecef; border-radius: 8px; margin-bottom: 12px; transition: all 0.2s ease;"
-           onmouseover="this.style.background='#f8f9fa'"
-           onmouseout="this.style.background='white'">
-        <div style="display: flex; align-items: center; gap: 16px;">
-          <div style="width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-                      background: {{ $recent->status === 'approved' ? '#28a74520' : '#dc354520' }};">
-            @if($recent->status === 'approved')
-              <svg style="width: 20px; height: 20px; color: #28a745;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-              </svg>
-            @else
-              <svg style="width: 20px; height: 20px; color: #dc3545;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-              </svg>
-            @endif
-          </div>
-          <div>
-            <div style="font-weight: 600; color: #495057; margin-bottom: 4px;">
-              {{ $recent->student->fullname }} ({{ $recent->student->student_id }})
-            </div>
-            <div style="font-size: 14px; color: #6c757d;">
-              Application {{ $recent->status }} • {{ $recent->updated_at->diffForHumans() }}
-            </div>
-          </div>
-        </div>
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <span style="display: inline-block; padding: 6px 12px;
-                       background: {{ $recent->status === 'approved' ? '#28a74520' : '#dc354520' }};
-                       color: {{ $recent->status === 'approved' ? '#28a745' : '#dc3545' }};
-                       border-radius: 20px; font-size: 12px; font-weight: 500;">
-            {{ ucfirst($recent->status) }}
-          </span>
-          <button onclick="viewDetails({{ json_encode($recent) }})"
-                  style="background: #007bff; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; display: inline-block; min-width: 70px; text-align: center; line-height: 1.5;">
-            <span style="display: inline-flex; align-items: center; justify-content: center; gap: 4px;">
-              <svg style="width: 12px; height: 12px; flex-shrink: 0;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-              </svg>
-              View
-            </span>
-          </button>
-        </div>
-      </div>
-      @endforeach
-    </div>
-  </div>
-  @endif
 
   <!-- Reject Modal -->
   <div id="rejectModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
@@ -356,18 +294,21 @@
   </div>
 
   <!-- View Details Modal -->
-  <div id="detailsModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
-    <div style="background: white; padding: 24px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 500px; margin: 20px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+  <div id="detailsModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 16px;">
+    <div style="background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); width: 100%; max-width: 500px; max-height: 90vh; display: flex; flex-direction: column;">
+      <!-- Fixed Header -->
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid #e9ecef; flex-shrink: 0;">
         <h2 style="margin: 0; color: var(--primary-green); font-size: 1.25rem; font-weight: 600;">Application Details</h2>
-        <button onclick="closeModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #6c757d;">&times;</button>
+        <button onclick="closeModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #6c757d; line-height: 1;">&times;</button>
       </div>
 
-      <div id="modalContent" style="display: grid; gap: 16px;">
+      <!-- Scrollable Body -->
+      <div id="modalContent" style="display: grid; gap: 16px; padding: 24px; overflow-y: auto;">
         <!-- Content will be populated by JavaScript -->
       </div>
 
-      <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+      <!-- Fixed Footer -->
+      <div style="display: flex; justify-content: flex-end; gap: 12px; padding: 16px 24px; border-top: 1px solid #e9ecef; flex-shrink: 0;">
         <button onclick="closeModal()" style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">
           Close
         </button>

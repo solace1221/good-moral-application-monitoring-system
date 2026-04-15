@@ -129,6 +129,11 @@
                     } else {
                       $progressMsg = 'Your application has been rejected.';
                     }
+                  } elseif ($application->application_status === 'Claimed') {
+                    $statusColor = '#6f42c1';
+                    $statusText = 'Claimed';
+                    $statusBg = '#6f42c120';
+                    $progressMsg = 'Your certificate has been claimed. Thank you!';
                   } elseif (str_contains($application->application_status, 'Ready for Pickup') || str_contains($application->application_status, 'Ready for Moderator Print')) {
                     $statusColor = '#28a745';
                     $statusText = 'Ready for Pickup';
@@ -272,14 +277,26 @@
           </div>
         </div>
 
-        <!-- Step 5: Ready for Pickup (no connector line below) -->
+        <!-- Step 5: Ready for Pickup -->
         <div style="display:flex; align-items:flex-start; gap:14px;">
           <div style="display:flex; flex-direction:column; align-items:center; flex-shrink:0;">
             <div id="wf-icon-4" style="width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;border:2px solid #dee2e6;background:#f8f9fa;color:#adb5bd;"></div>
+            <div id="wf-line-4" style="width:2px;height:26px;background:#e9ecef;margin:3px 0;"></div>
           </div>
           <div style="padding-top:6px; flex:1;">
             <div style="font-weight:600; font-size:14px; color:#333;">Ready for Pickup at OSA</div>
             <div id="wf-note-4" style="font-size:12px; color:#6c757d; margin-top:2px;"></div>
+          </div>
+        </div>
+
+        <!-- Step 6: Certificate Claimed (no connector line below) -->
+        <div style="display:flex; align-items:flex-start; gap:14px;">
+          <div style="display:flex; flex-direction:column; align-items:center; flex-shrink:0;">
+            <div id="wf-icon-5" style="width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;border:2px solid #dee2e6;background:#f8f9fa;color:#adb5bd;"></div>
+          </div>
+          <div style="padding-top:6px; flex:1;">
+            <div style="font-weight:600; font-size:14px; color:#333;">Certificate Claimed</div>
+            <div id="wf-note-5" style="font-size:12px; color:#6c757d; margin-top:2px;"></div>
           </div>
         </div>
       </div>
@@ -372,6 +389,7 @@
 <script>
 function _wfGetStepState(appStatus) {
   if (!appStatus) return { current: 0, rejected: -1 };
+  if (appStatus === 'Claimed')                                         return { current: 6, rejected: -1 };
   if (appStatus.includes('Ready') || appStatus.includes('Printed'))   return { current: 5, rejected: -1 };
   if (appStatus.includes('Approved by Administrator'))                 return { current: 4, rejected: -1 };
   if (appStatus.includes('Receipt Uploaded'))                          return { current: 3, rejected: -1 };
@@ -391,6 +409,7 @@ var _wfNotes = [
   'Dean approved. Please upload your payment receipt.',
   'Receipt received. Awaiting Administrator approval.',
   'Approved. Your certificate will be ready for pickup at the Office of Student Affairs (OSA).',
+  'Your certificate has been claimed. Thank you!',
 ];
 
 function _wfSetIcon(i, bg, borderColor, color, symbol) {
@@ -399,9 +418,9 @@ function _wfSetIcon(i, bg, borderColor, color, symbol) {
   el.style.borderColor    = borderColor;
   el.style.color          = color;
   el.textContent          = symbol;
-  if (i < 4) {
-    document.getElementById('wf-line-' + i).style.background =
-      (borderColor === '#28a745') ? '#28a745' : '#e9ecef';
+  if (i < 5) {
+    var line = document.getElementById('wf-line-' + i);
+    if (line) line.style.background = (borderColor === '#28a745' || borderColor === '#6f42c1') ? borderColor : '#e9ecef';
   }
 }
 
@@ -418,16 +437,20 @@ function openAppModal(ref, certType, appStatus, statusText, statusColor, statusB
   var current  = state.current;
   var rejected = state.rejected;
 
-  for (var i = 0; i < 5; i++) {
+  for (var i = 0; i < 6; i++) {
     var note = document.getElementById('wf-note-' + i);
     if (rejected >= 0) {
       if (i < rejected)      { _wfSetIcon(i, '#d4edda', '#28a745', '#155724', '✓'); note.textContent = ''; }
       else if (i === rejected){ _wfSetIcon(i, '#f8d7da', '#dc3545', '#721c24', '✕'); note.textContent = 'Rejected at this stage.'; }
       else                    { _wfSetIcon(i, '#f8f9fa', '#dee2e6', '#adb5bd', '○'); note.textContent = ''; }
+    } else if (current === 6) {
+      // All steps complete (Claimed)
+      _wfSetIcon(i, '#e8d5ff', '#6f42c1', '#4a1f8a', '✓');
+      note.textContent = (i === 5) ? _wfNotes[5] : '';
     } else if (i < current) {
       _wfSetIcon(i, '#d4edda', '#28a745', '#155724', '✓');
       note.textContent = '';
-    } else if (i === current && current < 5) {
+    } else if (i === current && current < 6) {
       _wfSetIcon(i, '#fff3cd', '#ffc107', '#856404', '●');
       note.textContent = _wfNotes[i] || '';
     } else {

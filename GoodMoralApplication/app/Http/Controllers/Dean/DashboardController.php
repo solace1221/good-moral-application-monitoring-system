@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Dean;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\Department;
 use App\Models\GoodMoralApplication;
+use App\Models\HistoricalViolationTrend;
 use App\Models\StudentViolation;
 use App\Models\Violation;
 use App\Services\DashboardStatsService;
@@ -35,8 +37,20 @@ class DashboardController extends Controller
     // Get frequency filter from request
     $frequency = $request->get('frequency', 'all');
 
-    // Get per-course application counts from service (replaces 37 individual queries)
-    $courseCounts = $this->statsService->getApplicationCountsByCourse($department, $frequency);
+    // AY 2025-2026 boundaries — program-level data exists only for the current year.
+    // Historical AYs (2023-2024, 2024-2025) were imported as dept-level aggregates.
+    $currentAyStart = '2025-06-01 00:00:00';
+    $currentAyEnd   = '2026-05-31 23:59:59';
+
+    // Applications by Program — AY 2025-2026 only
+    $courseList   = DashboardStatsService::getDepartmentCoursesWithNames($department);
+    $courseCounts = [];
+    foreach ($courseList as $code => $fullName) {
+      $courseCounts[$code] = GoodMoralApplication::where('department', $department)
+        ->whereIn('course_completed', [$code, $fullName])
+        ->whereBetween('created_at', [$currentAyStart, $currentAyEnd])
+        ->count();
+    }
 
     // Build display arrays for the view (preserves abbr1/abbr2 card format)
     $allPrograms = DashboardStatsService::buildProgramDisplayArray($courseCounts);
@@ -76,20 +90,20 @@ class DashboardController extends Controller
     $majorpending = $vStats['majorPending'];
     $majorcomplied = $vStats['majorResolved'];
 
-    // Violations by program for charts (uses config-driven course list)
+    // Violations by Program — AY 2025-2026 only (historical AYs lack program-level breakdown)
     $allProgramsList = DashboardStatsService::getDepartmentCourses($department);
 
-    $minorViolationsQuery = StudentViolation::query()->minor()
-      ->whereIn('department', $possibleDepartments);
-    $minorViolationsData = $this->applyDateFilter($minorViolationsQuery, $frequency)
+    $minorViolationsData = StudentViolation::query()->minor()
+      ->whereIn('department', $possibleDepartments)
+      ->whereBetween('created_at', [$currentAyStart, $currentAyEnd])
       ->selectRaw('course as program, COUNT(*) as count')
       ->groupBy('course')
       ->orderBy('count', 'desc')
       ->get();
 
-    $majorViolationsQuery = StudentViolation::query()->major()
-      ->whereIn('department', $possibleDepartments);
-    $majorViolationsData = $this->applyDateFilter($majorViolationsQuery, $frequency)
+    $majorViolationsData = StudentViolation::query()->major()
+      ->whereIn('department', $possibleDepartments)
+      ->whereBetween('created_at', [$currentAyStart, $currentAyEnd])
       ->selectRaw('course as program, COUNT(*) as count')
       ->groupBy('course')
       ->orderBy('count', 'desc')
@@ -105,7 +119,9 @@ class DashboardController extends Controller
       return (object) ['program' => $program, 'count' => $existing ? $existing->count : 0];
     })->sortByDesc('count');
 
-    $allViolationsByProgram = $this->applyDateFilter(StudentViolation::query()->whereIn('department', $possibleDepartments), $frequency)
+    $allViolationsByProgram = StudentViolation::query()
+      ->whereIn('department', $possibleDepartments)
+      ->whereBetween('created_at', [$currentAyStart, $currentAyEnd])
       ->selectRaw('course as program, offense_type, COUNT(*) as count')
       ->groupBy('course', 'offense_type')
       ->orderBy('course')
@@ -117,12 +133,6 @@ class DashboardController extends Controller
     $majorTotal = $majorpending + $majorcomplied;
     $minorResolvedPercentage = $minorTotal > 0 ? ($minorcomplied / $minorTotal) * 100 : 0;
     $majorResolvedPercentage = $majorTotal > 0 ? ($majorcomplied / $majorTotal) * 100 : 0;
-
-    // Recent violations
-    $recentViolations = StudentViolation::whereIn('department', $possibleDepartments)
-      ->orderBy('created_at', 'desc')
-      ->take(10)
-      ->get();
 
     // Pending application counts
     $pendingGoodMoralApplications = $this->applyDateFilter(GoodMoralApplication::approvedByRegistrar()
@@ -136,28 +146,81 @@ class DashboardController extends Controller
       ->whereNotNull('application_status'), $frequency)->count();
 
     $violationpage = Violation::paginate(10);
+
+    // Summary card totals
+    $totalApplications = $this->applyDateFilter(
+      GoodMoralApplication::where('department', $department), $frequency
+    )->count();
+
+    $approvedByDean = $this->applyDateFilter(
+      GoodMoralApplication::where('department', $department)
+        ->where(function ($q) {
+          $q->where('application_status', 'like', 'Approved by Dean%')
+            ->orWhere('application_status', 'like', 'Receipt Uploaded%')
+            ->orWhereIn('application_status', ['Ready for Moderator Print', 'Ready for Pickup', 'Claimed']);
+        }),
+      $frequency
+    )->count();
+
+    $rejectedByDean = $this->applyDateFilter(
+      GoodMoralApplication::where('department', $department)
+        ->where('application_status', 'like', 'Rejected by Dean%'),
+      $frequency
+    )->count();
+
+    // Academic Year Violation Trends
+    // AY 2023-2024 & AY 2024-2025 → historical_violation_trends (dept-level aggregates, no program breakdown)
+    // AY 2025-2026 → live count from student_violations
+    $deptRecord = Department::where('department_code', $department)->first();
+    $histRows = $deptRecord
+      ? HistoricalViolationTrend::where('department_id', $deptRecord->id)
+          ->whereIn('academic_year', ['2023-2024', '2024-2025'])
+          ->get()
+          ->keyBy('academic_year')
+      : collect();
+
+    $hist2324 = $histRows->get('2023-2024');
+    $hist2425 = $histRows->get('2024-2025');
+
+    $minorTrend = [
+      'AY 2023–2024' => $hist2324 ? (int) $hist2324->minor_count : 0,
+      'AY 2024–2025' => $hist2425 ? (int) $hist2425->minor_count : 0,
+      'AY 2025–2026' => StudentViolation::whereIn('department', $possibleDepartments)
+        ->where('offense_type', 'minor')
+        ->whereBetween('created_at', [$currentAyStart, $currentAyEnd])
+        ->count(),
+    ];
+    $majorTrend = [
+      'AY 2023–2024' => $hist2324 ? (int) $hist2324->major_count : 0,
+      'AY 2024–2025' => $hist2425 ? (int) $hist2425->major_count : 0,
+      'AY 2025–2026' => StudentViolation::whereIn('department', $possibleDepartments)
+        ->where('offense_type', 'major')
+        ->whereBetween('created_at', [$currentAyStart, $currentAyEnd])
+        ->count(),
+    ];
+    $ayKeys = array_keys($minorTrend);
+    $minorVariance = [];
+    $majorVariance = [];
+    for ($i = 1; $i < count($ayKeys); $i++) {
+      $prev = $minorTrend[$ayKeys[$i - 1]];
+      $curr = $minorTrend[$ayKeys[$i]];
+      $minorVariance[$ayKeys[$i]] = $prev > 0
+        ? round(($curr - $prev) / $prev * 100, 1)
+        : ($curr > 0 ? 100.0 : 0.0);
+      $prevM = $majorTrend[$ayKeys[$i - 1]];
+      $currM = $majorTrend[$ayKeys[$i]];
+      $majorVariance[$ayKeys[$i]] = $prevM > 0
+        ? round(($currM - $prevM) / $prevM * 100, 1)
+        : ($currM > 0 ? 100.0 : 0.0);
+    }
+
     return view('dean.dashboard', compact(
       'minorpending',
       'minorcomplied',
       'majorpending',
       'majorcomplied',
-      'violationpage',
-      'SITEprograms',
-      'SNAHSprograms',
-      'SBAHMprograms',
-      'SASTEprograms',
-      'SOMprograms',
-      'GRADSCHprograms',
-      'SBAHMfirstRow',
-      'SBAHMsecondRow',
-      'SASTEfirstRow',
-      'SASTEsecondRow',
-      'GRADSCHfirstRow',
-      'GRADSCHsecondRow',
       'department',
-      'programs',
-      'programsRow1',
-      'programsRow2',
+      'courseCounts',
       'minorViolationsByProgram',
       'majorViolationsByProgram',
       'allViolationsByProgram',
@@ -168,7 +231,13 @@ class DashboardController extends Controller
       'frequency',
       'pendingGoodMoralApplications',
       'pendingResidencyApplications',
-      'recentViolations'
+      'totalApplications',
+      'approvedByDean',
+      'rejectedByDean',
+      'minorTrend',
+      'majorTrend',
+      'minorVariance',
+      'majorVariance'
     ) + [
       'frequencyOptions' => $this->getFrequencyOptions(),
       'frequencyLabel' => $this->getFrequencyLabel($frequency)

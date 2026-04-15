@@ -17,6 +17,8 @@
   <link href="https://db.onlinewebfonts.com/c/a0f33b8a3febb69aa498dba7d9e8cab2?family=Old+English+Text+MT+Std" rel="stylesheet">
   <!-- Heroicons CDN -->
   <script src="https://unpkg.com/heroicons@2.0.16/dist/heroicons.js"></script>
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
   <!-- Vite Assets -->
   @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -260,27 +262,44 @@
     .nav-link {
       display: flex;
       align-items: center;
-      padding: 16px 24px;
+      padding: 12px 22px;
+      margin: 2px 10px;
+      border-radius: 8px;
       color: white;
       text-decoration: none;
       transition: all 0.3s ease;
-      border-left: 4px solid transparent;
+      border-left: none;
     }
 
     .nav-link:hover {
       background: rgba(0, 176, 80, 0.2);
-      border-left-color: rgba(0, 176, 80, 0.8);
     }
 
     .nav-link.active {
       background: rgba(0, 176, 80, 0.25);
-      border-left-color: rgba(0, 176, 80, 1);
     }
 
     .nav-icon {
-      width: 24px;
-      height: 24px;
-      margin-right: 12px;
+      width: 20px;
+      height: 20px;
+      margin-right: 10px;
+      flex-shrink: 0;
+    }
+
+    /* Sidebar Section Dividers (shared across all roles) */
+    .sidebar-section {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.5);
+      margin-top: 22px;
+      margin-bottom: 6px;
+      padding-left: 22px;
+    }
+
+    .sidebar-section:first-child {
+      margin-top: 8px;
     }
 
     /* Navigation Section Styles */
@@ -350,6 +369,35 @@
       background: rgba(0, 176, 80, 0.2);
       border-left-color: rgba(0, 176, 80, 0.8);
       color: white;
+    }
+
+    /* Notification Bell Icon (shared across all roles) */
+    .notification-icon {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      margin-left: auto;
+      color: #ffc107;
+    }
+    .notification-icon svg {
+      width: 18px;
+      height: 18px;
+    }
+    .notification-badge {
+      position: absolute;
+      top: -6px;
+      right: -8px;
+      background: #dc3545;
+      color: white;
+      font-size: 10px;
+      font-weight: 600;
+      min-width: 16px;
+      height: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      line-height: 1;
     }
 
     .btn-primary {
@@ -1047,8 +1095,14 @@
     .btn-secondary {
       background: var(--btn-secondary-bg);
       border-color: var(--btn-secondary-bg);
-      color: var(--btn-secondary-text);
+      color: #ffffff !important;
       box-shadow: 0 2px 8px rgba(108, 117, 125, 0.3);
+    }
+
+    .btn-secondary *,
+    .btn-secondary svg {
+      color: #ffffff !important;
+      fill: currentColor;
     }
 
     .btn-secondary:hover:not(:disabled) {
@@ -1061,8 +1115,14 @@
     .btn-success {
       background: var(--btn-success-bg);
       border-color: var(--btn-success-bg);
-      color: var(--btn-success-text);
+      color: #ffffff !important;
       box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+    }
+
+    .btn-success *,
+    .btn-success svg {
+      color: #ffffff !important;
+      fill: currentColor;
     }
 
     .btn-success:hover:not(:disabled) {
@@ -1136,6 +1196,28 @@
     .btn-outline-secondary:hover:not(:disabled) {
       background: var(--btn-secondary-bg);
       color: var(--btn-secondary-text);
+    }
+
+    .btn-outline-success {
+      background: transparent;
+      border-color: var(--btn-success-bg);
+      color: var(--btn-success-bg);
+    }
+
+    .btn-outline-success:hover:not(:disabled) {
+      background: var(--btn-success-bg);
+      color: var(--btn-success-text);
+    }
+
+    .btn-outline-warning {
+      background: transparent;
+      border-color: var(--btn-warning-bg);
+      color: #856404;
+    }
+
+    .btn-outline-warning:hover:not(:disabled) {
+      background: var(--btn-warning-bg);
+      color: var(--btn-warning-text);
     }
 
     /* Legacy button class support */

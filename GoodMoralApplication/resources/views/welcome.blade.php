@@ -369,31 +369,6 @@
 
       </section>
 
-      <!-- Student Registration Notice -->
-      <section style="background: linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%); border: 2px solid var(--primary-green); border-radius: 16px; padding: 32px; margin-bottom: 60px; text-align: center;">
-        <div style="display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 20px;">
-          <div style="width: 48px; height: 48px; background: var(--primary-green); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-            <svg style="width: 24px; height: 24px; color: white;" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
-            </svg>
-          </div>
-          <h3 style="color: var(--primary-green); font-size: 1.5rem; font-weight: 600; margin: 0;">📚 New: Student Registration Available!</h3>
-        </div>
-        <p style="color: #333; font-size: 1.1rem; line-height: 1.6; margin: 0 0 24px 0; max-width: 800px; margin-left: auto; margin-right: auto;">
-          Students who don't have an account in our system can now register directly! Create your account to apply for Good Moral Certificates and track your applications.
-        </p>
-        <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
-          <a href="{{ route('register') }}" style="display: inline-block; background: var(--primary-green); color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0, 176, 80, 0.3);">
-            Register as Student
-          </a>
-          <a href="{{ route('login') }}" style="display: inline-block; background: white; color: var(--primary-green); padding: 14px 28px; border: 2px solid var(--primary-green); border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.3s ease;">
-            Already Have Account? Sign In
-          </a>
-        </div>
-        <p style="color: #666; font-size: 14px; margin: 16px 0 0 0;">
-          <strong>Account Types:</strong> Students • Alumni • PSG Officers
-        </p>
-      </section>
 
 
     </div>

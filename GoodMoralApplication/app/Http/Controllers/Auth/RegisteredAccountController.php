@@ -67,7 +67,7 @@ class RegisteredAccountController extends Controller
     // Map account_type to users.role
     $roleMap = [
       'student'     => 'student',
-      'alumni'      => 'student',
+      'alumni'      => 'alumni',
       'admin'       => 'admin',
       'dean'        => 'dean',
       'registrar'   => 'registrar',

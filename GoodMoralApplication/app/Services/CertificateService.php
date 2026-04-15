@@ -161,4 +161,28 @@ class CertificateService
                 : $pdf->stream($filename);
         }
     }
+
+    /**
+     * Mark a certificate as claimed. Centralized logic used by both admin and moderator.
+     *
+     * @param int $id Application ID
+     * @return array{type: string, message: string}
+     */
+    public function markCertificateAsClaimed(int $id): array
+    {
+        $application = GoodMoralApplication::findOrFail($id);
+
+        if ($application->application_status !== 'Ready for Pickup') {
+            return ['type' => 'error', 'message' => 'Only printed certificates can be marked as claimed.'];
+        }
+
+        $application->application_status = 'Claimed';
+        $application->claimed_at = now();
+        $application->claimed_by = Auth::id();
+        $application->save();
+
+        $this->notifService->createFromApplication($application, '6');
+
+        return ['type' => 'status', 'message' => 'Certificate marked as claimed successfully.'];
+    }
 }

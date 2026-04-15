@@ -1,4 +1,4 @@
-<x-dashboard-layout>
+﻿<x-dashboard-layout>
   <x-slot name="roleTitle">Dean</x-slot>
 
   <x-slot name="navigation">
@@ -10,7 +10,7 @@
     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
       <div>
         <h1 class="role-title">Dean Dashboard</h1>
-        <p class="welcome-text">{{ $department }} Department Overview</p>
+        <p class="welcome-text">{{ $department }} Department Analytics</p>
         <p class="welcome-text" style="font-size: 14px; color: #666; margin-top: 4px;">Showing data for: {{ $frequencyLabel }}</p>
         <div class="accent-line"></div>
       </div>
@@ -29,435 +29,461 @@
     </div>
   </div>
 
-  <!-- Application Status Cards -->
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 32px;">
-    <!-- Good Moral Applications -->
-    <div class="stat-card" style="border-top-color: #10B981;">
+  @include('shared.alerts.flash')
+
+  <!-- Summary Cards -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 28px;">
+    <!-- Total Applications -->
+    <div class="stat-card" style="border-top-color: #6c757d;">
       <div style="display: flex; align-items: center; gap: 16px;">
-        <div style="display: flex; align-items: center; justify-content: center; height: 60px; width: 60px; border-radius: 50%; background: #10B981; color: white;">
-          <svg style="width: 24px; height: 24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        <div style="display: flex; align-items: center; justify-content: center; height: 56px; width: 56px; border-radius: 50%; background: #6c757d; flex-shrink: 0;">
+          <svg style="width: 22px; height: 22px;" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
           </svg>
         </div>
         <div>
-          <div class="stat-number">{{ $pendingGoodMoralApplications }}</div>
-          <div class="stat-label">Pending Good Moral Applications</div>
+          <div class="stat-number">{{ $totalApplications }}</div>
+          <div class="stat-label">Total Applications</div>
         </div>
       </div>
     </div>
 
-    <!-- Residency Applications -->
-    <div class="stat-card" style="border-top-color: #3B82F6;">
-      <div style="display: flex; align-items: center; gap: 16px;">
-        <div style="display: flex; align-items: center; justify-content: center; height: 60px; width: 60px; border-radius: 50%; background: #3B82F6; color: white;">
-          <svg style="width: 24px; height: 24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
-          </svg>
-        </div>
-        <div>
-          <div class="stat-number">{{ $pendingResidencyApplications }}</div>
-          <div class="stat-label">Pending Residency Applications</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Total Pending Applications -->
+    <!-- Pending Dean Approval -->
     <div class="stat-card" style="border-top-color: #F59E0B;">
       <div style="display: flex; align-items: center; gap: 16px;">
-        <div style="display: flex; align-items: center; justify-content: center; height: 60px; width: 60px; border-radius: 50%; background: #F59E0B; color: white;">
-          <svg style="width: 24px; height: 24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        <div style="display: flex; align-items: center; justify-content: center; height: 56px; width: 56px; border-radius: 50%; background: #F59E0B; flex-shrink: 0;">
+          <svg style="width: 22px; height: 22px;" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
         </div>
         <div>
           <div class="stat-number">{{ $pendingGoodMoralApplications + $pendingResidencyApplications }}</div>
-          <div class="stat-label">Total Pending Applications</div>
+          <div class="stat-label">Pending Dean Approval</div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Program Statistics -->
-  @if ($department === 'SITE')
-  <div class="stats-grid">
-    @foreach ($programs as $program)
-    <div class="stat-card" style="border-top-color: #7B2CBF;">
+    <!-- Approved by Dean -->
+    <div class="stat-card" style="border-top-color: #10B981;">
       <div style="display: flex; align-items: center; gap: 16px;">
-        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60px; width: 60px; border-radius: 50%; background: #7B2CBF; color: white; font-weight: 700; font-size: 12px;">
-          <span>{{ $program['abbr1'] }}</span>
-          <span>{{ $program['abbr2'] }}</span>
+        <div style="display: flex; align-items: center; justify-content: center; height: 56px; width: 56px; border-radius: 50%; background: #10B981; flex-shrink: 0;">
+          <svg style="width: 22px; height: 22px;" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
         </div>
         <div>
-          <div class="stat-number">{{ $program['count'] }}</div>
-          <div class="stat-label">{{ $program['name'] ?? 'Applications' }}</div>
+          <div class="stat-number">{{ $approvedByDean }}</div>
+          <div class="stat-label">Approved</div>
         </div>
       </div>
     </div>
-    @endforeach
-  </div>
-  @endif
 
-  @if ($department === 'SNAHS')
-  <div class="stats-grid">
-    @foreach ($programs as $program)
-    <div class="stat-card" style="border-top-color: #DC3545;">
+    <!-- Rejected by Dean -->
+    <div class="stat-card" style="border-top-color: #EF4444;">
       <div style="display: flex; align-items: center; gap: 16px;">
-        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60px; width: 60px; border-radius: 50%; background: #DC3545; color: white; font-weight: 700; font-size: 12px;">
-          <span>{{ $program['abbr1'] }}</span>
-          <span>{{ $program['abbr2'] }}</span>
+        <div style="display: flex; align-items: center; justify-content: center; height: 56px; width: 56px; border-radius: 50%; background: #EF4444; flex-shrink: 0;">
+          <svg style="width: 22px; height: 22px;" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
         </div>
         <div>
-          <div class="stat-number">{{ $program['count'] }}</div>
-          <div class="stat-label">{{ $program['name'] ?? 'Applications' }}</div>
+          <div class="stat-number">{{ $rejectedByDean }}</div>
+          <div class="stat-label">Rejected</div>
         </div>
       </div>
     </div>
-    @endforeach
   </div>
-  @endif
 
-  @if ($department === 'SBAHM')
-  <div class="stats-grid">
-    @if(isset($programsRow1))
-      @foreach ($programsRow1 as $program)
-      <div class="stat-card" style="border-top-color: #28A745;">
-        <div style="display: flex; align-items: center; gap: 16px;">
-          <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60px; width: 60px; border-radius: 50%; background: #28A745; color: white; font-weight: 700; font-size: 12px;">
-            <span>{{ $program['abbr1'] }}</span>
-            <span>{{ $program['abbr2'] }}</span>
-          </div>
-          <div>
-            <div class="stat-number">{{ $program['count'] }}</div>
-            <div class="stat-label">{{ $program['name'] ?? 'Applications' }}</div>
-          </div>
-        </div>
-      </div>
-      @endforeach
-    @endif
-
-    @if(isset($programsRow2))
-      @foreach ($programsRow2 as $program)
-      <div class="stat-card" style="border-top-color: #28A745;">
-        <div style="display: flex; align-items: center; gap: 16px;">
-          <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60px; width: 60px; border-radius: 50%; background: #28A745; color: white; font-weight: 700; font-size: 12px;">
-            <span>{{ $program['abbr1'] }}</span>
-            <span>{{ $program['abbr2'] }}</span>
-          </div>
-          <div>
-            <div class="stat-number">{{ $program['count'] }}</div>
-            <div class="stat-label">{{ $program['name'] ?? 'Applications' }}</div>
-          </div>
-        </div>
-      </div>
-      @endforeach
-    @endif
-  </div>
-  @endif
-
-  @if ($department === 'SASTE')
-  <div class="stats-grid">
-    @if(isset($programsRow1))
-      @foreach ($programsRow1 as $program)
-      <div class="stat-card" style="border-top-color: #0066CC;">
-        <div style="display: flex; align-items: center; gap: 16px;">
-          <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60px; width: 60px; border-radius: 50%; background: #0066CC; color: white; font-weight: 700; font-size: 12px;">
-            <span>{{ $program['abbr1'] }}</span>
-            <span>{{ $program['abbr2'] }}</span>
-          </div>
-          <div>
-            <div class="stat-number">{{ $program['count'] }}</div>
-            <div class="stat-label">{{ $program['name'] ?? 'Applications' }}</div>
-          </div>
-        </div>
-      </div>
-      @endforeach
-    @endif
-
-    @if(isset($programsRow2))
-      @foreach ($programsRow2 as $program)
-      <div class="stat-card" style="border-top-color: #0066CC;">
-        <div style="display: flex; align-items: center; gap: 16px;">
-          <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60px; width: 60px; border-radius: 50%; background: #0066CC; color: white; font-weight: 700; font-size: 12px;">
-            <span>{{ $program['abbr1'] }}</span>
-            <span>{{ $program['abbr2'] }}</span>
-          </div>
-          <div>
-            <div class="stat-number">{{ $program['count'] }}</div>
-            <div class="stat-label">{{ $program['name'] ?? 'Applications' }}</div>
-          </div>
-        </div>
-      </div>
-      @endforeach
-    @endif
-  </div>
-  @endif
-
-  <!-- Violations Overview -->
+  <!-- Row 1: Applications by Program | Violations Overview -->
   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
-    <!-- Minor Violations Chart -->
-    <div class="header-section">
-      <h3 style="color: var(--primary-green); margin-bottom: 16px; font-size: 1.2rem;">Minor Violations Overview</h3>
-      <div style="display: flex; align-items: center; gap: 24px;">
-        <div style="position: relative; width: 120px; height: 120px;">
-          <svg width="120" height="120" style="transform: rotate(-90deg);">
-            <circle cx="60" cy="60" r="50" fill="none" stroke="#e5e7eb" stroke-width="8"/>
-            <circle cx="60" cy="60" r="50" fill="none" stroke="var(--primary-green)" stroke-width="8"
-                    stroke-dasharray="{{ $minorResolvedPercentage * 3.14 }} 314" stroke-linecap="round"/>
-          </svg>
-          <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
-            <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary-green);">{{ number_format($minorResolvedPercentage, 0) }}%</div>
-            <div style="font-size: 0.8rem; color: #666;">Resolved</div>
-          </div>
-        </div>
-        <div style="flex: 1;">
-          <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-            <span style="color: #666;">Pending</span>
-            <span style="font-weight: 600; color: #e74c3c;">{{ $minorpending }}</span>
-          </div>
-          <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-            <span style="color: #666;">Resolved</span>
-            <span style="font-weight: 600; color: var(--primary-green);">{{ $minorcomplied }}</span>
-          </div>
-          <div style="display: flex; justify-content: space-between; font-weight: 700; border-top: 1px solid #e5e7eb; padding-top: 8px;">
-            <span>Total</span>
-            <span>{{ $minorTotal }}</span>
-          </div>
-        </div>
-      </div>
-    </div>
 
-    <!-- Major Violations Chart -->
-    <div class="header-section">
-      <h3 style="color: var(--primary-green); margin-bottom: 16px; font-size: 1.2rem;">Major Violations Overview</h3>
-      <div style="display: flex; align-items: center; gap: 24px;">
-        <div style="position: relative; width: 120px; height: 120px;">
-          <svg width="120" height="120" style="transform: rotate(-90deg);">
-            <circle cx="60" cy="60" r="50" fill="none" stroke="#e5e7eb" stroke-width="8"/>
-            <circle cx="60" cy="60" r="50" fill="none" stroke="#e74c3c" stroke-width="8"
-                    stroke-dasharray="{{ $majorResolvedPercentage * 3.14 }} 314" stroke-linecap="round"/>
-          </svg>
-          <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
-            <div style="font-size: 1.5rem; font-weight: 700; color: #e74c3c;">{{ number_format($majorResolvedPercentage, 0) }}%</div>
-            <div style="font-size: 0.8rem; color: #666;">Resolved</div>
-          </div>
-        </div>
-        <div style="flex: 1;">
-          <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-            <span style="color: #666;">Pending</span>
-            <span style="font-weight: 600; color: #e74c3c;">{{ $majorpending }}</span>
-          </div>
-          <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-            <span style="color: #666;">Resolved</span>
-            <span style="font-weight: 600; color: var(--primary-green);">{{ $majorcomplied }}</span>
-          </div>
-          <div style="display: flex; justify-content: space-between; font-weight: 700; border-top: 1px solid #e5e7eb; padding-top: 8px;">
-            <span>Total</span>
-            <span>{{ $majorTotal }}</span>
-          </div>
-        </div>
+    <!-- Applications by Program -->
+    <div class="header-section" style="padding: 24px;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; gap: 8px; flex-wrap: wrap;">
+        <h3 style="color: var(--primary-green); margin: 0; font-size: 1.1rem; font-weight: 600;">Applications by Program</h3>
+        <span style="display: inline-block; padding: 3px 9px; background: #e3f2fd; color: #1565c0; border-radius: 12px; font-size: 11px; font-weight: 600; white-space: nowrap;">AY 2025–2026</span>
       </div>
-    </div>
-  </div>
-
-  <!-- Violations by Program Charts -->
-  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
-    <!-- Minor Violations by Program Chart -->
-    <div class="header-section">
-      <h3 style="color: var(--primary-green); margin-bottom: 16px; font-size: 1.2rem;">Minor Violations by Program</h3>
-      @if($minorViolationsByProgram->isEmpty())
-        <div style="text-align: center; padding: 48px; color: #6c757d;">
-          <svg style="width: 48px; height: 48px; margin: 0 auto 12px; color: #dee2e6;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+      @if(empty($courseCounts) || array_sum($courseCounts) === 0)
+        <div style="text-align: center; padding: 48px 0; color: #6c757d;">
+          <svg style="width: 48px; height: 48px; margin: 0 auto 12px; opacity: 0.4;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
           </svg>
-          <p style="margin: 0; font-size: 1rem; font-weight: 500;">No Minor Violations</p>
-          <p style="margin: 4px 0 0; font-size: 0.8rem;">No minor violations recorded</p>
+          <p style="margin: 0; font-weight: 500;">No application data for this period</p>
         </div>
       @else
-        @php
-          $maxMinorViolations = $minorViolationsByProgram->max('count');
-          $minorColors = ['#00b050', '#4ecdc4', '#45b7d1', '#96ceb4', '#98d8c8', '#f7dc6f'];
-        @endphp
-
-        <div style="display: flex; align-items: end; gap: 8px; height: 150px; padding: 16px; background: #f8f9fa; border-radius: 8px; margin-bottom: 16px;">
-          @foreach($minorViolationsByProgram as $index => $violation)
-            @php
-              $heightPx = $maxMinorViolations > 0 ? ($violation->count / $maxMinorViolations) * 100 : 0;
-              $color = $minorColors[$index % count($minorColors)];
-            @endphp
-
-            <div style="display: flex; flex-direction: column; align-items: center; flex: 1; min-width: 50px;">
-              <div style="background: {{ $color }}; width: 100%; border-radius: 3px 3px 0 0; height: {{ $heightPx }}px; transition: all 0.3s ease;"
-                   title="{{ $violation->program }}: {{ $violation->count }} minor violations"></div>
-              <div style="margin-top: 6px; font-weight: 600; text-align: center; font-size: 10px; transform: rotate(-45deg); transform-origin: center; white-space: nowrap;">
-                {{ $violation->program ?: 'Unknown' }}
-              </div>
-              <div style="font-size: 12px; color: #666; margin-top: 2px;">{{ $violation->count }}</div>
-            </div>
-          @endforeach
+        <div style="position: relative; height: 260px;">
+          <canvas id="appsByProgramChart"></canvas>
         </div>
       @endif
     </div>
 
-    <!-- Major Violations by Program Chart -->
-    <div class="header-section">
-      <h3 style="color: var(--primary-green); margin-bottom: 16px; font-size: 1.2rem;">Major Violations by Program</h3>
-      @if($majorViolationsByProgram->isEmpty())
-        <div style="text-align: center; padding: 48px; color: #6c757d;">
-          <svg style="width: 48px; height: 48px; margin: 0 auto 12px; color: #dee2e6;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+    <!-- Violations Overview -->
+    <div class="header-section" style="padding: 24px;">
+      <h3 style="color: var(--primary-green); margin: 0 0 20px 0; font-size: 1.1rem; font-weight: 600;">Violations Overview</h3>
+      @if($minorTotal + $majorTotal === 0)
+        <div style="text-align: center; padding: 48px 0; color: #6c757d;">
+          <svg style="width: 48px; height: 48px; margin: 0 auto 12px; opacity: 0.4;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
-          <p style="margin: 0; font-size: 1rem; font-weight: 500;">No Major Violations</p>
-          <p style="margin: 4px 0 0; font-size: 0.8rem;">No major violations recorded</p>
+          <p style="margin: 0; font-weight: 500;">No violations for this period</p>
         </div>
       @else
-        @php
-          $maxMajorViolations = $majorViolationsByProgram->max('count');
-          $majorColors = ['#e74c3c', '#ff6b6b', '#ff4757', '#ff3838', '#ff2f2f', '#ff1e1e'];
-        @endphp
-
-        <div style="display: flex; align-items: end; gap: 8px; height: 150px; padding: 16px; background: #f8f9fa; border-radius: 8px; margin-bottom: 16px;">
-          @foreach($majorViolationsByProgram as $index => $violation)
-            @php
-              $heightPx = $maxMajorViolations > 0 ? ($violation->count / $maxMajorViolations) * 100 : 0;
-              $color = $majorColors[$index % count($majorColors)];
-            @endphp
-
-            <div style="display: flex; flex-direction: column; align-items: center; flex: 1; min-width: 50px;">
-              <div style="background: {{ $color }}; width: 100%; border-radius: 3px 3px 0 0; height: {{ $heightPx }}px; transition: all 0.3s ease;"
-                   title="{{ $violation->program }}: {{ $violation->count }} major violations"></div>
-              <div style="margin-top: 6px; font-weight: 600; text-align: center; font-size: 10px; transform: rotate(-45deg); transform-origin: center; white-space: nowrap;">
-                {{ $violation->program ?: 'Unknown' }}
+        <div style="display: flex; align-items: center; gap: 24px;">
+          <div style="position: relative; width: 180px; height: 180px; flex-shrink: 0;">
+            <canvas id="violationsOverviewChart"></canvas>
+          </div>
+          <div style="flex: 1;">
+            <div style="margin-bottom: 16px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                <span style="font-size: 14px; color: #495057; display: flex; align-items: center; gap: 6px;">
+                  <span style="display: inline-block; width: 12px; height: 12px; border-radius: 2px; background: #F59E0B;"></span>
+                  Minor
+                </span>
+                <span style="font-weight: 700; color: #495057;">{{ $minorTotal }}</span>
               </div>
-              <div style="font-size: 12px; color: #666; margin-top: 2px;">{{ $violation->count }}</div>
+              <div style="font-size: 12px; color: #6c757d; display: flex; justify-content: space-between;">
+                <span>Pending: {{ $minorpending }}</span>
+                <span>Resolved: {{ $minorcomplied }}</span>
+              </div>
             </div>
-          @endforeach
+            <div style="margin-bottom: 16px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                <span style="font-size: 14px; color: #495057; display: flex; align-items: center; gap: 6px;">
+                  <span style="display: inline-block; width: 12px; height: 12px; border-radius: 2px; background: #EF4444;"></span>
+                  Major
+                </span>
+                <span style="font-weight: 700; color: #495057;">{{ $majorTotal }}</span>
+              </div>
+              <div style="font-size: 12px; color: #6c757d; display: flex; justify-content: space-between;">
+                <span>Pending: {{ $majorpending }}</span>
+                <span>Resolved: {{ $majorcomplied }}</span>
+              </div>
+            </div>
+            <div style="border-top: 1px solid #e9ecef; padding-top: 12px; display: flex; justify-content: space-between; font-weight: 700; font-size: 15px; color: #343a40;">
+              <span>Total</span>
+              <span>{{ $minorTotal + $majorTotal }}</span>
+            </div>
+          </div>
         </div>
       @endif
     </div>
   </div>
 
-  <!-- Recent Violations Section -->
-  <div class="header-section">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-      <h3 style="color: var(--primary-green); margin: 0; font-size: 1.2rem;">Recent Violations in {{ $department }}</h3>
-      <div style="display: flex; gap: 8px;">
-        <a href="{{ route('dean.minor') }}" style="padding: 8px 16px; background: #fff3cd; color: #856404; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 600; transition: all 0.2s ease; border: 1px solid #ffeaa7;">
-          View All Minor
-        </a>
-        <a href="{{ route('dean.major') }}" style="padding: 8px 16px; background: #fdeaea; color: #dc3545; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 600; transition: all 0.2s ease; border: 1px solid #f5c6cb;">
-          View All Major
-        </a>
+  <!-- Violations by Program (full-width grouped bar) -->
+  <div class="header-section" style="padding: 24px; margin-bottom: 24px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 8px;">
+      <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+        <h3 style="color: var(--primary-green); margin: 0; font-size: 1.1rem; font-weight: 600;">Violations by Program</h3>
+        <span style="display: inline-block; padding: 3px 9px; background: #e3f2fd; color: #1565c0; border-radius: 12px; font-size: 11px; font-weight: 600; white-space: nowrap;">AY 2025–2026</span>
+      </div>
+      <div style="display: flex; gap: 16px; font-size: 13px; color: #6c757d;">
+        <span style="display: flex; align-items: center; gap: 5px;">
+          <span style="display: inline-block; width: 12px; height: 12px; border-radius: 2px; background: #F59E0B;"></span> Minor
+        </span>
+        <span style="display: flex; align-items: center; gap: 5px;">
+          <span style="display: inline-block; width: 12px; height: 12px; border-radius: 2px; background: #EF4444;"></span> Major
+        </span>
       </div>
     </div>
-
-    @if($recentViolations->isEmpty())
-      <div style="text-align: center; padding: 48px; color: #6c757d; background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-        <svg style="width: 48px; height: 48px; margin: 0 auto 12px; color: #dee2e6;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-        </svg>
-        <p style="margin: 0; font-size: 1rem; font-weight: 500; color: #28a745;">No Violations Found</p>
-        <p style="margin: 4px 0 0; font-size: 0.8rem;">There are no student violations in your department</p>
+    @php
+      $anyVbp = $minorViolationsByProgram->sum('count') + $majorViolationsByProgram->sum('count') > 0;
+    @endphp
+    @if(!$anyVbp)
+      <div style="text-align: center; padding: 40px 0; color: #6c757d;">
+        <p style="margin: 0; font-weight: 500;">No violations recorded for this period</p>
       </div>
     @else
-      <div style="background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow: hidden;">
-        <div style="overflow-x: auto;">
-          <table style="width: 100%; border-collapse: collapse;">
-            <thead>
-              <tr style="background: #f8f9fa; border-bottom: 2px solid #e9ecef;">
-                <th style="padding: 12px 16px; text-align: left; font-weight: 600; color: #495057; font-size: 13px;">Student ID</th>
-                <th style="padding: 12px 16px; text-align: left; font-weight: 600; color: #495057; font-size: 13px;">Student Name</th>
-                <th style="padding: 12px 16px; text-align: left; font-weight: 600; color: #495057; font-size: 13px;">Course</th>
-                <th style="padding: 12px 16px; text-align: left; font-weight: 600; color: #495057; font-size: 13px;">Violation</th>
-                <th style="padding: 12px 16px; text-align: left; font-weight: 600; color: #495057; font-size: 13px;">Type</th>
-                <th style="padding: 12px 16px; text-align: left; font-weight: 600; color: #495057; font-size: 13px;">Status</th>
-                <th style="padding: 12px 16px; text-align: left; font-weight: 600; color: #495057; font-size: 13px;">Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              @foreach($recentViolations as $violation)
-              <tr style="border-bottom: 1px solid #e9ecef; transition: background-color 0.2s ease;"
-                  onmouseover="this.style.backgroundColor='#f8f9fa'"
-                  onmouseout="this.style.backgroundColor='transparent'">
-                <td style="padding: 12px 16px; color: #495057; font-size: 13px; font-weight: 500; font-family: monospace;">
-                  {{ $violation->student_id }}
-                </td>
-                <td style="padding: 12px 16px; color: #495057; font-size: 13px;">
-                  <div style="font-weight: 500; color: #333;">{{ $violation->first_name }} {{ $violation->last_name }}</div>
-                  @php
-                    $minorCount = \App\Models\StudentViolation::where('student_id', $violation->student_id)
-                      ->where('offense_type', 'minor')
-                      ->count();
-                    
-                    $statusColor = '#28a745';
-                    $statusIcon = '✅';
-                    if ($minorCount >= 3) {
-                      $statusColor = '#dc3545';
-                      $statusIcon = '🚨';
-                    } elseif ($minorCount == 2) {
-                      $statusColor = '#fd7e14';
-                      $statusIcon = '⚠️';
-                    } elseif ($minorCount == 1) {
-                      $statusColor = '#ffc107';
-                      $statusIcon = '⚠️';
-                    }
-                  @endphp
-                  <div style="font-size: 10px; padding: 2px 6px; border-radius: 3px; display: inline-block; margin-top: 4px; background: {{ $statusColor }}20; color: {{ $statusColor }}; border: 1px solid {{ $statusColor }}40;">
-                    {{ $statusIcon }} {{ $minorCount }}/3 Minor
-                  </div>
-                </td>
-                <td style="padding: 12px 16px; color: #495057; font-size: 13px;">
-                  <span style="display: inline-block; padding: 4px 8px; background: #e3f2fd; color: #1976d2; border-radius: 4px; font-size: 11px; font-weight: 500;">
-                    {{ $violation->course ?? 'N/A' }}
-                  </span>
-                </td>
-                <td style="padding: 12px 16px; color: #495057; font-size: 13px; max-width: 250px;">
-                  <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ $violation->violation }}">
-                    {{ $violation->violation }}
-                  </div>
-                </td>
-                <td style="padding: 12px 16px; color: #495057; font-size: 13px;">
-                  @if($violation->offense_type === 'minor')
-                    <span style="display: inline-block; padding: 4px 10px; background: #fff3cd; color: #856404; border-radius: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase;">
-                      Minor
-                    </span>
-                  @else
-                    <span style="display: inline-block; padding: 4px 10px; background: #fdeaea; color: #dc3545; border-radius: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase;">
-                      Major
-                    </span>
-                  @endif
-                </td>
-                <td style="padding: 12px 16px; color: #495057; font-size: 13px;">
-                  @if($violation->status == 0)
-                    <span style="display: inline-block; padding: 4px 10px; background: #ffc107; color: #333; border-radius: 16px; font-size: 11px; font-weight: 500;">
-                      ⏳ Pending
-                    </span>
-                  @elseif($violation->status == 1)
-                    <span style="display: inline-block; padding: 4px 10px; background: #17a2b8; color: white; border-radius: 16px; font-size: 11px; font-weight: 500;">
-                      🔄 In Progress
-                    </span>
-                  @elseif($violation->status == 2)
-                    <span style="display: inline-block; padding: 4px 10px; background: #28a745; color: white; border-radius: 16px; font-size: 11px; font-weight: 500;">
-                      ✅ Resolved
-                    </span>
-                  @else
-                    <span style="display: inline-block; padding: 4px 10px; background: #6c757d; color: white; border-radius: 16px; font-size: 11px; font-weight: 500;">
-                      Unknown
-                    </span>
-                  @endif
-                </td>
-                <td style="padding: 12px 16px; color: #6c757d; font-size: 12px;">
-                  {{ $violation->created_at->format('M d, Y') }}
-                  <div style="font-size: 10px; color: #adb5bd;">{{ $violation->created_at->format('h:i A') }}</div>
-                </td>
-              </tr>
-              @endforeach
-            </tbody>
-          </table>
-        </div>
+      <div style="position: relative; height: 280px;">
+        <canvas id="violationsByProgramChart"></canvas>
       </div>
     @endif
   </div>
 
+  <!-- Violation Trend Analysis -->
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
 
+    <!-- Minor Violations Trend -->
+    <div class="header-section" style="padding: 24px;">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+        <span style="display: inline-block; width: 14px; height: 14px; border-radius: 3px; background: #F97316; flex-shrink: 0;"></span>
+        <h3 style="color: var(--primary-green); margin: 0; font-size: 1.1rem; font-weight: 600;">Minor Violations Trend</h3>
+      </div>
+
+      <!-- Year cards with variance indicators -->
+      <div style="display: flex; align-items: stretch; gap: 6px; margin-bottom: 20px;">
+        @php $minorAyKeys = array_keys($minorTrend); @endphp
+        @foreach($minorTrend as $ay => $count)
+          @php $idx = array_search($ay, $minorAyKeys); @endphp
+          @if($idx > 0)
+            @php
+              $v = $minorVariance[$ay] ?? 0;
+              $up = $v >= 0;
+              $vDisplay = $up ? '+' . $v . '%' : $v . '%';
+            @endphp
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 4px; min-width: 52px;">
+              @if($up)
+                <svg style="width: 14px; height: 14px;" fill="none" stroke="#dc3545" stroke-width="2.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/>
+                </svg>
+                <span style="font-size: 10px; color: #dc3545; white-space: nowrap; font-weight: 600;">{{ $vDisplay }}</span>
+                <span style="font-size: 9px; color: #dc3545; white-space: nowrap;">Increasing</span>
+              @else
+                <svg style="width: 14px; height: 14px;" fill="none" stroke="#28a745" stroke-width="2.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                </svg>
+                <span style="font-size: 10px; color: #28a745; white-space: nowrap; font-weight: 600;">{{ $vDisplay }}</span>
+                <span style="font-size: 9px; color: #28a745; white-space: nowrap;">Decreasing</span>
+              @endif
+            </div>
+          @endif
+          <div style="flex: 1; text-align: center; padding: 10px 8px; background: #fff8e1; border-radius: 8px; border: 1px solid #ffe082; min-width: 70px;">
+            <div style="font-size: 22px; font-weight: 700; color: #F97316;">{{ $count }}</div>
+            <div style="font-size: 10px; color: #6c757d; white-space: nowrap;">{{ $ay }}</div>
+          </div>
+        @endforeach
+      </div>
+
+      <!-- Line chart -->
+      <div style="position: relative; height: 200px;">
+        <canvas id="minorTrendChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Major Violations Trend -->
+    <div class="header-section" style="padding: 24px;">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+        <span style="display: inline-block; width: 14px; height: 14px; border-radius: 3px; background: #EF4444; flex-shrink: 0;"></span>
+        <h3 style="color: var(--primary-green); margin: 0; font-size: 1.1rem; font-weight: 600;">Major Violations Trend</h3>
+      </div>
+
+      <!-- Year cards with variance indicators -->
+      <div style="display: flex; align-items: stretch; gap: 6px; margin-bottom: 20px;">
+        @php $majorAyKeys = array_keys($majorTrend); @endphp
+        @foreach($majorTrend as $ay => $count)
+          @php $idx = array_search($ay, $majorAyKeys); @endphp
+          @if($idx > 0)
+            @php
+              $v = $majorVariance[$ay] ?? 0;
+              $up = $v >= 0;
+              $vDisplay = $up ? '+' . $v . '%' : $v . '%';
+            @endphp
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 4px; min-width: 52px;">
+              @if($up)
+                <svg style="width: 14px; height: 14px;" fill="none" stroke="#dc3545" stroke-width="2.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/>
+                </svg>
+                <span style="font-size: 10px; color: #dc3545; white-space: nowrap; font-weight: 600;">{{ $vDisplay }}</span>
+                <span style="font-size: 9px; color: #dc3545; white-space: nowrap;">Increasing</span>
+              @else
+                <svg style="width: 14px; height: 14px;" fill="none" stroke="#28a745" stroke-width="2.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                </svg>
+                <span style="font-size: 10px; color: #28a745; white-space: nowrap; font-weight: 600;">{{ $vDisplay }}</span>
+                <span style="font-size: 9px; color: #28a745; white-space: nowrap;">Decreasing</span>
+              @endif
+            </div>
+          @endif
+          <div style="flex: 1; text-align: center; padding: 10px 8px; background: #fdeaea; border-radius: 8px; border: 1px solid #f5c6cb; min-width: 70px;">
+            <div style="font-size: 22px; font-weight: 700; color: #EF4444;">{{ $count }}</div>
+            <div style="font-size: 10px; color: #6c757d; white-space: nowrap;">{{ $ay }}</div>
+          </div>
+        @endforeach
+      </div>
+
+      <!-- Line chart -->
+      <div style="position: relative; height: 200px;">
+        <canvas id="majorTrendChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script>
+    Chart.defaults.font.family = "'Inter', sans-serif";
+    Chart.defaults.color = '#495057';
+
+    @if(!empty($courseCounts) && array_sum($courseCounts) > 0)
+    (function() {
+      const labels = @json(array_keys($courseCounts));
+      const data   = @json(array_values($courseCounts));
+      new Chart(document.getElementById('appsByProgramChart'), {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Applications',
+            data,
+            backgroundColor: 'rgba(0, 176, 80, 0.75)',
+            borderColor: 'rgba(0, 176, 80, 1)',
+            borderWidth: 1,
+            borderRadius: 4,
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: ctx => ` ${ctx.parsed.x} application${ctx.parsed.x !== 1 ? 's' : ''}`
+              }
+            }
+          },
+          scales: {
+            x: { beginAtZero: true, ticks: { precision: 0, font: { size: 11 } }, grid: { color: 'rgba(0,0,0,0.05)' } },
+            y: { ticks: { font: { size: 11 } }, grid: { display: false } }
+          }
+        }
+      });
+    })();
+    @endif
+
+    @if($minorTotal + $majorTotal > 0)
+    (function() {
+      new Chart(document.getElementById('violationsOverviewChart'), {
+        type: 'doughnut',
+        data: {
+          labels: ['Minor', 'Major'],
+          datasets: [{
+            data: [{{ $minorTotal }}, {{ $majorTotal }}],
+            backgroundColor: ['#F59E0B', '#EF4444'],
+            borderWidth: 2,
+            borderColor: '#fff',
+            hoverOffset: 6,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '68%',
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed}` } }
+          }
+        }
+      });
+    })();
+    @endif
+
+    @php
+      $vbpLabels = $minorViolationsByProgram->pluck('program')->toArray();
+      $vbpMinor  = $minorViolationsByProgram->pluck('count')->toArray();
+      $vbpMajor  = $majorViolationsByProgram->pluck('count')->toArray();
+      $anyVbpJs  = array_sum($vbpMinor) + array_sum($vbpMajor) > 0;
+    @endphp
+    @if($anyVbpJs)
+    (function() {
+      new Chart(document.getElementById('violationsByProgramChart'), {
+        type: 'bar',
+        data: {
+          labels: @json($vbpLabels),
+          datasets: [
+            {
+              label: 'Minor',
+              data: @json($vbpMinor),
+              backgroundColor: 'rgba(245,158,11,0.8)',
+              borderColor: 'rgba(245,158,11,1)',
+              borderWidth: 1,
+              borderRadius: 4,
+            },
+            {
+              label: 'Major',
+              data: @json($vbpMajor),
+              backgroundColor: 'rgba(239,68,68,0.8)',
+              borderColor: 'rgba(239,68,68,1)',
+              borderWidth: 1,
+              borderRadius: 4,
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: { mode: 'index', intersect: false }
+          },
+          scales: {
+            x: { ticks: { font: { size: 11 }, maxRotation: 35 }, grid: { display: false } },
+            y: { beginAtZero: true, ticks: { precision: 0, font: { size: 11 } }, grid: { color: 'rgba(0,0,0,0.05)' } }
+          }
+        }
+      });
+    })();
+    @endif
+
+    // Minor Violations Trend Chart
+    (function() {
+      new Chart(document.getElementById('minorTrendChart'), {
+        type: 'line',
+        data: {
+          labels: @json(array_keys($minorTrend)),
+          datasets: [{
+            label: 'Minor Violations',
+            data: @json(array_values($minorTrend)),
+            borderColor: '#F97316',
+            backgroundColor: 'rgba(249,115,22,0.12)',
+            borderWidth: 2.5,
+            pointBackgroundColor: '#F97316',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointRadius: 6,
+            tension: 0.3,
+            fill: true,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.y} violations` } }
+          },
+          scales: {
+            y: { beginAtZero: true, ticks: { precision: 0, font: { size: 11 } }, grid: { color: 'rgba(0,0,0,0.05)' } },
+            x: { ticks: { font: { size: 11 } }, grid: { display: false } }
+          }
+        }
+      });
+    })();
+
+    // Major Violations Trend Chart
+    (function() {
+      new Chart(document.getElementById('majorTrendChart'), {
+        type: 'line',
+        data: {
+          labels: @json(array_keys($majorTrend)),
+          datasets: [{
+            label: 'Major Violations',
+            data: @json(array_values($majorTrend)),
+            borderColor: '#EF4444',
+            backgroundColor: 'rgba(239,68,68,0.12)',
+            borderWidth: 2.5,
+            pointBackgroundColor: '#EF4444',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointRadius: 6,
+            tension: 0.3,
+            fill: true,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.y} violations` } }
+          },
+          scales: {
+            y: { beginAtZero: true, ticks: { precision: 0, font: { size: 11 } }, grid: { color: 'rgba(0,0,0,0.05)' } },
+            x: { ticks: { font: { size: 11 } }, grid: { display: false } }
+          }
+        }
+      });
+    })();
+  </script>
 
 </x-dashboard-layout>

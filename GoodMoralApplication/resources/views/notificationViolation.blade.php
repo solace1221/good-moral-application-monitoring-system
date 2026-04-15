@@ -32,151 +32,210 @@
   </div>
   @endif
 
-  <!-- Violations Notifications Section -->
-  <div class="header-section">
-    <h3 style="color: var(--primary-green); margin-bottom: 20px; font-size: 1.3rem; display: flex; align-items: center; gap: 12px;">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="height: 24px; width: 24px;">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-      </svg>
-      Your Violation Status Updates
-    </h3>
+  <!-- Violations Table -->
+  <div style="background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow: hidden; margin-bottom: 24px;">
+    <div style="padding: 20px 24px; border-bottom: 1px solid #e9ecef;">
+      <h2 style="margin: 0; color: var(--primary-green); font-size: 1.15rem; font-weight: 600;">Violation History</h2>
+    </div>
 
     @if($notifications->isEmpty())
-    <div style="background: #f8f9fa; color: #6c757d; padding: 40px; border-radius: 8px; text-align: center; border: 2px dashed #dee2e6;">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="height: 48px; width: 48px; margin: 0 auto 16px; color: #adb5bd;">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+    <div style="padding: 48px; text-align: center; color: #6c757d;">
+      <svg style="width: 64px; height: 64px; margin: 0 auto 16px; color: #dee2e6;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"></path>
       </svg>
-      <h4 style="font-size: 1.2rem; margin-bottom: 8px; color: #495057;">No Violation Notifications</h4>
-      <p style="margin: 0;">You have no violation notifications at the moment.</p>
+      <p style="margin: 0; font-size: 1.1rem; font-weight: 500;">No Violation Notifications</p>
+      <p style="margin: 8px 0 0; font-size: 0.9rem;">You have no violation notifications at the moment.</p>
     </div>
     @else
-    <div style="display: grid; gap: 20px;">
-      @foreach ($notifications as $notification)
-      <div style="background: white; border-radius: 12px; padding: 24px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-                  border-left: 4px solid
-                  @if($notification->status == '0')
-                    #ffc107
-                  @elseif($notification->status == '1')
-                    #28a745
-                  @elseif($notification->status == '2')
-                    #28a745
-                  @else
-                    #6c757d
-                  @endif;">
+    <div style="overflow-x: auto;">
+      <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+          <tr style="background: #f8f9fa; border-bottom: 2px solid #e9ecef;">
+            <th style="padding: 14px 16px; text-align: left; font-weight: 600; color: #495057; font-size: 13px;">Reference Number</th>
+            <th style="padding: 14px 16px; text-align: left; font-weight: 600; color: #495057; font-size: 13px;">Violation Type</th>
+            <th style="padding: 14px 16px; text-align: left; font-weight: 600; color: #495057; font-size: 13px;">Article</th>
+            <th style="padding: 14px 16px; text-align: left; font-weight: 600; color: #495057; font-size: 13px;">Date Issued</th>
+            <th style="padding: 14px 16px; text-align: left; font-weight: 600; color: #495057; font-size: 13px;">Status</th>
+            <th style="padding: 14px 16px; text-align: center; font-weight: 600; color: #495057; font-size: 13px;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          @foreach($notifications as $notification)
+          @php
+            $sv = $notification->studentViolation;
+            $viol = $sv?->violation;
 
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
-          <div style="flex: 1;">
-            <h5 style="font-size: 1.2rem; font-weight: 600; color: #333; margin-bottom: 8px;">
-              Violation Notification
-            </h5>
-            <div style="display: flex; align-items: center; gap: 8px; color: #666; font-size: 14px;">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="height: 16px; width: 16px;">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5a2.25 2.25 0 002.25-2.25m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5a2.25 2.25 0 012.25 2.25v7.5" />
-              </svg>
-              {{ $notification->created_at->format('M d, Y \a\t g:i A') }}
-            </div>
-          </div>
+            $offenseType = $sv->offense_type ?? '—';
+            $article = $viol->article ?? ($articleMap[$sv->violation ?? ''] ?? '—');
+            $violationDesc = $sv->violation ?? ($viol->description ?? '—');
 
-          <span style="padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 600; text-transform: uppercase;
-                       background:
-                       @if($notification->status == '0')
-                         #ffc107
-                       @elseif($notification->status == '1')
-                         #28a745
-                       @elseif($notification->status == '2')
-                         #28a745
-                       @else
-                         #6c757d
-                       @endif;
-                       color:
-                       @if($notification->status == '0')
-                         #333
-                       @else
-                         white
-                       @endif;">
-            @if($notification->status == '0')
-              Under Review
-            @elseif($notification->status == '1')
-              Resolved
-            @elseif($notification->status == '2')
-              Approved
-            @else
-              {{ ucfirst($notification->status) }}
-            @endif
-          </span>
-        </div>
+            $statusColors = [
+              '0' => ['bg' => '#ffc10720', 'text' => '#856404', 'label' => 'Under Review'],
+              '1' => ['bg' => '#28a74520', 'text' => '#28a745', 'label' => 'Resolved'],
+              '2' => ['bg' => '#28a74520', 'text' => '#28a745', 'label' => 'Approved'],
+            ];
+            $sc = $statusColors[$notification->status] ?? ['bg' => '#6c757d20', 'text' => '#6c757d', 'label' => ucfirst($notification->status)];
 
-        @if($notification->ref_num)
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-          <strong style="color: #333; min-width: 140px;">Reference Number:</strong>
-          <span style="font-family: monospace; background: #f8f9fa; padding: 4px 8px; border-radius: 4px; font-size: 14px;">{{ $notification->ref_num }}</span>
-        </div>
-        @endif
+            $modalData = json_encode([
+              'ref_num' => $notification->ref_num,
+              'offense_type' => ucfirst($offenseType),
+              'article' => $article,
+              'violation' => $violationDesc,
+              'issued_by' => $sv->added_by ?? '—',
+              'message' => $notification->notif ?? 'No additional message provided.',
+              'status_label' => $sc['label'],
+              'status_color' => $sc['text'],
+              'status_bg' => $sc['bg'],
+              'date' => $notification->created_at->format('M d, Y'),
+              'time' => $notification->created_at->format('h:i A'),
+            ]);
+          @endphp
+          <tr style="border-bottom: 1px solid #e9ecef; transition: background-color 0.15s;"
+              onmouseover="this.style.backgroundColor='#f8f9fa'"
+              onmouseout="this.style.backgroundColor='transparent'">
 
-        <div style="background: #f8f9fa; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
-          <strong style="color: #333; display: block; margin-bottom: 8px;">Notification Message:</strong>
-          <p style="margin: 0; color: #555; line-height: 1.5;">
-            {{ $notification->notif ?? 'No additional message provided.' }}
-          </p>
-        </div>
+            <td style="padding: 14px 16px; font-family: monospace; font-size: 13px; font-weight: 600; color: #333;">
+              {{ $notification->ref_num ?? '—' }}
+            </td>
 
-        <div style="background:
-                    @if($notification->status == '0')
-                      #fff3cd
-                    @elseif(in_array($notification->status, ['1', '2']))
-                      #d4edda
-                    @else
-                      #f8f9fa
-                    @endif;
-                    color:
-                    @if($notification->status == '0')
-                      #856404
-                    @elseif(in_array($notification->status, ['1', '2']))
-                      #155724
-                    @else
-                      #6c757d
-                    @endif;
-                    padding: 16px; border-radius: 8px; display: flex; align-items: center; gap: 12px;">
+            <td style="padding: 14px 16px;">
+              <span style="display: inline-block; padding: 4px 10px; background: {{ $offenseType === 'major' ? '#dc354520' : '#ffc10720' }}; color: {{ $offenseType === 'major' ? '#dc3545' : '#856404' }}; border-radius: 20px; font-size: 12px; font-weight: 500;">
+                {{ ucfirst($offenseType) }}
+              </span>
+            </td>
 
-          @if($notification->status == '0')
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="height: 20px; width: 20px; color: #ffc107;">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <div>
-              <strong>Under Review</strong>
-              <p style="margin: 4px 0 0 0; font-size: 14px;">Your violation is currently being reviewed by the Administrator.</p>
-            </div>
-          @elseif($notification->status == '1')
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="height: 20px; width: 20px; color: #28a745;">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <div>
-              <strong>Violation Resolved</strong>
-              <p style="margin: 4px 0 0 0; font-size: 14px;">Your violation has been successfully resolved.</p>
-            </div>
-          @elseif($notification->status == '2')
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="height: 20px; width: 20px; color: #28a745;">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <div>
-              <strong>Approved by Dean</strong>
-              <p style="margin: 4px 0 0 0; font-size: 14px;">Your violation resolution has been approved by the Dean.</p>
-            </div>
-          @else
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="height: 20px; width: 20px; color: #6c757d;">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
-            </svg>
-            <div>
-              <strong>Status Update</strong>
-              <p style="margin: 4px 0 0 0; font-size: 14px;">{{ ucfirst($notification->status) }}</p>
-            </div>
-          @endif
-        </div>
+            <td style="padding: 14px 16px; color: #555; font-size: 13px; max-width: 200px;">
+              {{ Str::limit($article, 50) }}
+            </td>
 
-      </div>
-      @endforeach
+            <td style="padding: 14px 16px; color: #555; font-size: 13px;">
+              <div style="font-weight: 500; color: #333;">{{ $notification->created_at->format('M d, Y') }}</div>
+              <div style="font-size: 11px; color: #6c757d;">{{ $notification->created_at->format('h:i A') }}</div>
+            </td>
+
+            <td style="padding: 14px 16px;">
+              <span style="display: inline-block; padding: 5px 12px; background: {{ $sc['bg'] }}; color: {{ $sc['text'] }}; border-radius: 20px; font-size: 12px; font-weight: 500;">
+                {{ $sc['label'] }}
+              </span>
+            </td>
+
+            <td style="padding: 14px 16px; text-align: center;">
+              <button type="button"
+                onclick='openViolationModal({{ $modalData }})'
+                style="display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; background: #f8f9fa; color: #495057; border: 1px solid #dee2e6; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.15s;"
+                onmouseover="this.style.background='#e9ecef'" onmouseout="this.style.background='#f8f9fa'">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:15px;height:15px;">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.964-7.178Z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                </svg>
+                View
+              </button>
+            </td>
+
+          </tr>
+          @endforeach
+        </tbody>
+      </table>
     </div>
     @endif
   </div>
+
+  <!-- Violation Details Modal -->
+  <div id="violationModal" style="display:none; position:fixed; inset:0; z-index:1050; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; padding:16px;">
+    <div style="background:white; border-radius:12px; width:100%; max-width:520px; box-shadow:0 20px 60px rgba(0,0,0,0.2); overflow:hidden; max-height:90vh; display:flex; flex-direction:column;">
+
+      <!-- Modal Header -->
+      <div style="padding:20px 24px; border-bottom:1px solid #e9ecef; display:flex; justify-content:space-between; align-items:center; flex-shrink:0; background:linear-gradient(135deg, var(--primary-green) 0%, #009944 100%);">
+        <div>
+          <h5 style="margin:0; font-size:1.1rem; font-weight:700; color:white !important;">Violation Details</h5>
+          <div id="vModalRef" style="font-family:monospace; font-size:13px; color:rgba(255,255,255,0.85); margin-top:4px;"></div>
+        </div>
+        <button onclick="closeViolationModal()" style="background:rgba(255,255,255,0.2); border:none; cursor:pointer; padding:6px; color:white; font-size:22px; line-height:1; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center;">&times;</button>
+      </div>
+
+      <!-- Modal Body -->
+      <div style="padding:24px; overflow-y:auto; flex:1;">
+
+        <!-- Status Badge -->
+        <div style="margin-bottom:20px;">
+          <span id="vModalBadge" style="display:inline-block; padding:6px 16px; border-radius:20px; font-size:13px; font-weight:600;"></span>
+        </div>
+
+        <!-- Detail Rows -->
+        <div style="display:flex; flex-direction:column; gap:16px;">
+
+          <div style="display:flex; gap:12px;">
+            <div style="min-width:130px; font-weight:600; color:#333; font-size:14px;">Offense Type</div>
+            <div id="vModalOffense" style="color:#555; font-size:14px;"></div>
+          </div>
+
+          <div style="display:flex; gap:12px;">
+            <div style="min-width:130px; font-weight:600; color:#333; font-size:14px;">Article</div>
+            <div id="vModalArticle" style="color:#555; font-size:14px;"></div>
+          </div>
+
+          <div style="display:flex; gap:12px;">
+            <div style="min-width:130px; font-weight:600; color:#333; font-size:14px;">Date Issued</div>
+            <div id="vModalDate" style="color:#555; font-size:14px;"></div>
+          </div>
+
+          <div style="display:flex; gap:12px;">
+            <div style="min-width:130px; font-weight:600; color:#333; font-size:14px;">Issued By</div>
+            <div id="vModalIssuedBy" style="color:#555; font-size:14px;"></div>
+          </div>
+
+          <hr style="border:none; border-top:1px solid #e9ecef; margin:4px 0;">
+
+          <div>
+            <div style="font-weight:600; color:#333; font-size:14px; margin-bottom:8px;">Violation Description</div>
+            <div id="vModalViolation" style="background:#f8f9fa; padding:12px 16px; border-radius:8px; color:#555; font-size:14px; line-height:1.5;"></div>
+          </div>
+
+          <div>
+            <div style="font-weight:600; color:#333; font-size:14px; margin-bottom:8px;">Notification Message</div>
+            <div id="vModalMessage" style="background:#f8f9fa; padding:12px 16px; border-radius:8px; color:#555; font-size:14px; line-height:1.5;"></div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div style="padding:16px 24px; border-top:1px solid #e9ecef; text-align:right; flex-shrink:0;">
+        <button onclick="closeViolationModal()" style="padding:8px 20px; background:#f8f9fa; color:#495057; border:1px solid #dee2e6; border-radius:6px; font-size:14px; font-weight:500; cursor:pointer;">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function openViolationModal(data) {
+      document.getElementById('vModalRef').textContent = data.ref_num || '—';
+      document.getElementById('vModalOffense').textContent = data.offense_type || '—';
+      document.getElementById('vModalArticle').textContent = data.article || '—';
+      document.getElementById('vModalDate').textContent = (data.date || '') + ' at ' + (data.time || '');
+      document.getElementById('vModalIssuedBy').textContent = data.issued_by || '—';
+      document.getElementById('vModalViolation').textContent = data.violation || '—';
+      document.getElementById('vModalMessage').textContent = data.message || '—';
+
+      var badge = document.getElementById('vModalBadge');
+      badge.textContent = data.status_label || '';
+      badge.style.background = data.status_bg || '#6c757d20';
+      badge.style.color = data.status_color || '#6c757d';
+
+      var modal = document.getElementById('violationModal');
+      modal.style.display = 'flex';
+    }
+
+    function closeViolationModal() {
+      document.getElementById('violationModal').style.display = 'none';
+    }
+
+    document.getElementById('violationModal').addEventListener('click', function(e) {
+      if (e.target === this) closeViolationModal();
+    });
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeViolationModal();
+    });
+  </script>
 
 </x-dashboard-layout>
