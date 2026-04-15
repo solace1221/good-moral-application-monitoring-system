@@ -20,7 +20,7 @@
       </div>
       <div style="display: flex; gap: 12px; align-items: center;">
         <div style="padding: 12px 16px; background: var(--light-green); border-radius: 8px; font-size: 14px; color: var(--primary-green); font-weight: 600;">
-          {{ $notifications->count() }} Notification{{ $notifications->count() !== 1 ? 's' : '' }}
+          {{ $grouped->count() }} Application{{ $grouped->count() !== 1 ? 's' : '' }}
         </div>
       </div>
     </div>
@@ -32,420 +32,407 @@
   </div>
   @endif
 
-  <!-- Notifications Section -->
-  <div class="header-section">
-    <h3 style="color: var(--primary-green); margin-bottom: 20px; font-size: 1.3rem; display: flex; align-items: center; gap: 12px;">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="height: 24px; width: 24px;">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
-      </svg>
-      Your Application Status Updates
-    </h3>
+  <!-- Applications Table -->
+  <div style="background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow: hidden; margin-bottom: 24px;">
+    <div style="padding: 20px 24px; border-bottom: 1px solid #e9ecef;">
+      <h2 style="margin: 0; color: var(--primary-green); font-size: 1.15rem; font-weight: 600;">Application History</h2>
+    </div>
 
-    @if($notifications->isEmpty())
-    <div style="background: #f8f9fa; color: #6c757d; padding: 40px; border-radius: 8px; text-align: center; border: 2px dashed #dee2e6;">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="height: 48px; width: 48px; margin: 0 auto 16px; color: #adb5bd;">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+    @if($grouped->isEmpty())
+    <div style="padding: 48px; text-align: center; color: #6c757d;">
+      <svg style="width: 64px; height: 64px; margin: 0 auto 16px; color: #dee2e6;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
       </svg>
-      <h4 style="font-size: 1.2rem; margin-bottom: 8px; color: #495057;">No Notifications</h4>
-      <p style="margin: 0;">You have no new notifications at the moment.</p>
+      <p style="margin: 0; font-size: 1.1rem; font-weight: 500;">No applications found</p>
+      <p style="margin: 8px 0 0; font-size: 0.9rem;">You haven't submitted any certificate applications yet.</p>
     </div>
     @else
-    <div style="display: grid; gap: 20px;">
-      @foreach ($notifications as $notification)
-      <div style="background: white; border-radius: 12px; padding: 24px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-                  border-left: 4px solid
-                  @switch($notification->status)
-                    @case('approved') #28a745 @break
-                    @case('0') #ffc107 @break
-                    @case('1') #17a2b8 @break
-                    @case('3') #28a745 @break
-                    @case('2') #28a745 @break
-                    @case('4') #28a745 @break
-                    @case('5') #28a745 @break
-                    @case('6') #6f42c1 @break
-                    @case('-1') #dc3545 @break
-                    @case('-2') #dc3545 @break
-                    @case('-3') #dc3545 @break
-                    @default #6c757d
-                  @endswitch;">
+    <div style="overflow-x: auto;">
+      <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+          <tr style="background: #f8f9fa; border-bottom: 2px solid #e9ecef;">
+            <th style="padding: 14px 16px; text-align: left; font-weight: 600; color: #495057; font-size: 13px;">Reference Number</th>
+            <th style="padding: 14px 16px; text-align: left; font-weight: 600; color: #495057; font-size: 13px;">Certificate Type</th>
+            <th style="padding: 14px 16px; text-align: left; font-weight: 600; color: #495057; font-size: 13px;">Purpose</th>
+            <th style="padding: 14px 16px; text-align: left; font-weight: 600; color: #495057; font-size: 13px;">Copies</th>
+            <th style="padding: 14px 16px; text-align: left; font-weight: 600; color: #495057; font-size: 13px;">Date Applied</th>
+            <th style="padding: 14px 16px; text-align: left; font-weight: 600; color: #495057; font-size: 13px;">Status</th>
+            <th style="padding: 14px 16px; text-align: center; font-weight: 600; color: #495057; font-size: 13px;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          @foreach($grouped as $refNum => $updates)
+          @php
+            $latest = $updates->first(); // ordered desc, so first = most recent
+            $first  = $updates->last();  // oldest = original submission
 
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
-          <div style="flex: 1;">
-            <h5 style="font-size: 1.2rem; font-weight: 600; color: #333; margin-bottom: 8px;">
-              Good Moral Certificate Application
-            </h5>
-            <div style="display: flex; align-items: center; gap: 8px; color: #666; font-size: 14px;">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="height: 16px; width: 16px;">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5a2.25 2.25 0 002.25-2.25m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5a2.25 2.25 0 012.25 2.25v7.5" />
-              </svg>
-              {{ $notification->created_at->format('M d, Y \a\t g:i A') }}
-            </div>
-          </div>
+            $statusColors = [
+              '0' => ['bg' => '#ffc10720', 'text' => '#856404', 'label' => 'With Registrar'],
+              '1' => ['bg' => '#17a2b820', 'text' => '#17a2b8',  'label' => 'Registrar Approved'],
+              '3' => ['bg' => '#007bff20', 'text' => '#007bff',  'label' => 'Dean Approved'],
+              '4' => ['bg' => '#6610f220', 'text' => '#6610f2',  'label' => 'Receipt Uploaded'],
+              '2' => ['bg' => '#28a74520', 'text' => '#28a745',  'label' => 'Ready for Pickup'],
+              '5' => ['bg' => '#28a74520', 'text' => '#28a745',  'label' => 'Certificate Printed'],
+              '6' => ['bg' => '#6f42c120', 'text' => '#6f42c1',  'label' => 'Released'],
+              '-1'=> ['bg' => '#dc354520', 'text' => '#dc3545',  'label' => 'Rejected'],
+              '-2'=> ['bg' => '#dc354520', 'text' => '#dc3545',  'label' => 'Rejected'],
+              '-3'=> ['bg' => '#dc354520', 'text' => '#dc3545',  'label' => 'Rejected'],
+            ];
+            $sc = $statusColors[$latest->status] ?? ['bg' => '#6c757d20', 'text' => '#6c757d', 'label' => ucfirst($latest->status)];
 
-          <span style="padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 600; text-transform: uppercase;
-                       background:
-                       @switch($notification->status)
-                         @case('approved') #28a745 @break
-                         @case('0') #ffc107 @break
-                         @case('1') #17a2b8 @break
-                         @case('3') #28a745 @break
-                         @case('2') #28a745 @break
-                         @case('4') #28a745 @break
-                         @case('5') #28a745 @break
-                         @case('6') #6f42c1 @break
-                         @case('-1') #dc3545 @break
-                         @case('-2') #dc3545 @break
-                         @case('-3') #dc3545 @break
-                         @default #6c757d
-                       @endswitch;
-                       color:
-                       @if(in_array($notification->status, ['0']))
-                         #333
-                       @else
-                         white
-                       @endif;">
-            @switch($notification->status)
-              @case('0') With Registrar @break
-              @case('-1') Rejected by Registrar @break
-              @case('-2') Rejected by Administrator @break
-              @case('-3') Rejected by Dean @break
-              @case('1') Approved by Registrar @break
-              @case('2') Approved by Administrator @break
-              @case('3') Approved by Dean @break
-              @case('4') Ready for Pickup @break
-              @case('5') Certificate Printed @break
-              @case('6') Certificate Released @break
-              @default {{ ucfirst($notification->status) }}
-            @endswitch
-          </span>
-        </div>
+            $certName = $latest->certificate_type === 'good_moral' ? 'Good Moral' : 'Residency';
+            $purpose  = is_array($latest->reason) ? implode(', ', $latest->reason) : ($latest->reason ?? '—');
+            $copies   = (int) ($latest->number_of_copies ?? 1);
+            $total    = $copies * 50;
+            $rejDetail = $rejectionDetails[$refNum] ?? null;
 
-        <div style="display: grid; gap: 12px; margin-bottom: 16px;">
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <strong style="color: #333; min-width: 140px;">Reference Number:</strong>
-            <span style="font-family: monospace; background: #f8f9fa; padding: 4px 8px; border-radius: 4px; font-size: 14px;">{{ $notification->reference_number }}</span>
-          </div>
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <strong style="color: #333; min-width: 140px;">Reason:</strong>
-            <span style="color: #666;">{{ $notification->formatted_reasons }}</span>
-          </div>
-        </div>
+            // Build rejection JSON for the modal
+            $rejJson = $rejDetail ? json_encode([
+              'reason'  => $rejDetail['rejection_reason'],
+              'details' => $rejDetail['rejection_details'] ?? '',
+              'by'      => $rejDetail['rejected_by'] ?? '',
+              'at'      => $rejDetail['rejected_at'] ? \Carbon\Carbon::parse($rejDetail['rejected_at'])->format('M j, Y g:i A') : '',
+            ]) : 'null';
 
-        <div style="background: #f8f9fa; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
-          <strong style="color: #333; display: block; margin-bottom: 8px;">Status Message:</strong>
-          <div style="max-height: 120px; overflow-y: auto; padding: 8px; background: white; border-radius: 6px; border: 1px solid #e1e5e9;">
-            <p style="margin: 0; color: #555; line-height: 1.5;">
-              @switch($notification->status)
-                @case('0')
-                  <strong>Step 1 of 6:</strong> Your application has been submitted successfully and is now with the <strong>Registrar</strong> for review & approval.
-                  @break
-                @case('1')
-                  <strong>Step 2 of 6:</strong> Your application has been approved by the Registrar and forwarded to the <strong>Dean</strong> for review & approval.
-                  @break
-                @case('3')
-                  <strong>Step 3 of 6:</strong> Your application has been approved by the Dean and forwarded to the <strong>Administrator</strong> for final approval.
-                  @break
-              @case('2')
-                <strong>Step 4 of 6:</strong> Your application has been approved by the Administrator. Please <strong>upload your payment receipt</strong> to proceed to certificate printing.
-                @break
-              @case('4')
-                <strong>Step 5 of 6:</strong> Your payment receipt has been verified. Your certificate is now ready for <strong>printing & pickup</strong>.
-                @break
-              @case('5')
-                <strong>Step 6 of 6:</strong> Your {{ $notification->certificate_type === 'good_moral' ? 'Good Moral Certificate' : 'Certificate of Residency' }} has been printed and is ready for pickup at the <strong>Office of Student Affairs (OSA)</strong>.
-                @break
-              @case('6')
-                <strong style="color: #6f42c1;">✅ Certificate Successfully Released</strong><br><br>
-                Your {{ $notification->certificate_type === 'good_moral' ? 'Good Moral Certificate' : 'Certificate of Residency' }} has been successfully released by the <strong>Office of Student Affairs (OSA)</strong>.<br><br>
-                <strong>Reference Number:</strong> {{ $notification->reference_number }}<br>
-                <strong>Release Date:</strong> {{ $notification->created_at->format('F j, Y \a\t g:i A') }}
-                @break
-              @case('-1')
-                <strong style="color: #dc3545;">❌ Application Rejected by Registrar</strong>
-                @if(isset($rejectionDetails[$notification->reference_number]))
-                  <br><br>
-                  <strong style="color: #dc3545;">Rejection Details:</strong><br>
-                  <strong>Reason:</strong> {{ $rejectionDetails[$notification->reference_number]['rejection_reason'] }}<br>
-                  @if($rejectionDetails[$notification->reference_number]['rejection_details'])
-                    <strong>Additional Details:</strong> {{ $rejectionDetails[$notification->reference_number]['rejection_details'] }}<br>
-                  @endif
-                  <strong>Rejected by:</strong> {{ $rejectionDetails[$notification->reference_number]['rejected_by'] }}<br>
-                  <strong>Date:</strong> {{ \Carbon\Carbon::parse($rejectionDetails[$notification->reference_number]['rejected_at'])->format('F j, Y g:i A') }}
-                @else
-                  Please contact the registrar's office for more information.
-                @endif
-                @break
-              @case('-3')
-                <strong style="color: #dc3545;">❌ Application Rejected by Dean</strong>
-                @if(isset($rejectionDetails[$notification->reference_number]))
-                  <br><br>
-                  <strong style="color: #dc3545;">Rejection Details:</strong><br>
-                  <strong>Reason:</strong> {{ $rejectionDetails[$notification->reference_number]['rejection_reason'] }}<br>
-                  @if($rejectionDetails[$notification->reference_number]['rejection_details'])
-                    <strong>Additional Details:</strong> {{ $rejectionDetails[$notification->reference_number]['rejection_details'] }}<br>
-                  @endif
-                  <strong>Rejected by:</strong> {{ $rejectionDetails[$notification->reference_number]['rejected_by'] }}<br>
-                  <strong>Date:</strong> {{ \Carbon\Carbon::parse($rejectionDetails[$notification->reference_number]['rejected_at'])->format('F j, Y g:i A') }}
-                @else
-                  Please contact the dean's office for more information.
-                @endif
-                @break
-              @case('-2')
-                <strong style="color: #dc3545;">❌ Application Rejected by Administrator</strong>
-                @if(isset($rejectionDetails[$notification->reference_number]))
-                  <br><br>
-                  <strong style="color: #dc3545;">Rejection Details:</strong><br>
-                  <strong>Reason:</strong> {{ $rejectionDetails[$notification->reference_number]['rejection_reason'] }}<br>
-                  @if($rejectionDetails[$notification->reference_number]['rejection_details'])
-                    <strong>Additional Details:</strong> {{ $rejectionDetails[$notification->reference_number]['rejection_details'] }}<br>
-                  @endif
-                  <strong>Rejected by:</strong> {{ $rejectionDetails[$notification->reference_number]['rejected_by'] }}<br>
-                  <strong>Date:</strong> {{ \Carbon\Carbon::parse($rejectionDetails[$notification->reference_number]['rejected_at'])->format('F j, Y g:i A') }}
-                @else
-                  Please contact the administrator's office for more information.
-                @endif
-                @break
-              @default {{ $notification->message ?? 'Status update available.' }}
-            @endswitch
-            </p>
-          </div>
-        </div>
+            // Determine if receipt upload is needed (Dean approved = status '3', student must upload before Admin review)
+            // Use status === 'uploaded' check, NOT document_path, because the Dean-generated payment notice
+            // also populates document_path (status='pending_payment') before the student actually uploads.
+            $needsReceipt = $latest->status === '3';
+            $receipt = $receipts[$refNum] ?? null;
+            $alreadyUploaded = $receipt && $receipt->status === 'uploaded';
+          @endphp
+          <tr style="border-bottom: 1px solid #e9ecef; transition: background-color 0.15s;"
+              onmouseover="this.style.backgroundColor='#f8f9fa'"
+              onmouseout="this.style.backgroundColor='transparent'">
 
-        {{-- Handle receipt display for status 2 (admin approval - payment required) --}}
-        @if(in_array($notification->status, ['2']))
-        @php
-        $receipt = $receipts[$notification->reference_number] ?? null;
-        @endphp
+            <td style="padding: 14px 16px; font-family: monospace; font-size: 13px; font-weight: 600; color: #333;">
+              {{ $refNum }}
+            </td>
 
-        {{-- Show payment notice if it exists for status 2 --}}
-        @if($receipt && $receipt->document_path && $receipt->status === 'pending_payment')
-        {{-- Payment Notice Section --}}
-        <div style="background: #fff3cd; color: #856404; padding: 16px; border-radius: 8px; border-left: 4px solid #ffc107; margin-bottom: 16px;">
-          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="height: 20px; width: 20px; color: #856404;">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-4.5B4.875 8.25 2.25 10.875 2.25 14.25v2.625M12 9.75v6.75m0 0l-3-3m3 3l3-3" />
-            </svg>
-            <span style="font-weight: 600;">Payment Notice Generated</span>
-          </div>
+            <td style="padding: 14px 16px;">
+              <span style="display: inline-block; padding: 4px 10px; background: {{ $latest->certificate_type === 'good_moral' ? '#28a74520' : '#17a2b820' }}; color: {{ $latest->certificate_type === 'good_moral' ? '#28a745' : '#17a2b8' }}; border-radius: 20px; font-size: 12px; font-weight: 500;">
+                {{ $certName }}
+              </span>
+            </td>
 
-          <div style="display: grid; gap: 8px; font-size: 14px; background: rgba(255,255,255,0.3); padding: 12px; border-radius: 6px; margin-bottom: 16px;">
-            @if($receipt->receipt_number)
-            <div style="display: flex; justify-content: space-between;">
-              <strong>Notice Number:</strong>
-              <span style="font-family: monospace; font-weight: 600; color: #856404;">{{ $receipt->receipt_number }}</span>
-            </div>
-            @endif
+            <td style="padding: 14px 16px; color: #555; font-size: 13px; max-width: 200px;">
+              {{ Str::limit($purpose, 50) }}
+            </td>
 
-            @if($receipt->amount)
-            <div style="display: flex; justify-content: space-between;">
-              <strong>Amount Due:</strong>
-              <span style="font-weight: 600; color: #856404;">₱{{ number_format($receipt->amount, 2) }}</span>
-            </div>
-            @endif
+            <td style="padding: 14px 16px; text-align: center; font-weight: 600; color: #333; font-size: 13px;">
+              {{ $copies }}
+            </td>
 
-            <div style="display: flex; justify-content: space-between;">
-              <strong>Generated:</strong>
-              <span>{{ $receipt->created_at->format('F j, Y g:i A') }}</span>
-            </div>
+            <td style="padding: 14px 16px; color: #555; font-size: 13px;">
+              <div style="font-weight: 500; color: #333;">{{ $first->created_at->format('M d, Y') }}</div>
+              <div style="font-size: 11px; color: #6c757d;">{{ $first->created_at->format('h:i A') }}</div>
+            </td>
 
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <strong>Payment Notice:</strong>
-              <a href="{{ route('files.serve', $receipt->document_path) }}" target="_blank"
-                 style="color: #856404; text-decoration: underline; font-weight: 600; display: flex; align-items: center; gap: 4px;">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="height: 16px; width: 16px;">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+            <td style="padding: 14px 16px;">
+              <span style="display: inline-block; padding: 5px 12px; background: {{ $sc['bg'] }}; color: {{ $sc['text'] }}; border-radius: 20px; font-size: 12px; font-weight: 500;">
+                {{ $sc['label'] }}
+              </span>
+            </td>
+
+            <td style="padding: 14px 16px; text-align: center;">
+              <button type="button"
+                onclick="openAppModal(
+                  '{{ $refNum }}',
+                  '{{ addslashes($certName) }}',
+                  '{{ $latest->status }}',
+                  '{{ addslashes($sc['label']) }}',
+                  '{{ $sc['text'] }}',
+                  '{{ $sc['bg'] }}',
+                  {{ $copies }},
+                  {{ $total }},
+                  {{ $needsReceipt && !$alreadyUploaded ? 'true' : 'false' }},
+                  {{ $rejJson }}
+                )"
+                style="display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; background: #f8f9fa; color: #495057; border: 1px solid #dee2e6; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.15s;"
+                onmouseover="this.style.background='#e9ecef'" onmouseout="this.style.background='#f8f9fa'">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:15px;height:15px;">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.964-7.178Z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                 </svg>
-                Download Payment Notice
-              </a>
-            </div>
-          </div>
+                View
+              </button>
+            </td>
 
-          <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; border: 1px solid #dee2e6;">
-            <p style="margin: 0; font-size: 14px; color: #495057;">
-              <strong>Next Steps:</strong><br>
-              1. Download the payment notice above<br>
-              2. Proceed to the <strong>Business Affairs Office</strong> to make payment<br>
-              3. Upload your official receipt from Business Affairs Office below
-            </p>
-          </div>
-        </div>
-        @endif
-
-        {{-- Check if there's an uploaded receipt for this application --}}
-        @php
-        $uploadedReceipt = $receipts[$notification->reference_number] ?? null;
-        $hasUploadedReceipt = $uploadedReceipt && $uploadedReceipt->status === 'uploaded' && $uploadedReceipt->official_receipt_no;
-        @endphp
-
-        @if($hasUploadedReceipt)
-        {{-- Uploaded Receipt Section --}}
-        <div style="background: #d4edda; color: #155724; padding: 16px; border-radius: 8px; margin-top: 16px;">
-          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="height: 20px; width: 20px; color: #28a745;">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span style="font-weight: 600;">Receipt uploaded successfully!</span>
-          </div>
-
-          <div style="display: grid; gap: 8px; font-size: 14px; background: rgba(255,255,255,0.3); padding: 12px; border-radius: 6px;">
-            @if($uploadedReceipt->official_receipt_no)
-            <div style="display: flex; justify-content: space-between;">
-              <strong>Official Receipt No.:</strong>
-              <span style="font-family: monospace; font-weight: 600; color: #155724;">{{ $uploadedReceipt->official_receipt_no }}</span>
-            </div>
-            @endif
-
-            @if($uploadedReceipt->amount)
-            <div style="display: flex; justify-content: space-between;">
-              <strong>Amount Paid:</strong>
-              <span style="font-weight: 600; color: #155724;">₱{{ number_format($uploadedReceipt->amount, 2) }}</span>
-            </div>
-            @endif
-
-            @if($uploadedReceipt->date_paid)
-            <div style="display: flex; justify-content: space-between;">
-              <strong>Date Paid:</strong>
-              <span>{{ \Carbon\Carbon::parse($uploadedReceipt->date_paid)->format('F j, Y') }}</span>
-            </div>
-            @endif
-
-            <div style="display: flex; justify-content: space-between;">
-              <strong>Uploaded:</strong>
-              <span>{{ $uploadedReceipt->updated_at->format('F j, Y g:i A') }}</span>
-            </div>
-
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <strong>Receipt Document:</strong>
-              <a href="{{ route('files.serve', $uploadedReceipt->document_path) }}" target="_blank"
-                 style="color: #155724; text-decoration: underline; font-weight: 600; display: flex; align-items: center; gap: 4px;">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="height: 16px; width: 16px;">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                </svg>
-                View Uploaded Receipt
-              </a>
-            </div>
-          </div>
-        </div>
-        @endif
-
-        {{-- Always show upload form for status 2 if no receipt uploaded yet --}}
-        @if(!$hasUploadedReceipt)
-        {{-- Upload Form Section --}}
-        <div style="background: #fff3cd; color: #856404; padding: 16px; border-radius: 8px; border-left: 4px solid #ffc107; margin-top: 16px;">
-          <h6 style="margin: 0 0 12px 0; font-weight: 600;">
-            Payment Receipt Required
-          </h6>
-          <p style="margin: 0 0 8px 0; font-size: 14px;">
-            Please upload your payment receipt to continue processing your application.
-          </p>
-
-          <!-- Payment Amount Information -->
-          <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; margin-bottom: 16px; border: 1px solid #dee2e6;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-              <strong style="color: #495057;">Payment Details:</strong>
-            </div>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-              <span>Number of Reasons:</span>
-              <span style="font-weight: 600;">{{ count($notification->reasons_array) }}</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-              <span>Number of Copies:</span>
-              <span style="font-weight: 600;">{{ $notification->number_of_copies }}</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-              <span>Rate per Unit:</span>
-              <span style="font-weight: 600;">₱50.00</span>
-            </div>
-            <hr style="margin: 8px 0; border: none; border-top: 1px solid #dee2e6;">
-            <div style="display: flex; justify-content: space-between; font-size: 16px;">
-              <strong style="color: #495057;">Total Amount:</strong>
-              <strong style="color: #28a745; font-size: 18px;">₱{{ number_format($notification->payment_amount, 2) }}</strong>
-            </div>
-            <div style="font-size: 12px; color: #666; text-align: center; margin-top: 4px;">
-              {{ count($notification->reasons_array) }} {{ count($notification->reasons_array) === 1 ? 'reason' : 'reasons' }} × {{ $notification->number_of_copies }} {{ $notification->number_of_copies == 1 ? 'copy' : 'copies' }} × ₱50.00
-            </div>
-          </div>
-
-          <form action="{{ route('receipt.upload') }}" method="POST" enctype="multipart/form-data" style="display: grid; gap: 16px;">
-            @csrf
-            <input type="hidden" name="reference_num" value="{{ $notification->reference_number }}">
-
-            <!-- Official Receipt Number -->
-            <div>
-              <label style="display: block; font-weight: 600; color: #333; margin-bottom: 8px;">
-                Official Receipt No. from Business Affairs Office <span style="color: #dc3545;">*</span>
-              </label>
-              <input type="text" name="official_receipt_no" required placeholder="Enter official receipt number from Business Affairs Office"
-                     style="width: 100%; padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px;"
-                     value="{{ old('official_receipt_no') }}">
-              @error('official_receipt_no')
-                <span style="color: #dc3545; font-size: 12px; margin-top: 4px; display: block;">{{ $message }}</span>
-              @enderror
-            </div>
-
-            <!-- Date Paid -->
-            <div>
-              <label style="display: block; font-weight: 600; color: #333; margin-bottom: 8px;">
-                Date Paid <span style="color: #dc3545;">*</span>
-              </label>
-              <input type="date" name="date_paid" required
-                     style="width: 100%; padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px;"
-                     value="{{ old('date_paid') }}" max="{{ date('Y-m-d') }}">
-              @error('date_paid')
-                <span style="color: #dc3545; font-size: 12px; margin-top: 4px; display: block;">{{ $message }}</span>
-              @enderror
-            </div>
-
-            <!-- Upload Receipt Document -->
-            <div>
-              <label style="display: block; font-weight: 600; color: #333; margin-bottom: 8px;">
-                Upload Receipt Document from Business Affairs Office <span style="color: #dc3545;">*</span>
-              </label>
-
-              <!-- Receipt Requirements Notice -->
-              <div style="background: #e3f2fd; border: 1px solid #2196f3; border-radius: 6px; padding: 12px; margin-bottom: 12px;">
-                <div style="display: flex; align-items: flex-start; gap: 8px;">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="height: 20px; width: 20px; color: #2196f3; margin-top: 2px; flex-shrink: 0;">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
-                  </svg>
-                  <div style="font-size: 13px; color: #1976d2;">
-                    <strong>⚠️ IMPORTANT: Valid Receipt Requirements</strong><br>
-                    • Must be the <strong>original receipt from St. Paul University Philippines Business Affairs Office</strong><br>
-                    • Should contain: Official Receipt header, receipt number, amount paid, date, and university details<br>
-                    • <strong style="color: #d32f2f;">❌ WILL BE REJECTED: Screenshots, camera photos, social media images, edited files</strong><br>
-                    • <strong style="color: #d32f2f;">❌ WILL BE REJECTED: Random images, non-receipt documents, corrupted files</strong><br>
-                    • ✅ File should be clear, complete, and readable<br>
-                    • ✅ Accepted formats: PDF, JPG, JPEG, PNG (Max: 2MB)
-                  </div>
-                </div>
-              </div>
-
-              <input type="file" name="document_path" required accept=".pdf,.jpg,.jpeg,.png"
-                     style="width: 100%; padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px;">
-              <small style="color: #6c757d; font-size: 12px; margin-top: 4px; display: block;">
-                Upload the official receipt you received from Business Affairs Office<br>
-                Accepted formats: PDF, JPG, JPEG, PNG (Max: 2MB)
-              </small>
-              @error('document_path')
-                <span style="color: #dc3545; font-size: 12px; margin-top: 4px; display: block;">{{ $message }}</span>
-              @enderror
-            </div>
-
-            <button type="submit" class="btn-primary" style="justify-self: start; display: flex; align-items: center; gap: 8px;">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="height: 16px; width: 16px;">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-              </svg>
-              Upload Receipt
-            </button>
-          </form>
-        </div>
-        @endif
-        @endif
-
-      </div>
-      @endforeach
+          </tr>
+          @endforeach
+        </tbody>
+      </table>
     </div>
     @endif
   </div>
+
+<!-- Application Progress Modal -->
+<div id="appModal" style="display:none; position:fixed; inset:0; z-index:1050; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; padding:16px;">
+  <div style="background:white; border-radius:12px; width:100%; max-width:560px; box-shadow:0 20px 60px rgba(0,0,0,0.2); overflow:hidden; max-height:90vh; display:flex; flex-direction:column;">
+
+    <!-- Modal Header -->
+    <div style="padding:20px 24px; border-bottom:1px solid #e9ecef; display:flex; justify-content:space-between; align-items:center; flex-shrink:0; background:linear-gradient(135deg, var(--primary-green) 0%, #009944 100%);">
+      <div>
+        <h5 style="margin:0; font-size:1.1rem; font-weight:700; color:white !important;">Application Details</h5>
+        <div id="modalRef" style="font-family:monospace; font-size:13px; color:rgba(255,255,255,0.85); margin-top:4px;"></div>
+      </div>
+      <button onclick="closeAppModal()" style="background:rgba(255,255,255,0.2); border:none; cursor:pointer; padding:6px; color:white; font-size:22px; line-height:1; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center;">&times;</button>
+    </div>
+
+    <!-- Modal Body (scrollable) -->
+    <div style="padding:24px; overflow-y:auto; flex:1;">
+
+      <!-- Status Badge + Cert Type -->
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:24px; flex-wrap:wrap;">
+        <span id="modalBadge" style="display:inline-block; padding:6px 16px; border-radius:20px; font-size:13px; font-weight:600;"></span>
+        <span style="color:#adb5bd; font-size:13px;">|</span>
+        <span id="modalCertType" style="color:#555; font-size:14px;"></span>
+      </div>
+
+      <!-- Workflow Progress (vertical stepper) -->
+      <div style="margin-bottom:8px;">
+        <div style="font-size:11px; font-weight:700; color:#888; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:16px;">Workflow Progress</div>
+
+        <!-- Step 0: Registrar Review -->
+        <div style="display:flex; align-items:flex-start; gap:14px;">
+          <div style="display:flex; flex-direction:column; align-items:center; flex-shrink:0;">
+            <div id="wf-icon-0" style="width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;border:2px solid #dee2e6;background:#f8f9fa;color:#adb5bd;"></div>
+            <div id="wf-line-0" style="width:2px;height:26px;background:#e9ecef;margin:3px 0;"></div>
+          </div>
+          <div style="padding-top:6px; flex:1;">
+            <div style="font-weight:600; font-size:14px; color:#333;">Registrar Review</div>
+            <div id="wf-note-0" style="font-size:12px; color:#6c757d; margin-top:2px;"></div>
+          </div>
+        </div>
+
+        <!-- Step 1: Dean Approval -->
+        <div style="display:flex; align-items:flex-start; gap:14px;">
+          <div style="display:flex; flex-direction:column; align-items:center; flex-shrink:0;">
+            <div id="wf-icon-1" style="width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;border:2px solid #dee2e6;background:#f8f9fa;color:#adb5bd;"></div>
+            <div id="wf-line-1" style="width:2px;height:26px;background:#e9ecef;margin:3px 0;"></div>
+          </div>
+          <div style="padding-top:6px; flex:1;">
+            <div style="font-weight:600; font-size:14px; color:#333;">Dean Approval</div>
+            <div id="wf-note-1" style="font-size:12px; color:#6c757d; margin-top:2px;"></div>
+          </div>
+        </div>
+
+        <!-- Step 2: Upload Receipt -->
+        <div style="display:flex; align-items:flex-start; gap:14px;">
+          <div style="display:flex; flex-direction:column; align-items:center; flex-shrink:0;">
+            <div id="wf-icon-2" style="width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;border:2px solid #dee2e6;background:#f8f9fa;color:#adb5bd;"></div>
+            <div id="wf-line-2" style="width:2px;height:26px;background:#e9ecef;margin:3px 0;"></div>
+          </div>
+          <div style="padding-top:6px; flex:1;">
+            <div style="font-weight:600; font-size:14px; color:#333;">Upload Receipt</div>
+            <div id="wf-note-2" style="font-size:12px; color:#6c757d; margin-top:2px;"></div>
+          </div>
+        </div>
+
+        <!-- Step 3: Administrator Approval -->
+        <div style="display:flex; align-items:flex-start; gap:14px;">
+          <div style="display:flex; flex-direction:column; align-items:center; flex-shrink:0;">
+            <div id="wf-icon-3" style="width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;border:2px solid #dee2e6;background:#f8f9fa;color:#adb5bd;"></div>
+            <div id="wf-line-3" style="width:2px;height:26px;background:#e9ecef;margin:3px 0;"></div>
+          </div>
+          <div style="padding-top:6px; flex:1;">
+            <div style="font-weight:600; font-size:14px; color:#333;">Administrator Approval</div>
+            <div id="wf-note-3" style="font-size:12px; color:#6c757d; margin-top:2px;"></div>
+          </div>
+        </div>
+
+        <!-- Step 4: Ready for Pickup (no connector line) -->
+        <div style="display:flex; align-items:flex-start; gap:14px;">
+          <div style="display:flex; flex-direction:column; align-items:center; flex-shrink:0;">
+            <div id="wf-icon-4" style="width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;border:2px solid #dee2e6;background:#f8f9fa;color:#adb5bd;"></div>
+          </div>
+          <div style="padding-top:6px; flex:1;">
+            <div style="font-weight:600; font-size:14px; color:#333;">Ready for Pickup at OSA</div>
+            <div id="wf-note-4" style="font-size:12px; color:#6c757d; margin-top:2px;"></div>
+          </div>
+        </div>
+      </div><!-- /stepper -->
+
+      <!-- Rejection Details (shown only when rejected) -->
+      <div id="rejectionSection" style="display:none; margin-top:20px; padding:14px 16px; background:#fff5f5; border-radius:8px; border-left:4px solid #dc3545; font-size:13px; color:#721c24; line-height:1.7;">
+        <div style="font-weight:700; margin-bottom:6px; color:#dc3545;">Application Rejected</div>
+        <div id="rejReason"></div>
+        <div id="rejDetails"></div>
+        <div id="rejBy"></div>
+      </div>
+
+      <!-- Receipt Upload Section (shown only when Dean approved and receipt not yet uploaded) -->
+      <div id="receiptUploadSection" style="display:none; border-top:1px solid #e9ecef; padding-top:20px; margin-top:20px;">
+
+        <div style="background:#e8f4fd; border:1px solid #2196f3; border-radius:8px; padding:16px; margin-bottom:16px;">
+          <div style="font-size:11px; font-weight:700; color:#1565c0; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:10px;">Payment Instructions</div>
+          <p style="margin:0 0 10px; font-size:13px; color:#1976d2; line-height:1.6;">
+            Please proceed to the <strong>Business Affairs Office (BAO)</strong> to pay for your certificate. Present the breakdown below when paying.
+          </p>
+          <div style="background:white; border-radius:6px; padding:12px 14px; font-size:13px; color:#333; line-height:1.9;">
+            <div style="display:flex; gap:8px;">
+              <span style="color:#6c757d; min-width:130px; flex-shrink:0;">Reference Number:</span>
+              <span id="payRef" style="font-family:monospace; font-weight:600; color:#1565c0;"></span>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <span style="color:#6c757d; min-width:130px; flex-shrink:0;">Certificate Type:</span>
+              <span id="payCertType" style="font-weight:500;"></span>
+            </div>
+            <div style="display:flex; gap:8px; border-top:1px solid #e9ecef; margin-top:6px; padding-top:6px;">
+              <span style="color:#6c757d; min-width:130px; flex-shrink:0;">Copies:</span>
+              <span id="payCopies" style="font-weight:500;"></span>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <span style="color:#6c757d; min-width:130px; flex-shrink:0;">Rate per Copy:</span>
+              <span style="font-weight:500;">&#8369;50</span>
+            </div>
+            <div style="display:flex; gap:8px; border-top:1px solid #e9ecef; margin-top:6px; padding-top:6px; font-weight:700;">
+              <span style="color:#6c757d; min-width:130px; flex-shrink:0;">Total Amount:</span>
+              <span id="payTotal" style="color:#1565c0; font-size:15px;"></span>
+            </div>
+          </div>
+        </div>
+
+        <div style="font-size:11px; font-weight:700; color:#888; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:12px;">Upload Payment Receipt</div>
+        <div style="background:#fff8e1; border:1px solid #ffc107; border-radius:8px; padding:10px 14px; margin-bottom:14px; font-size:13px; color:#856404;">
+          After paying at the BAO, upload your official payment receipt below to proceed.
+        </div>
+
+        <form id="receiptUploadForm" action="{{ route('receipt.upload') }}" method="POST" enctype="multipart/form-data" style="display:grid; gap:14px;">
+          @csrf
+          <input type="hidden" name="reference_num" id="modalReceiptRef" value="">
+          <div>
+            <label style="display:block; font-weight:600; color:#333; margin-bottom:6px; font-size:13px;">Official Receipt No. <span style="color:#dc3545;">*</span></label>
+            <input type="text" name="official_receipt_no" required placeholder="Enter receipt number from Business Affairs Office"
+                   style="width:100%; padding:10px 12px; border:1px solid #ced4da; border-radius:6px; font-size:14px; box-sizing:border-box;">
+          </div>
+          <div>
+            <label style="display:block; font-weight:600; color:#333; margin-bottom:6px; font-size:13px;">Date Paid <span style="color:#dc3545;">*</span></label>
+            <input type="date" name="date_paid" required max="{{ date('Y-m-d') }}"
+                   style="width:100%; padding:10px 12px; border:1px solid #ced4da; border-radius:6px; font-size:14px; box-sizing:border-box;">
+          </div>
+          <div>
+            <label style="display:block; font-weight:600; color:#333; margin-bottom:6px; font-size:13px;">Receipt Document <span style="color:#dc3545;">*</span></label>
+            <div style="background:#fff8e6; border:1px solid #ffc107; border-radius:6px; padding:8px 12px; margin-bottom:8px; font-size:12px; color:#856404;">
+              Must be the <strong>original receipt from Business Affairs Office</strong>. Screenshots will be rejected. PDF, JPG, PNG · Max 2MB.
+            </div>
+            <input type="file" name="document_path" required accept=".pdf,.jpg,.jpeg,.png"
+                   style="width:100%; padding:10px 12px; border:1px solid #ced4da; border-radius:6px; font-size:13px; box-sizing:border-box;">
+          </div>
+          <button type="submit"
+                  style="width:100%; padding:10px 16px; background:#28a745; color:white !important; border:none; border-radius:6px; font-size:14px; font-weight:600; cursor:pointer;"
+                  onmouseover="this.style.background='#218838'" onmouseout="this.style.background='#28a745'">
+            Upload Receipt
+          </button>
+        </form>
+      </div>
+
+    </div><!-- /modal body -->
+
+    <!-- Modal Footer -->
+    <div style="padding:14px 24px; border-top:1px solid #e9ecef; text-align:right; flex-shrink:0;">
+      <button onclick="closeAppModal()" style="padding:8px 20px; background:#6c757d; color:white !important; border:none; border-radius:6px; font-size:14px; cursor:pointer;">Close</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// Student workflow: 0=Registrar, 1=Dean, 2=Upload Receipt, 3=Admin, 4=Pickup
+function _wfGetStepState(status) {
+  if (['5','6'].indexOf(status) >= 0)  return { current: 5, rejected: -1 }; // printed/released
+  if (status === '2')  return { current: 5, rejected: -1 }; // admin approved → ready for pickup (all steps done)
+  if (status === '4')  return { current: 3, rejected: -1 }; // receipt uploaded → awaiting admin approval
+  if (status === '3')  return { current: 2, rejected: -1 }; // dean approved → upload receipt (student action)
+  if (status === '1')  return { current: 1, rejected: -1 }; // registrar approved → dean
+  if (status === '-1') return { current: -1, rejected: 0 }; // rejected by registrar
+  if (status === '-3') return { current: -1, rejected: 1 }; // rejected by dean
+  if (status === '-2') return { current: -1, rejected: 3 }; // rejected by admin (step 3)
+  return { current: 0, rejected: -1 }; // default: with registrar
+}
+
+var _wfNotes = [
+  'Application submitted and awaiting Registrar decision.',
+  'Registrar approved. Awaiting Dean review.',
+  'Dean approved. Please upload your payment receipt.',
+  'Receipt received. Awaiting Administrator approval.',
+  'Approved. Your certificate will be ready for pickup at the Office of Student Affairs (OSA).',
+];
+
+function _wfSetIcon(i, bg, borderColor, color, symbol) {
+  var el = document.getElementById('wf-icon-' + i);
+  el.style.background  = bg;
+  el.style.borderColor = borderColor;
+  el.style.color       = color;
+  el.textContent       = symbol;
+  if (i < 4) {
+    document.getElementById('wf-line-' + i).style.background =
+      (borderColor === '#28a745') ? '#28a745' : '#e9ecef';
+  }
+}
+
+function openAppModal(ref, certType, status, statusLabel, statusColor, statusBg, copies, total, needsReceipt, rejDetail) {
+  document.getElementById('modalRef').textContent = ref;
+  document.getElementById('modalCertType').textContent = certType;
+
+  var badge = document.getElementById('modalBadge');
+  badge.textContent      = statusLabel;
+  badge.style.background = statusBg;
+  badge.style.color      = statusColor;
+
+  var state    = _wfGetStepState(status);
+  var current  = state.current;
+  var rejected = state.rejected;
+
+  for (var i = 0; i < 5; i++) {
+    var note = document.getElementById('wf-note-' + i);
+    note.textContent = '';
+    if (rejected >= 0) {
+      if (i < rejected)       { _wfSetIcon(i, '#d4edda', '#28a745', '#155724', '✓'); }
+      else if (i === rejected) { _wfSetIcon(i, '#f8d7da', '#dc3545', '#721c24', '✕'); note.textContent = 'Rejected at this stage.'; }
+      else                     { _wfSetIcon(i, '#f8f9fa', '#dee2e6', '#adb5bd', '○'); }
+    } else if (i < current) {
+      _wfSetIcon(i, '#d4edda', '#28a745', '#155724', '✓');
+    } else if (i === current && current < 5) {
+      _wfSetIcon(i, '#fff3cd', '#ffc107', '#856404', '●');
+      note.textContent = _wfNotes[i] || '';
+    } else {
+      _wfSetIcon(i, '#f8f9fa', '#dee2e6', '#adb5bd', '○');
+    }
+  }
+
+  // Rejection details panel
+  var rejSec = document.getElementById('rejectionSection');
+  if (rejDetail && rejected >= 0) {
+    document.getElementById('rejReason').textContent  = rejDetail.reason  ? 'Reason: ' + rejDetail.reason : '';
+    document.getElementById('rejDetails').textContent = rejDetail.details ? 'Details: ' + rejDetail.details : '';
+    document.getElementById('rejBy').textContent      = (rejDetail.by ? 'By: ' + rejDetail.by : '') + (rejDetail.at ? ' — ' + rejDetail.at : '');
+    rejSec.style.display = 'block';
+  } else {
+    rejSec.style.display = 'none';
+  }
+
+  // Receipt upload section
+  var uploadSection = document.getElementById('receiptUploadSection');
+  uploadSection.style.display = needsReceipt ? 'block' : 'none';
+  if (needsReceipt) {
+    document.getElementById('modalReceiptRef').value   = ref;
+    document.getElementById('payRef').textContent      = ref;
+    document.getElementById('payCertType').textContent = certType;
+    document.getElementById('payCopies').textContent   = copies;
+    document.getElementById('payTotal').textContent    = '\u20B1' + (copies * 50).toLocaleString();
+  }
+
+  document.getElementById('appModal').style.display = 'flex';
+}
+
+function closeAppModal() {
+  document.getElementById('appModal').style.display = 'none';
+}
+
+document.getElementById('appModal').addEventListener('click', function(e) {
+  if (e.target === this) closeAppModal();
+});
+</script>
 
 </x-dashboard-layout>

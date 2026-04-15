@@ -27,7 +27,7 @@ class ApplyGoodMoralRequest extends FormRequest
             'certificate_type' => ['required', 'in:good_moral,residency'],
         ];
 
-        if ($accountType === 'student') {
+        if ($accountType === 'student' || $accountType === 'psg_officer') {
             $rules['last_course_year_level'] = ['nullable', 'string', 'max:50'];
             $rules['last_semester'] = ['required', 'string', 'in:' . implode(',', $validSemesters)];
             $rules['last_school_year'] = ['required', 'string', 'regex:/^\d{4}-\d{4}$/'];

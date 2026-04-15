@@ -23,56 +23,11 @@ class PsgOfficerController extends Controller
     }
 
     /**
-     * Show PSG Officer dashboard with good moral application option
+     * PSG Officer dashboard - redirects to applications page (task-based module)
      */
     public function dashboard()
     {
-        // Check if user is PSG officer
-        if (!Auth::check() || Auth::user()->account_type !== 'psg_officer') {
-            abort(403, 'Unauthorized access. PSG Officer access required.');
-        }
-
-        $user = Auth::user();
-        
-        // Get PSG officer's student record by email (users.id ≠ role_account.id)
-        $student = RoleAccount::where('email', $user->email)->first();
-        
-        if (!$student) {
-            Auth::logout();
-            return redirect()->route('login')->with('error', 'PSG Officer record not found. Please contact the administrator.');
-        }
-
-        $studentId = $student->student_id;
-        $fullname = $student->fullname;
-        
-        // Get violations against this PSG officer
-        $personalViolations = StudentViolation::where('student_id', $studentId)
-            ->where('status', '!=', 2)
-            ->get();
-
-        // Determine available certificate types based on violations
-        $availableCertificates = $this->getAvailableCertificates($personalViolations);
-
-        // Get PSG officer's course and year level
-        $studentCourse = $student->course;
-        $studentCourseName = $studentCourse ? CourseHelper::getCourseName($studentCourse) : null;
-        $studentYearLevel = $student->year_level;
-
-        // Get existing applications
-        $existingApplications = GoodMoralApplication::where('student_id', $studentId)
-            ->orderBy('created_at', 'desc')
-            ->take(5)
-            ->get();
-
-        return view('PsgOfficer.dashboard', compact(
-            'personalViolations', 
-            'fullname', 
-            'availableCertificates', 
-            'studentCourse', 
-            'studentCourseName', 
-            'studentYearLevel',
-            'existingApplications'
-        ));
+        return redirect()->route('PsgOfficer.applications');
     }
 
     /**

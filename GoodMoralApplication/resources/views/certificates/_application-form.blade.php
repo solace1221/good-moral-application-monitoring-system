@@ -313,6 +313,93 @@
           </div>
         </div>
       </div>
+      @elseif ($accountType === 'psg_officer')
+      <!-- PSG Officer specific fields -->
+      <div class="responsive-form">
+        <div class="responsive-form-group">
+          <label for="last_course_year_level" style="font-weight: 600; color: #333;">Course of Last School Attended in SPUP</label>
+          @if($studentCourse && $studentCourseName)
+            <div class="static-field">
+              <span class="course-code">{{ $studentCourse }}</span> - <span class="course-name">{{ $studentCourseName }}</span>
+              @if($studentYearLevel)
+                <span class="year-level">({{ $studentYearLevel }})</span>
+              @endif
+            </div>
+            <input type="hidden" name="last_course_year_level" value="{{ $studentCourse }}">
+            <small style="color: #666; font-size: 12px; margin-top: 4px; display: block;">
+              📌 Course and year level information is automatically populated from your student profile
+            </small>
+          @else
+            <div class="static-field error">
+              <span style="color: #dc3545;">⚠️ Course not set in your profile</span>
+            </div>
+            <small style="color: #dc3545; font-size: 12px; margin-top: 4px; display: block;">
+              Please contact the registrar to update your course information
+            </small>
+          @endif
+          @error('last_course_year_level')
+            <span style="color: #dc3545; font-size: 14px;">{{ $message }}</span>
+          @enderror
+        </div>
+
+        <!-- Last Attendance Information Card -->
+        <div style="background: linear-gradient(135deg, #f0f7ff 0%, #ffffff 100%); padding: 24px; border-radius: 12px; border: 2px solid #dbe9ff; margin-top: 8px;">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+            <div style="background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%); padding: 10px; border-radius: 10px; box-shadow: 0 4px 6px rgba(74, 144, 226, 0.2);">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="white" style="width: 24px; height: 24px;">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+              </svg>
+            </div>
+            <div>
+              <h3 style="font-weight: 700; color: #2c5282; font-size: 16px; margin: 0;">Last Attendance Information</h3>
+              <p style="font-size: 13px; color: #64748b; margin: 2px 0 0 0;">Select your semester and school year</p>
+            </div>
+          </div>
+
+          <div style="display: grid; gap: 16px;">
+            <!-- Semester Selection -->
+            <div class="responsive-form-group" style="margin: 0;">
+              <label for="last_semester" style="font-weight: 600; color: #2c5282; font-size: 14px; margin-bottom: 8px; display: block;">
+                Semester <span style="color: #dc3545; font-weight: bold;">*</span>
+              </label>
+              <select id="last_semester" name="last_semester" required
+                      style="width: 100%; padding: 14px 40px 14px 18px; border: 2px solid #dbe9ff; border-radius: 8px; font-size: 15px; font-weight: 500; transition: all 0.3s ease; background: white; background-image: url('data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3e%3cpath stroke=\'%234a90e2\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3e%3c/svg%3e'); background-position: right 12px center; background-repeat: no-repeat; background-size: 20px; appearance: none; cursor: pointer;">
+                <option value="" disabled selected style="color: #94a3b8;">Select semester</option>
+                <option value="First Semester" {{ old('last_semester') == 'First Semester' ? 'selected' : '' }}>First Semester</option>
+                <option value="Second Semester" {{ old('last_semester') == 'Second Semester' ? 'selected' : '' }}>Second Semester</option>
+                <option value="Summer Term" {{ old('last_semester') == 'Summer Term' ? 'selected' : '' }}>Summer Term</option>
+              </select>
+              @error('last_semester')
+                <span style="color: #dc3545; font-size: 13px; margin-top: 6px; display: block;">{{ $message }}</span>
+              @enderror
+            </div>
+
+            <!-- School Year Selection -->
+            <div class="responsive-form-group" style="margin: 0;">
+              <label for="last_school_year" style="font-weight: 600; color: #2c5282; font-size: 14px; margin-bottom: 8px; display: block;">
+                School Year <span style="color: #dc3545; font-weight: bold;">*</span>
+              </label>
+              <select id="last_school_year" name="last_school_year" required
+                      style="width: 100%; padding: 14px 40px 14px 18px; border: 2px solid #dbe9ff; border-radius: 8px; font-size: 15px; font-weight: 500; transition: all 0.3s ease; background: white; background-image: url('data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3e%3cpath stroke=\'%234a90e2\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3e%3c/svg%3e'); background-position: right 12px center; background-repeat: no-repeat; background-size: 20px; appearance: none; cursor: pointer;">
+                <option value="" disabled selected style="color: #94a3b8;">Select school year</option>
+                @php
+                  $currentYear = date('Y');
+                  $startYear = 2020;
+                  for ($year = $currentYear; $year >= $startYear; $year--) {
+                    $nextYear = $year + 1;
+                    $schoolYear = $year . '-' . $nextYear;
+                    $selected = old('last_school_year') == $schoolYear ? 'selected' : '';
+                    echo "<option value=\"{$schoolYear}\" {$selected}>{$schoolYear}</option>";
+                  }
+                @endphp
+              </select>
+              @error('last_school_year')
+                <span style="color: #dc3545; font-size: 13px; margin-top: 6px; display: block;">{{ $message }}</span>
+              @enderror
+            </div>
+          </div>
+        </div>
+      </div>
       @endif
 
       <!-- Submit Button -->

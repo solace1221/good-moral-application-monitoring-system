@@ -108,7 +108,6 @@ Route::middleware(['auth', 'verified', 'role:psg_officer'])->group(function () {
     Route::get('/PsgOfficer/applications', [PsgOfficerController::class, 'showApplications'])->name('PsgOfficer.applications');
     Route::get('/PsgOfficer/PsgAddViolation', [RegisterViolationController::class, 'ViolatorDashboard'])->name('PsgOfficer.PsgAddViolation');
     Route::get('/PsgOfficer/Violator', [RegisterViolationController::class, 'violator'])->name('PsgOfficer.Violator');
-    Route::get('/PsgOfficer/PsgViolation', [RegisterViolationController::class, 'PsgViolation'])->name('PsgOfficer.PsgViolation');
     Route::get('/psg-officer/check-violations/{studentId}', [RegisterViolationController::class, 'checkStudentViolations'])->name('PsgOfficer.checkViolations');
     Route::post('/PsgOfficer/registerviolation', [RegisterViolationController::class, 'store'])->name('psg.registerviolation');
 });

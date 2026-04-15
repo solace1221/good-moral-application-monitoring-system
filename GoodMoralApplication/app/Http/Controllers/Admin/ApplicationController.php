@@ -86,7 +86,10 @@ class ApplicationController extends Controller
       return redirect()->route('admin.GMAApporvedByRegistrar')->with('error', 'Student must upload payment receipt first.');
     }
 
-    $this->workflowService->rejectByAdmin($application);
+    $reason = request('rejection_reason');
+    $details = request('rejection_details');
+
+    $this->workflowService->rejectByAdmin($application, $reason, $details);
 
     return redirect()->route('admin.GMAApporvedByRegistrar')->with('status', 'Application rejected successfully!');
   }

@@ -47,8 +47,9 @@ class RegisterViolationController extends Controller
     // Get frequency filter from request
     $frequency = $request->get('frequency', 'all');
 
-    // Get current PSG Officer
-    $currentUser = Auth::user()->fullname;
+    // Get current PSG Officer from RoleAccount (consistent with store method)
+    $roleAccount = RoleAccount::where('email', Auth::user()->email)->first();
+    $currentUser = $roleAccount->fullname;
 
     // Get statistics for minor violations (PSG Officers only see violations they added)
     $minorPending = $this->applyDateFilter(StudentViolation::where('status', '!=', 2)->where('offense_type', 'minor')->where('added_by', $currentUser), $frequency)->count();
@@ -99,8 +100,7 @@ class RegisterViolationController extends Controller
       'request_data' => $request->all()
     ]);
 
-    $currentUserId = Auth::id();
-    $currentUser = RoleAccount::find($currentUserId);
+    $currentUser = RoleAccount::where('email', Auth::user()->email)->first();
     $userName = $currentUser->fullname;
     $uniqueID = $currentUser->student_id;
 
@@ -181,8 +181,8 @@ class RegisterViolationController extends Controller
   public function violator()
   {
     // PSG Officers can only view violations they have added
-    $currentUser = Auth::user()->fullname;
-    $students = StudentViolation::where('added_by', $currentUser)
+    $currentUser = RoleAccount::where('email', Auth::user()->email)->first();
+    $students = StudentViolation::where('added_by', $currentUser->fullname)
       ->orderBy('created_at', 'desc')
       ->paginate(10);
 
@@ -197,18 +197,6 @@ class RegisterViolationController extends Controller
     $coursesByDepartment = CourseHelper::getCoursesByDepartment();
 
     return view('PsgOfficer.psg-add-violation', compact('violations', 'coursesByDepartment'));
-  }
-
-  public function PsgViolation()
-  {
-    // PSG Officers can only view violations they have added (minor violations only)
-    $currentUser = Auth::user()->fullname;
-    $violations = StudentViolation::where('offense_type', 'minor')
-      ->where('added_by', $currentUser)
-      ->orderBy('created_at', 'desc')
-      ->paginate(10);
-
-    return view('PsgOfficer.psg-violation', compact('violations'));
   }
 
   /**

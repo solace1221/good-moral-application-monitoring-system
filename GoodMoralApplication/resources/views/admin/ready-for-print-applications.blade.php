@@ -142,7 +142,7 @@
                   <form action="{{ route('admin.printCertificate', $application->id) }}" method="POST" style="display: inline;">
                     @csrf
                     <button type="submit"
-                            onclick="return confirm('Are you sure you want to print this certificate? This will mark it as ready for pickup at the Office of Student Affairs (OSA).'))"
+                            onclick="return confirm('Are you sure you want to print this certificate? This will mark it as ready for pickup at the Office of Student Affairs (OSA).')"
                             style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer;">
                       Print Certificate
                     </button>
@@ -331,7 +331,7 @@
                   <form action="{{ route('admin.printCertificate', $application->id) }}" method="POST" style="display: inline;">
                     @csrf
                     <button type="submit"
-                            onclick="return confirm('Are you sure you want to print this certificate? This will mark it as ready for pickup at the Office of Student Affairs (OSA).'))"
+                            onclick="return confirm('Are you sure you want to print this certificate? This will mark it as ready for pickup at the Office of Student Affairs (OSA).')"
                             style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer;">
                       Print Certificate
                     </button>
@@ -515,7 +515,7 @@
                   <form action="{{ route('admin.printCertificate', $application->id) }}" method="POST" style="display: inline;">
                     @csrf
                     <button type="submit"
-                            onclick="return confirm('Are you sure you want to print this certificate? This will mark it as ready for pickup at the Office of Student Affairs (OSA).'))"
+                            onclick="return confirm('Are you sure you want to print this certificate? This will mark it as ready for pickup at the Office of Student Affairs (OSA).')"
                             style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer;">
                       Print Certificate
                     </button>
@@ -802,32 +802,6 @@
         closeModal();
       }
     });
-
-    // --- Reprint confirmation modal ---
-    let _reprintForm = null;
-
-    function openReprintModal(form) {
-      _reprintForm = form;
-      document.getElementById('reprintModal').style.display = 'flex';
-    }
-
-    function closeReprintModal() {
-      document.getElementById('reprintModal').style.display = 'none';
-      _reprintForm = null;
-    }
-
-    document.getElementById('reprintConfirmBtn').addEventListener('click', function () {
-      if (_reprintForm) _reprintForm.submit();
-    });
-
-    document.getElementById('reprintModal').addEventListener('click', function (e) {
-      if (e.target === this) closeReprintModal();
-    });
-
-    // Initialize first tab as active
-    document.addEventListener('DOMContentLoaded', function() {
-      showTab('all');
-    });
   </script>
 
   <!-- Reprint Confirmation Modal -->
@@ -858,6 +832,29 @@
       </div>
     </div>
   </div>
+
+  <script>
+    // --- Reprint confirmation modal ---
+    let _reprintForm = null;
+
+    function openReprintModal(form) {
+      _reprintForm = form;
+      document.getElementById('reprintModal').style.display = 'flex';
+    }
+
+    function closeReprintModal() {
+      document.getElementById('reprintModal').style.display = 'none';
+      _reprintForm = null;
+    }
+
+    document.getElementById('reprintConfirmBtn').addEventListener('click', function () {
+      if (_reprintForm) _reprintForm.submit();
+    });
+
+    document.getElementById('reprintModal').addEventListener('click', function (e) {
+      if (e.target === this) closeReprintModal();
+    });
+  </script>
 
 </x-dashboard-layout>
 

@@ -225,10 +225,13 @@ class ApplicationController extends Controller
       return redirect()->route('login')->with('error', 'Student record not found. Please contact the administrator.');
     }
 
-    // Fetch notifications for the authenticated user using the student_id
+    // Fetch all notifications for this student, ordered desc so latest is first per group
     $notifications = NotifArchive::where('student_id', $roleAccount->student_id)
-      ->orderBy('created_at', 'desc') // Optional: Order by latest notifications first
+      ->orderBy('created_at', 'desc')
       ->get();
+
+    // Group by reference_number so the view renders one row per application
+    $grouped = $notifications->groupBy('reference_number');
 
     $receipts = Receipt::whereIn('reference_num', $notifications->pluck('reference_number'))
       ->get()
@@ -237,7 +240,7 @@ class ApplicationController extends Controller
     // Fetch detailed rejection information from GoodMoralApplication table
     $rejectionDetails = [];
     foreach ($notifications as $notification) {
-      if (in_array($notification->status, ['-1', '-2', '-3'])) { // Rejected statuses
+      if (in_array($notification->status, ['-1', '-2', '-3'])) {
         $application = GoodMoralApplication::where('reference_number', $notification->reference_number)->first();
         if ($application && $application->rejection_reason) {
           $rejectionDetails[$notification->reference_number] = [
@@ -250,8 +253,7 @@ class ApplicationController extends Controller
       }
     }
 
-    // Return the view with the notifications and rejection details
-    return view('notification', compact('notifications', 'receipts', 'rejectionDetails'));
+    return view('notification', compact('grouped', 'receipts', 'rejectionDetails'));
   }
 
   public function notificationViolation()

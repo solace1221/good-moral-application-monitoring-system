@@ -23,12 +23,6 @@
           </svg>
           New Application
         </a>
-        <a href="{{ route('PsgOfficer.dashboard') }}" class="btn-secondary">
-          <svg style="width: 16px; height: 16px; margin-right: 8px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-          </svg>
-          Back to Dashboard
-        </a>
       </div>
     </div>
   </div>
@@ -175,7 +169,9 @@
                   '{{ $statusBg }}',
                   '{{ addslashes($progressMsg) }}',
                   {{ $copies }},
-                  {{ $total }}
+                  {{ $total }},
+                  '{{ addslashes($application->rejection_reason ?? '') }}',
+                  '{{ addslashes($application->rejection_details ?? '') }}'
                 )"
                 style="display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; background: #f8f9fa; color: #495057; border: 1px solid #dee2e6; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.15s;"  
                 onmouseover="this.style.background='#e9ecef'" onmouseout="this.style.background='#f8f9fa'">
@@ -199,34 +195,6 @@
     </div>
     @endif
     @endif
-  </div>
-
-  <!-- Information Section -->
-  <div class="header-section">
-    <h3 style="color: var(--primary-green); margin-bottom: 16px; font-size: 1.2rem;">Application Process Guide</h3>
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
-      <div style="padding: 20px; background: #e8f5e8; border-radius: 8px; border-left: 4px solid #28a745;">
-        <h4 style="color: #155724; font-weight: 600; margin-bottom: 12px;">📋 Application Flow</h4>
-        <ol style="color: #155724; line-height: 1.6; margin: 0; padding-left: 20px;">
-          <li>Submit application</li>
-          <li>Registrar review & approval</li>
-          <li>Dean review & approval</li>
-          <li>Administrator final approval</li>
-          <li>Upload Receipt</li>
-          <li>Certificate printing & pickup</li>
-        </ol>
-      </div>
-
-      <div style="padding: 20px; background: #fff3cd; border-radius: 8px; border-left: 4px solid #ffc107;">
-        <h4 style="color: #856404; font-weight: 600; margin-bottom: 12px;">⏱️ Processing Time</h4>
-        <p style="color: #856404; line-height: 1.6; margin: 0;">Applications typically take 3-5 business days to process. You will be notified when your certificate is ready for pickup.</p>
-      </div>
-
-      <div style="padding: 20px; background: #d1ecf1; border-radius: 8px; border-left: 4px solid #17a2b8;">
-        <h4 style="color: #0c5460; font-weight: 600; margin-bottom: 12px;">📞 Need Help?</h4>
-        <p style="color: #0c5460; line-height: 1.6; margin: 0;">Contact the Registrar's Office or Student Affairs for questions about your application status or requirements.</p>
-      </div>
-    </div>
   </div>
 
 <!-- Application Progress Modal -->
@@ -316,6 +284,13 @@
         </div>
       </div>
 
+      <!-- Rejection Reason (shown only when rejected) -->
+      <div id="rejectionReasonSection" style="display:none; background:#fff5f5; border:1px solid #f5c2c7; border-radius:8px; padding:16px; margin-bottom:20px;">
+        <div style="font-size:11px; font-weight:700; color:#842029; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:8px;">Reason for Rejection</div>
+        <div id="rejectionReasonText" style="font-size:14px; color:#842029; font-weight:600; margin-bottom:4px;"></div>
+        <div id="rejectionDetailsText" style="font-size:13px; color:#a0291c; line-height:1.6;"></div>
+      </div>
+
       <!-- Receipt Upload Section (shown only when Dean approved and receipt not yet uploaded) -->
       <div id="receiptUploadSection" style="display:none; border-top:1px solid #e9ecef; padding-top:20px; margin-top:20px;">
 
@@ -391,11 +366,6 @@
 
     </div><!-- /modal body -->
 
-    <!-- Modal Footer -->
-    <div style="padding:16px 24px; border-top:1px solid #e9ecef; text-align:right; flex-shrink:0;">
-      <button onclick="closeAppModal()" style="padding:8px 20px; background:#6c757d; color:white; border:none; border-radius:6px; font-size:14px; cursor:pointer;">Close</button>
-    </div>
-
   </div>
 </div>
 
@@ -435,7 +405,7 @@ function _wfSetIcon(i, bg, borderColor, color, symbol) {
   }
 }
 
-function openAppModal(ref, certType, appStatus, statusText, statusColor, statusBg, progressMsg, copies, total) {
+function openAppModal(ref, certType, appStatus, statusText, statusColor, statusBg, progressMsg, copies, total, rejectionReason, rejectionDetails) {
   document.getElementById('modalRef').textContent = ref;
   document.getElementById('modalCertType').textContent = certType;
 
@@ -464,6 +434,15 @@ function openAppModal(ref, certType, appStatus, statusText, statusColor, statusB
       _wfSetIcon(i, '#f8f9fa', '#dee2e6', '#adb5bd', '○');
       note.textContent = '';
     }
+  }
+
+  // Show rejection reason when rejected
+  var isRejected = appStatus && appStatus.includes('Rejected');
+  var rejSection = document.getElementById('rejectionReasonSection');
+  rejSection.style.display = isRejected ? 'block' : 'none';
+  if (isRejected) {
+    document.getElementById('rejectionReasonText').textContent  = rejectionReason || 'No reason provided.';
+    document.getElementById('rejectionDetailsText').textContent = rejectionDetails || '';
   }
 
   // Show receipt upload only when Dean approved and receipt not yet submitted

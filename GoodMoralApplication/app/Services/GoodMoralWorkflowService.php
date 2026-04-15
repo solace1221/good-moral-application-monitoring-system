@@ -82,10 +82,15 @@ class GoodMoralWorkflowService
     /**
      * Reject a GoodMoralApplication at the admin level (new system).
      */
-    public function rejectByAdmin(GoodMoralApplication $application): void
+    public function rejectByAdmin(GoodMoralApplication $application, ?string $reason = null, ?string $details = null): void
     {
         $application->status = 'rejected';
         $application->application_status = 'Rejected by Administrator';
+        $application->rejection_reason = $reason;
+        $application->rejection_details = $details;
+        $application->rejected_by = 'Administrator';
+        $application->rejected_at = now();
+        $application->action_history = ($application->action_history ?? '') . "\n" . now()->format('Y-m-d H:i:s') . " - Rejected by Administrator (Reason: {$reason})";
         $application->save();
 
         // Also reject the HeadOSAApplication if it exists

@@ -122,21 +122,17 @@
                     </button>
                   </form>
 
-                  <!-- Reject Button -->
-                  <form action="{{ route('admin.rejectGoodMoralApplication', $application->id) }}" method="POST" style="display: inline;">
-                    @csrf
-                    @method('PATCH')
-                    <button type="submit"
-                            onclick="return confirm('Are you sure you want to reject this application? This action cannot be undone.')"
-                            style="background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s ease;"
-                            onmouseover="this.style.background='#c82333'"
-                            onmouseout="this.style.background='#dc3545'">
-                      <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                      </svg>
-                      Reject
-                    </button>
-                  </form>
+                  <!-- Reject Button (opens modal) -->
+                  <button type="button"
+                          onclick="openRejectModal({{ $application->id }}, '{{ addslashes($application->fullname) }}', '{{ $application->certificate_type === 'good_moral' ? 'Good Moral' : 'Residency' }}')"
+                          style="background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s ease;"
+                          onmouseover="this.style.background='#c82333'"
+                          onmouseout="this.style.background='#dc3545'">
+                    <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    Reject
+                  </button>
                 @else
                   <span style="color: #6c757d; font-size: 12px; font-style: italic; padding: 8px 12px; background: #f8f9fa; border-radius: 6px;">
                     Already Processed
@@ -193,4 +189,109 @@
       document.getElementById('modal').classList.add('hidden');
     }
   </script>
+
+  <!-- Reject Application Modal -->
+  <div id="rejectModal" style="display:none; position:fixed; inset:0; z-index:1050; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; padding:16px;">
+    <div style="background:white; border-radius:12px; width:100%; max-width:480px; box-shadow:0 20px 60px rgba(0,0,0,0.2); overflow:hidden;">
+
+      <!-- Modal Header -->
+      <div style="padding:20px 24px; border-bottom:1px solid #e9ecef; background:#dc3545;">
+        <h5 style="margin:0; font-size:1.1rem; font-weight:700; color:white;">Reject Application</h5>
+        <div id="rejectModalStudentName" style="font-size:13px; color:rgba(255,255,255,0.85); margin-top:4px;"></div>
+      </div>
+
+      <!-- Modal Body -->
+      <div style="padding:24px;">
+        <div style="background:#fff5f5; border:1px solid #f5c6cb; border-radius:8px; padding:12px 14px; margin-bottom:20px; font-size:13px; color:#721c24; line-height:1.6;">
+          This action cannot be undone. The student will be notified about the rejection with the reason you provide.
+        </div>
+
+        <form id="rejectForm" method="POST" style="display:grid; gap:16px;">
+          @csrf
+          @method('PATCH')
+
+          <div>
+            <label style="display:block; font-weight:600; color:#333; margin-bottom:6px; font-size:13px;">Reason for Rejection <span style="color:#dc3545;">*</span></label>
+            <select name="rejection_reason" id="rejectReasonSelect" required
+                    style="width:100%; padding:10px 12px; border:1px solid #ced4da; border-radius:6px; font-size:14px; box-sizing:border-box; background:white;"
+                    onchange="toggleCustomReason(this)">
+              <option value="">Select a reason...</option>
+              <option value="Incomplete or invalid receipt">Incomplete or invalid receipt</option>
+              <option value="Receipt does not match application">Receipt does not match application</option>
+              <option value="Payment amount is incorrect">Payment amount is incorrect</option>
+              <option value="Fraudulent or tampered receipt">Fraudulent or tampered receipt</option>
+              <option value="Student has unresolved violations">Student has unresolved violations</option>
+              <option value="Application information mismatch">Application information mismatch</option>
+              <option value="Other">Other (specify below)</option>
+            </select>
+          </div>
+
+          <div id="customReasonWrapper" style="display:none;">
+            <label style="display:block; font-weight:600; color:#333; margin-bottom:6px; font-size:13px;">Custom Reason <span style="color:#dc3545;">*</span></label>
+            <input type="text" id="customReasonInput" placeholder="Enter your reason..."
+                   style="width:100%; padding:10px 12px; border:1px solid #ced4da; border-radius:6px; font-size:14px; box-sizing:border-box;">
+          </div>
+
+          <div>
+            <label style="display:block; font-weight:600; color:#333; margin-bottom:6px; font-size:13px;">Additional Details <span style="color:#6c757d; font-weight:400;">(optional)</span></label>
+            <textarea name="rejection_details" rows="3" placeholder="Provide additional context or instructions for the student..."
+                      style="width:100%; padding:10px 12px; border:1px solid #ced4da; border-radius:6px; font-size:14px; box-sizing:border-box; resize:vertical;"></textarea>
+          </div>
+
+          <!-- Modal Footer -->
+          <div style="display:flex; justify-content:flex-end; gap:10px; padding-top:8px; border-top:1px solid #e9ecef; margin-top:4px;">
+            <button type="button" onclick="closeRejectModal()"
+                    style="padding:10px 20px; background:#6c757d; color:white; border:none; border-radius:6px; font-size:14px; cursor:pointer; font-weight:500;"
+                    onmouseover="this.style.background='#5a6268'" onmouseout="this.style.background='#6c757d'">
+              Cancel
+            </button>
+            <button type="submit"
+                    style="padding:10px 20px; background:#dc3545; color:white; border:none; border-radius:6px; font-size:14px; cursor:pointer; font-weight:600;"
+                    onmouseover="this.style.background='#c82333'" onmouseout="this.style.background='#dc3545'">
+              Confirm Rejection
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    function openRejectModal(appId, studentName, certType) {
+      document.getElementById('rejectModalStudentName').textContent = studentName + ' — ' + certType + ' Certificate';
+      document.getElementById('rejectForm').action = '/admin/good-moral/' + appId + '/reject';
+      document.getElementById('rejectReasonSelect').value = '';
+      document.getElementById('customReasonInput').value = '';
+      document.getElementById('customReasonWrapper').style.display = 'none';
+      document.getElementById('rejectForm').querySelector('textarea').value = '';
+      document.getElementById('rejectModal').style.display = 'flex';
+    }
+
+    function closeRejectModal() {
+      document.getElementById('rejectModal').style.display = 'none';
+    }
+
+    function toggleCustomReason(select) {
+      var wrapper = document.getElementById('customReasonWrapper');
+      var input = document.getElementById('customReasonInput');
+      if (select.value === 'Other') {
+        wrapper.style.display = 'block';
+        input.setAttribute('required', 'required');
+        input.name = 'rejection_reason';
+        select.removeAttribute('name');
+      } else {
+        wrapper.style.display = 'none';
+        input.removeAttribute('required');
+        input.removeAttribute('name');
+        select.name = 'rejection_reason';
+      }
+    }
+
+    // Close modal on backdrop click
+    document.getElementById('rejectModal').addEventListener('click', function(e) {
+      if (e.target === this) closeRejectModal();
+    });
+  </script>
+
 </x-dashboard-layout>

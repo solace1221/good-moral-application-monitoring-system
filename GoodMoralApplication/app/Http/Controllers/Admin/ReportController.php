@@ -227,14 +227,15 @@ class ReportController extends Controller
    */
   private function generateGoodMoralApplicantsReport($academicYear, $startDate, $endDate, $timePeriod = 'all')
   {
-    $query = GoodMoralApplication::where('application_status', 'Ready for Pickup'); // Only include completed applications
+    $query = GoodMoralApplication::where('certificate_type', 'good_moral')
+      ->whereIn('application_status', ['Ready for Moderator Print', 'Ready for Pickup', 'Claimed']); // Include all completed applications
 
     // Apply time period filtering if not 'all'
     if ($timePeriod !== 'all') {
       $query = $this->applyDateFilter($query, $timePeriod);
     } else {
       // Use academic year dates if time period is 'all'
-      $query->whereBetween('created_at', [$startDate, $endDate]);
+      $query->whereBetween('created_at', [$startDate, $endDate . ' 23:59:59']);
     }
 
     $applications = $query->orderBy('department')
@@ -299,7 +300,7 @@ class ReportController extends Controller
   private function generateResidencyApplicantsReport($academicYear, $startDate, $endDate, $timePeriod = 'all')
   {
     $query = GoodMoralApplication::where('certificate_type', 'residency')
-      ->where('application_status', 'Ready for Pickup'); // Only include completed applications
+      ->whereIn('application_status', ['Ready for Moderator Print', 'Ready for Pickup', 'Claimed']); // Include all completed applications
 
     // Apply time period filtering if not 'all'
     if ($timePeriod !== 'all') {
@@ -307,7 +308,7 @@ class ReportController extends Controller
       $query->whereBetween('created_at', [$dateRange['start'], $dateRange['end']]);
     } else {
       // Use academic year dates if time period is 'all'
-      $query->whereBetween('created_at', [$startDate, $endDate]);
+      $query->whereBetween('created_at', [$startDate, $endDate . ' 23:59:59']);
     }
 
     $applications = $query->orderBy('department')
@@ -373,39 +374,19 @@ class ReportController extends Controller
 
     } catch (\Exception $e) {
         // Fallback to DomPDF if wkhtmltopdf fails
-        Log::warning('wkhtmltopdf failed, falling back to DomPDF: ' . $e->getMessage());
-
-        $pdf = Pdf::loadView('pdf.residency_applicants_report', $reportData);
-        $pdf->setPaper('letter', 'portrait');
-
-        // Create filename with time period info
-        $filenameSuffix = $timePeriod !== 'all' ? $timePeriodInfo['filename_suffix'] : $academicYear;
-        $filename = 'residency_applicants_' . $filenameSuffix . '_' . now()->format('Y-m-d_H-i-s') . '.pdf';
-        
-        // Generate PDF
-        $pdfOutput = $pdf->download($filename);
-        
-        // Clean up temporary files
-        @unlink($headerPath);
-        @unlink($footerPath);
-        
-        return $pdfOutput;
-
-    } catch (\Exception $e) {
+        Log::warning('wkhtmltopdf failed for residency report, falling back to DomPDF: ' . $e->getMessage());
+    } finally {
         // Clean up temporary files if they exist
         if (isset($headerPath)) @unlink($headerPath);
         if (isset($footerPath)) @unlink($footerPath);
-        
-        // Fallback to DomPDF if wkhtmltopdf fails
-        Log::warning('wkhtmltopdf failed for residency report, falling back to DomPDF: ' . $e->getMessage());
-
-        $pdf = Pdf::loadView('pdf.residency_applicants_report', $reportData);
-        $pdf->setPaper('letter', 'portrait');
-
-        $filenameSuffix = $timePeriod !== 'all' ? $timePeriodInfo['filename_suffix'] : $academicYear;
-        $filename = 'residency_applicants_' . $filenameSuffix . '_' . now()->format('Y-m-d_H-i-s') . '.pdf';
-        return $pdf->download($filename);
     }
+
+    $pdf = Pdf::loadView('pdf.residency_applicants_report', $reportData);
+    $pdf->setPaper('letter', 'portrait');
+
+    $filenameSuffix = $timePeriod !== 'all' ? $timePeriodInfo['filename_suffix'] : $academicYear;
+    $filename = 'residency_applicants_' . $filenameSuffix . '_' . now()->format('Y-m-d_H-i-s') . '.pdf';
+    return $pdf->download($filename);
   }
 
   /**
@@ -422,7 +403,7 @@ class ReportController extends Controller
       $query->whereBetween('created_at', [$dateRange['start'], $dateRange['end']]);
     } else {
       // Use academic year dates if time period is 'all'
-      $query->whereBetween('created_at', [$startDate, $endDate]);
+      $query->whereBetween('created_at', [$startDate, $endDate . ' 23:59:59']);
     }
 
     $violations = $query->orderBy('department')
@@ -470,7 +451,7 @@ class ReportController extends Controller
       $query->whereBetween('created_at', [$dateRange['start'], $dateRange['end']]);
     } else {
       // Use academic year dates if time period is 'all'
-      $query->whereBetween('created_at', [$startDate, $endDate]);
+      $query->whereBetween('created_at', [$startDate, $endDate . ' 23:59:59']);
     }
 
     $violations = $query->orderBy('department')
@@ -708,7 +689,7 @@ class ReportController extends Controller
         DB::raw('COUNT(DISTINCT student_id) as unique_violators')
       )
       ->whereIn('department', $departments)
-      ->whereBetween('created_at', [$startDate, $endDate])
+      ->whereBetween('created_at', [$startDate, $endDate . ' 23:59:59'])
       ->groupBy('department')
       ->get()
       ->keyBy('department');
