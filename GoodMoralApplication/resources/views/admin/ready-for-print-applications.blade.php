@@ -184,9 +184,9 @@
 
                     @csrf
 
-                    <button type="submit"
+                    <button type="button"
 
-                            onclick="return confirm('Mark this certificate as claimed by the student?')"
+                            onclick="openClaimModal(this.closest('form'), '{{ addslashes($application->fullname) }}')"
 
                             style="background: #495057; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer;">
 
@@ -373,9 +373,9 @@
 
                     @csrf
 
-                    <button type="submit"
+                    <button type="button"
 
-                            onclick="return confirm('Mark this certificate as claimed by the student?')"
+                            onclick="openClaimModal(this.closest('form'), '{{ addslashes($application->fullname) }}')"
 
                             style="background: #495057; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer;">
 
@@ -557,9 +557,9 @@
 
                     @csrf
 
-                    <button type="submit"
+                    <button type="button"
 
-                            onclick="return confirm('Mark this certificate as claimed by the student?')"
+                            onclick="openClaimModal(this.closest('form'), '{{ addslashes($application->fullname) }}')"
 
                             style="background: #495057; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer;">
 
@@ -853,6 +853,59 @@
 
     document.getElementById('reprintModal').addEventListener('click', function (e) {
       if (e.target === this) closeReprintModal();
+    });
+  </script>
+
+  <!-- Mark as Claimed Confirmation Modal -->
+  <div id="claimModal" style="display:none; position:fixed; inset:0; z-index:9999; align-items:center; justify-content:center; background:rgba(0,0,0,0.5);">
+    <div style="background:#fff; border-radius:12px; padding:28px 32px; max-width:440px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
+        <div style="width:42px; height:42px; border-radius:8px; background:#f0fdf4; display:flex; align-items:center; justify-content:center; flex-shrink:0; border:1px solid #bbf7d0;">
+          <svg xmlns="http://www.w3.org/2000/svg" style="width:20px; height:20px; color:#16a34a;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <h3 class="modal-plain-title" style="margin:0; font-size:17px; font-weight:700;">Mark as Claimed</h3>
+      </div>
+      <p style="margin:0 0 6px; font-size:14px; color:#111827; font-weight:500;">Are you sure you want to mark this certificate as claimed?</p>
+      <p style="margin:0 0 24px; font-size:14px; color:#6b7280;" id="claimStudentName"></p>
+      <div style="display:flex; gap:10px; justify-content:flex-end;">
+        <button onclick="closeClaimModal()"
+          style="padding:9px 20px; background:#f3f4f6; color:#374151; border:none; border-radius:6px; font-size:14px; cursor:pointer; font-weight:500;"
+          onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">Cancel</button>
+        <button id="claimConfirmBtn"
+          style="padding:9px 20px; background:#495057; color:#fff; border:none; border-radius:6px; font-size:14px; cursor:pointer; font-weight:500; display:inline-flex; align-items:center; gap:7px;"
+          onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+          <svg xmlns="http://www.w3.org/2000/svg" style="width:14px; height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Confirm Claimed
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- Mark as Claimed confirmation modal ---
+    let _claimForm = null;
+
+    function openClaimModal(form, studentName) {
+      _claimForm = form;
+      document.getElementById('claimStudentName').textContent = studentName ? 'Student: ' + studentName : '';
+      document.getElementById('claimModal').style.display = 'flex';
+    }
+
+    function closeClaimModal() {
+      document.getElementById('claimModal').style.display = 'none';
+      _claimForm = null;
+    }
+
+    document.getElementById('claimConfirmBtn').addEventListener('click', function () {
+      if (_claimForm) _claimForm.submit();
+    });
+
+    document.getElementById('claimModal').addEventListener('click', function (e) {
+      if (e.target === this) closeClaimModal();
     });
   </script>
 
