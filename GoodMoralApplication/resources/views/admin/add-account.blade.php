@@ -430,6 +430,7 @@
                 <th style="padding: 11px 14px; text-align: left; font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em;">Email</th>
                 <th style="padding: 11px 14px; text-align: left; font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em;">Program</th>
                 <th style="padding: 11px 14px; text-align: left; font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em;">Year Level</th>
+                <th style="padding: 11px 14px; text-align: left; font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em;">Role</th>
                 <th style="padding: 11px 14px; text-align: left; font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em;">Status</th>
                 <th style="padding: 11px 14px; text-align: center; font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em;">Actions</th>
               </tr>
@@ -439,7 +440,9 @@
               <tr style="border-bottom: 1px solid #e9ecef;"
                   onmouseover="this.style.backgroundColor='#f9fafb'"
                   onmouseout="this.style.backgroundColor='transparent'">
-                <td style="padding: 12px 14px; color: #212529; font-size: 14px; font-weight: 500;">{{ $student->fullname }}</td>
+                <td style="padding: 12px 14px; color: #212529; font-size: 14px; font-weight: 500;">
+                  {{ $student->fullname }}
+                </td>
                 <td style="padding: 12px 14px; font-size: 13px;">
                   @if($student->student_id)
                     <span style="font-family: monospace; background: #e9ecef; padding: 2px 7px; border-radius: 4px;">{{ $student->student_id }}</span>
@@ -456,6 +459,13 @@
                     <span style="display: inline-block; padding: 3px 9px; background: #f1f3f5; color: #6b7280; border-radius: 12px; font-size: 12px; font-weight: 500;">{{ $student->year_level }}</span>
                   @else
                     <span style="color: #adb5bd; font-style: italic; font-size: 12px;">Not set</span>
+                  @endif
+                </td>
+                <td style="padding: 12px 14px;">
+                  @if($student->account_type === 'alumni')
+                    <span style="display: inline-block; padding: 4px 11px; background: #6610f2; color: #fff !important; border-radius: 20px; font-size: 12px; font-weight: 500;">Alumni</span>
+                  @else
+                    <span style="display: inline-block; padding: 4px 11px; background: #17a2b8; color: #fff !important; border-radius: 20px; font-size: 12px; font-weight: 500;">Student</span>
                   @endif
                 </td>
                 <td style="padding: 12px 14px;">
@@ -481,7 +491,8 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"/>
                       </svg>
                     </button>
-                    <button onclick="convertToAlumni({{ $student->id }}, '{{ addslashes($student->fullname) }}')" title="Set Alumni"
+                    @if($student->academic_status !== 'Course Completed')
+                    <button onclick="convertToAlumni({{ $student->id }}, '{{ addslashes($student->fullname) }}')" title="Mark as Graduated"
                             style="padding: 7px; background: #6c757d; border: none; border-radius: 7px; cursor: pointer; display: flex; transition: all 0.2s;"
                             onmouseover="this.style.background='#545b62'; this.style.transform='translateY(-1px)'"
                             onmouseout="this.style.background='#6c757d'; this.style.transform='none'">
@@ -489,12 +500,13 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5"/>
                       </svg>
                     </button>
+                    @endif
                   </div>
                 </td>
               </tr>
               @empty
               <tr>
-                <td colspan="7" style="padding: 32px; text-align: center; color: #6c757d;">
+                <td colspan="8" style="padding: 32px; text-align: center; color: #6c757d;">
                   @if(request()->hasAny(['search_name', 'search_student_id']))
                     No students match the current search criteria.
                   @else
@@ -915,20 +927,25 @@
             document.getElementById('edit_email').value = data.account.email || '';
             document.getElementById('edit_department').value = data.account.department || '';
             document.getElementById('edit_year_level').value = data.account.year_level || '';
-            document.getElementById('edit_account_type').value = data.account.account_type || '';
-
-            // Handle imported account: disable account type change
+            // Configure account type dropdown based on current account type
             const accountTypeSelect = document.getElementById('edit_account_type');
             const importedNotice = document.getElementById('edit_imported_notice');
             // Remove any previously added hidden input for account_type
             const existingHidden = document.getElementById('edit_account_type_hidden');
             if (existingHidden) existingHidden.remove();
 
-            if (data.account.is_imported) {
+            const isStudent = data.account.account_type === 'student';
+            const isImported = data.account.is_imported;
+
+            if (isStudent || isImported) {
+              // Students: lock to Student only; Imported: lock to current type
               accountTypeSelect.disabled = true;
               accountTypeSelect.style.backgroundColor = '#f3f4f6';
               accountTypeSelect.style.cursor = 'not-allowed';
               importedNotice.style.display = 'block';
+              importedNotice.textContent = isStudent
+                ? 'Student accounts can only have the Student role.'
+                : 'This account was created via Import Students. Account type cannot be changed.';
               // Add hidden input so the value is still submitted
               const hiddenInput = document.createElement('input');
               hiddenInput.type = 'hidden';
@@ -943,23 +960,18 @@
               importedNotice.style.display = 'none';
             }
 
+            document.getElementById('edit_account_type').value = data.account.account_type || '';
+
             // Toggle field visibility based on account type
             const editStudentIdField = document.getElementById('edit_student_id_field');
             const editCourseField = document.getElementById('edit_course_field');
             const editYearLevelField = document.getElementById('edit_year_level_field');
 
             if (data.account.account_type === 'student') {
-              // Students: show all academic fields
+              // Students (including graduated/alumni): show all academic fields
               editStudentIdField.style.display = 'block';
               editCourseField.style.display = 'block';
               editYearLevelField.style.display = 'block';
-            } else if (data.account.account_type === 'alumni') {
-              // Alumni: show student ID only
-              editStudentIdField.style.display = 'block';
-              editCourseField.style.display = 'none';
-              editYearLevelField.style.display = 'none';
-              document.getElementById('edit_course_id').value = '';
-              document.getElementById('edit_year_level').value = '';
             } else {
               // Staff: hide all academic fields
               editStudentIdField.style.display = 'none';

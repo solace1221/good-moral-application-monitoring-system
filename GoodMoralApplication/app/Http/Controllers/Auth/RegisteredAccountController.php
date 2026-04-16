@@ -24,8 +24,8 @@ class RegisteredAccountController extends Controller
 {
   public function create(Request $request): View
   {
-    // Students query (account_type = 'student')
-    $studentsQuery = RoleAccount::where('account_type', 'student');
+    // Students query (account_type = 'student' or 'alumni')
+    $studentsQuery = RoleAccount::whereIn('account_type', ['student', 'alumni']);
     if ($request->filled('search_name') && $request->get('subtab', 'students') !== 'admin') {
       $studentsQuery->where('fullname', 'LIKE', '%' . $request->search_name . '%');
     }
@@ -34,8 +34,8 @@ class RegisteredAccountController extends Controller
     }
     $students = $studentsQuery->orderBy('fullname', 'asc')->paginate(10)->appends($request->query());
 
-    // Administrative accounts query (account_type != 'student')
-    $adminQuery = RoleAccount::where('account_type', '!=', 'student');
+    // Administrative accounts query (excludes students)
+    $adminQuery = RoleAccount::whereNotIn('account_type', ['student', 'alumni']);
     if ($request->filled('search_name') && $request->get('subtab') === 'admin') {
       $adminQuery->where('fullname', 'LIKE', '%' . $request->search_name . '%');
     }

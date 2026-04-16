@@ -97,7 +97,13 @@ class AccountController extends Controller
     try {
       $account = RoleAccount::findOrFail($id);
 
-      // Prevent account type change for imported students
+      // Prevent account type change for student accounts
+      if ($account->account_type === 'student' && $request->account_type !== 'student') {
+        return redirect()->route('admin.AddAccount')
+          ->with('error', 'Student accounts cannot be changed to a different account type.');
+      }
+
+      // Prevent account type change for imported accounts
       if ($account->created_via === 'import' && $request->account_type !== $account->account_type) {
         return redirect()->route('admin.AddAccount')
           ->with('error', 'Account type cannot be changed for students imported via the Import Students feature.');
@@ -283,26 +289,25 @@ class AccountController extends Controller
 
       if ($account->account_type !== 'student') {
         return redirect()->route('admin.AddAccount', ['tab' => 'list'])
-          ->with('error', 'Only student accounts can be converted to alumni.');
+          ->with('error', 'Only student accounts can be marked as graduated.');
+      }
+
+      // Block graduating inactive students
+      if ($account->status !== 'active') {
+        return redirect()->route('admin.AddAccount', ['tab' => 'list'])
+          ->with('error', 'This student account is inactive and cannot be marked as graduated.');
       }
 
       $accountName = $account->fullname;
 
-      // Update role_account table - preserve course info for certificate applications
+      // Update academic status only — keep account_type as 'student'
       $account->update([
-        'account_type' => 'alumni',
-        'year_level' => null,
         'academic_status' => 'Course Completed',
         'graduated_at' => now(),
       ]);
 
-      // Sync the users table role
-      User::where('email', $account->email)->update([
-        'role' => 'alumni',
-      ]);
-
       return redirect()->route('admin.AddAccount', ['tab' => 'list'])
-        ->with('success', "Account for '{$accountName}' has been converted to Alumni successfully.");
+        ->with('success', "Student '{$accountName}' has been marked as graduated successfully.");
 
     } catch (\Exception $e) {
       return redirect()->route('admin.AddAccount', ['tab' => 'list'])
