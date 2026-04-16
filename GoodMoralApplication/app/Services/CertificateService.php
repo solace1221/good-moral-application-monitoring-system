@@ -7,6 +7,7 @@ use App\Models\NotifArchive;
 use App\Models\Receipt;
 use App\Models\RoleAccount;
 use App\Models\StudentViolation;
+use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -64,6 +65,13 @@ class CertificateService
 
             $currentUser = Auth::user();
 
+            // Get signatory (admin account)
+            $signatoryAccount = RoleAccount::where('account_type', 'admin')->first();
+            $signatory = [
+                'name' => $signatoryAccount->fullname ?? 'ADMINISTRATOR',
+                'position' => $signatoryAccount->position ?? 'Director, Student Affairs and Academic Support Services',
+            ];
+
             // Prepare PDF data
             $data = [
                 'title' => $application->certificate_type === 'good_moral' ? 'Good Moral Certificate' : 'Certificate of Residency',
@@ -75,6 +83,7 @@ class CertificateService
                 'print_date' => now()->format('F j, Y'),
                 'reasons_array' => $application->reasons_array,
                 'number_of_copies' => (int) $application->number_of_copies,
+                'signatory' => $signatory,
             ];
 
             // Determine PDF view

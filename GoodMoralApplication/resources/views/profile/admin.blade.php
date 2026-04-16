@@ -92,6 +92,20 @@
                                    value="{{ ucfirst($user->account_type) }}" readonly>
                         </div>
 
+                        <div>
+                            <label for="position" style="display: block; margin-bottom: 8px; font-weight: 500; color: #495057;">{{ __('Position / Designation') }}</label>
+                            <input type="text" id="position" name="position"
+                                   style="width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px;"
+                                   value="{{ old('position', $user->roleAccount->position ?? '') }}"
+                                   placeholder="e.g. Director, Student Affairs and Academic Support Services">
+                            @error('position')
+                                <p style="color: #e74c3c; font-size: 12px; margin-top: 4px;">{{ $message }}</p>
+                            @enderror
+                            <p style="color: #6b7280; font-size: 12px; margin-top: 4px;">
+                                {{ __('This will appear as your title on certificates.') }}
+                            </p>
+                        </div>
+
                         <div style="display: flex; align-items: center; gap: 16px;">
                             <button type="submit" class="btn-primary">{{ __('Save') }}</button>
 

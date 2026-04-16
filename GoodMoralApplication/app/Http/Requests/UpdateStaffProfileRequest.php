@@ -17,6 +17,7 @@ class UpdateStaffProfileRequest extends FormRequest
             'fullname' => ['required', 'string', 'max:255'],
             'department' => ['required', 'string', 'max:255'],
             'gender' => ['required', 'string', 'in:male,female'],
+            'position' => ['nullable', 'string', 'max:200'],
         ];
     }
 }

@@ -196,6 +196,7 @@ class ProfileController extends Controller
                 'fullname' => $request->fullname,
                 'department' => $request->department,
                 'gender' => $request->gender,
+                'position' => $request->position,
             ]);
         });
 

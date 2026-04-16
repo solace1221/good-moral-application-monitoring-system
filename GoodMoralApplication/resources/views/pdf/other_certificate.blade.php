@@ -263,8 +263,8 @@
     <p>Any courtesy extended to {{ $objectPronoun }} will be highly appreciated.</p>
 
     <div class="signature">
-      <strong>TERESITA T. LASAM, PhD</strong><br />
-      Director, Student Affairs and Academic Support Services
+      <strong>{{ $signatory['name'] }}</strong><br />
+      {{ $signatory['position'] }}
     </div> <br><br>
     <div class="note">Not valid without University Dry Seal</div>
     <br>
