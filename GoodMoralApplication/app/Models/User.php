@@ -56,10 +56,16 @@ class User extends Authenticatable
 
     /**
      * Get the account_type attribute (for backward compatibility)
-     * Maps the 'role' column to 'account_type'
+     * Maps the 'role' column to 'account_type', checking role_accounts for alumni
      */
     public function getAccountTypeAttribute()
     {
+        if ($this->role === 'student') {
+            $roleAccount = \App\Models\RoleAccount::where('email', $this->email)->first();
+            if ($roleAccount && $roleAccount->account_type === 'alumni') {
+                return 'alumni';
+            }
+        }
         return $this->role;
     }
 

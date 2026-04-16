@@ -28,6 +28,8 @@
       <x-prog-coor-navigation />
     @elseif($accountType === 'psg_officer')
       <x-psg-officer-navigation />
+    @elseif($accountType === 'alumni')
+      <x-alumni-navigation />
     @else
       <x-student-navigation />
     @endif

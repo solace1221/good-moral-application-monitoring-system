@@ -7,7 +7,11 @@
   <x-slot name="roleTitle">{{ $roleTitle }}</x-slot>
 
   <x-slot name="navigation">
-    <x-student-navigation />
+    @if($accountType === 'alumni')
+      <x-alumni-navigation />
+    @else
+      <x-student-navigation />
+    @endif
   </x-slot>
 
   <!-- Header Section -->
