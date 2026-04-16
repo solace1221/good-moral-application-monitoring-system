@@ -652,28 +652,31 @@
           <div style="font-size: 14px; color: #495057;" id="modalReason"></div>
         </div>
 
-        <div style="padding: 14px; background: #f8f9fa; border-radius: 8px;">
-          <div style="font-size: 11px; color: #6c757d; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">Course Completed</div>
-          <div style="font-size: 14px; color: #495057;" id="modalCourseCompleted"></div>
+        <!-- Alumni fields -->
+        <div id="alumniFieldsSection" style="display: none;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div style="padding: 14px; background: #f8f9fa; border-radius: 8px;">
+              <div style="font-size: 11px; color: #6c757d; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">Course Completed</div>
+              <div style="font-size: 14px; color: #495057;" id="modalCourseCompleted"></div>
+            </div>
+            <div style="padding: 14px; background: #f8f9fa; border-radius: 8px;">
+              <div style="font-size: 11px; color: #6c757d; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">Graduation Date</div>
+              <div style="font-size: 14px; color: #495057;" id="modalGraduationDate"></div>
+            </div>
+          </div>
         </div>
 
-        <div style="padding: 14px; background: #f8f9fa; border-radius: 8px;">
-          <div style="font-size: 11px; color: #6c757d; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">Graduation Date</div>
-          <div style="font-size: 14px; color: #495057;" id="modalGraduationDate"></div>
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
-          <div style="padding: 12px; background: #f8f9fa; border-radius: 8px;">
-            <div style="font-size: 10px; color: #6c757d; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">Undergraduate</div>
-            <div style="font-size: 14px; font-weight: 600; color: #495057;" id="modalUndergraduate"></div>
-          </div>
-          <div style="padding: 12px; background: #f8f9fa; border-radius: 8px;">
-            <div style="font-size: 10px; color: #6c757d; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">Last Course Year Level</div>
-            <div style="font-size: 14px; font-weight: 600; color: #495057;" id="modalLastCourseYearLevel"></div>
-          </div>
-          <div style="padding: 12px; background: #f8f9fa; border-radius: 8px;">
-            <div style="font-size: 10px; color: #6c757d; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">Last Semester SY</div>
-            <div style="font-size: 14px; font-weight: 600; color: #495057;" id="modalLastSemesterSY"></div>
+        <!-- Student fields -->
+        <div id="studentFieldsSection" style="display: none;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div style="padding: 12px; background: #f8f9fa; border-radius: 8px;">
+              <div style="font-size: 10px; color: #6c757d; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">Course</div>
+              <div style="font-size: 14px; font-weight: 600; color: #495057;" id="modalLastCourseYearLevel"></div>
+            </div>
+            <div style="padding: 12px; background: #f8f9fa; border-radius: 8px;">
+              <div style="font-size: 10px; color: #6c757d; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">Last Semester / School Year</div>
+              <div style="font-size: 14px; font-weight: 600; color: #495057;" id="modalLastSemesterSY"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -743,11 +746,19 @@
       document.getElementById('modalCertificateType').innerText = app.certificate_type === 'good_moral' ? 'Good Moral Certificate' : 'Certificate of Residency';
       document.getElementById('modalStatus').innerText = app.application_status ?? 'N/A';
       document.getElementById('modalReason').innerText = Array.isArray(app.reason) ? app.reason.join(', ') : (app.reason ?? 'N/A');
-      document.getElementById('modalCourseCompleted').innerText = app.course_completed ?? 'N/A';
-      document.getElementById('modalGraduationDate').innerText = app.graduation_date ?? 'N/A';
-      document.getElementById('modalUndergraduate').innerText = (app.is_undergraduate) ? 'Yes' : 'No';
-      document.getElementById('modalLastCourseYearLevel').innerText = app.last_course_year_level ?? 'N/A';
-      document.getElementById('modalLastSemesterSY').innerText = app.last_semester_sy ?? 'N/A';
+
+      // Conditionally show alumni vs student academic fields
+      if (app.is_alumni) {
+        document.getElementById('alumniFieldsSection').style.display = 'block';
+        document.getElementById('studentFieldsSection').style.display = 'none';
+        document.getElementById('modalCourseCompleted').innerText = app.resolved_course_completed ?? 'N/A';
+        document.getElementById('modalGraduationDate').innerText = app.resolved_graduation_date ?? 'N/A';
+      } else {
+        document.getElementById('alumniFieldsSection').style.display = 'none';
+        document.getElementById('studentFieldsSection').style.display = 'block';
+        document.getElementById('modalLastCourseYearLevel').innerText = app.resolved_last_course_year_level ?? 'N/A';
+        document.getElementById('modalLastSemesterSY').innerText = app.resolved_last_semester_sy ?? 'N/A';
+      }
 
       // Claim info
       const claimSection = document.getElementById('modalClaimSection');

@@ -458,30 +458,29 @@
             <div style="font-size:14px; color:#495057;">${Array.isArray(application.reason) ? application.reason.join(', ') : (application.reason ?? 'N/A')}</div>
           </div>
 
-          <div class="ad-card">
-            <div class="ad-label" style="margin-bottom:4px;">Course Completed</div>
-            <div style="font-size:14px; color:#495057;">${application.course_completed ?? 'N/A'}</div>
-          </div>
-
-          <div class="ad-card">
-            <div class="ad-label" style="margin-bottom:4px;">Graduation Date</div>
-            <div style="font-size:14px; color:#495057;">${application.graduation_date ?? 'N/A'}</div>
-          </div>
-
-          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px;">
+          ${application.is_alumni ? `
+          <div class="ad-grid">
             <div class="ad-card">
-              <div style="font-size:10px; color:#6c757d; font-weight:600; text-transform:uppercase; margin-bottom:4px;">Undergraduate</div>
-              <div style="font-size:14px; font-weight:600; color:#495057;">${application.is_undergraduate ? 'Yes' : 'No'}</div>
+              <div class="ad-label" style="margin-bottom:4px;">Course Completed</div>
+              <div style="font-size:14px; color:#495057;">${application.resolved_course_completed ?? 'N/A'}</div>
             </div>
             <div class="ad-card">
-              <div style="font-size:10px; color:#6c757d; font-weight:600; text-transform:uppercase; margin-bottom:4px;">Last Course Year Level</div>
-              <div style="font-size:14px; font-weight:600; color:#495057;">${application.last_course_year_level ?? 'N/A'}</div>
-            </div>
-            <div class="ad-card">
-              <div style="font-size:10px; color:#6c757d; font-weight:600; text-transform:uppercase; margin-bottom:4px;">Last Semester SY</div>
-              <div style="font-size:14px; font-weight:600; color:#495057;">${application.last_semester_sy ?? 'N/A'}</div>
+              <div class="ad-label" style="margin-bottom:4px;">Graduation Date</div>
+              <div style="font-size:14px; color:#495057;">${application.resolved_graduation_date ?? 'N/A'}</div>
             </div>
           </div>
+          ` : `
+          <div class="ad-grid">
+            <div class="ad-card">
+              <div class="ad-label" style="margin-bottom:4px;">Course</div>
+              <div style="font-size:14px; color:#495057;">${application.resolved_last_course_year_level ?? 'N/A'}</div>
+            </div>
+            <div class="ad-card">
+              <div class="ad-label" style="margin-bottom:4px;">Last Semester / School Year</div>
+              <div style="font-size:14px; color:#495057;">${application.resolved_last_semester_sy ?? 'N/A'}</div>
+            </div>
+          </div>
+          `}
 
           <div>
             <div class="ad-section-header">Payment Receipt</div>

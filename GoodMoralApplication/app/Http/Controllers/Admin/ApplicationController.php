@@ -29,7 +29,8 @@ class ApplicationController extends Controller
   public function applicationDashboard()
   {
     // Only show applications where receipt has been uploaded (ready for admin review)
-    $applications = GoodMoralApplication::where('application_status', 'LIKE', 'Receipt Uploaded%')
+    $applications = GoodMoralApplication::with('student')
+      ->where('application_status', 'LIKE', 'Receipt Uploaded%')
       ->whereNotIn('application_status', ['Approved by Administrator', 'Rejected by Administrator'])
       ->get();
 
@@ -97,7 +98,7 @@ class ApplicationController extends Controller
   public function readyForPrintApplications(Request $request)
   {
     // Get base query for applications that are ready for printing
-    $baseQuery = GoodMoralApplication::whereIn('application_status', [
+    $baseQuery = GoodMoralApplication::with('student')->whereIn('application_status', [
       'Ready for Moderator Print',
       'Ready for Pickup',
       'Claimed',
@@ -249,7 +250,8 @@ class ApplicationController extends Controller
     $legacyApplications = HeadOSAApplication::where('status', 'pending')->get();
 
     // Fetch applications where receipt has been uploaded (ready for admin review)
-    $deanApprovedApplications = GoodMoralApplication::where('application_status', 'like', 'Receipt Uploaded%')
+    $deanApprovedApplications = GoodMoralApplication::with('student')
+      ->where('application_status', 'like', 'Receipt Uploaded%')
       ->orderBy('updated_at', 'desc')
       ->get();
 

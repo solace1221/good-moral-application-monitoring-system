@@ -46,7 +46,7 @@ class GoodMoralApplication extends Model
     'is_undergraduate' => 'boolean',
   ];
 
-  protected $appends = ['claimer_name'];
+  protected $appends = ['claimer_name', 'resolved_course_completed', 'resolved_last_course_year_level', 'resolved_last_semester_sy', 'resolved_graduation_date', 'is_alumni'];
 
   /**
    * Get the student associated with the application.
@@ -74,6 +74,51 @@ class GoodMoralApplication extends Model
     }
     $user = \App\Models\User::find($this->claimed_by);
     return $user?->name ?? $user?->fullname ?? 'Unknown';
+  }
+
+  /**
+   * Get course completed, falling back to the student's role_account course.
+   */
+  public function getResolvedCourseCompletedAttribute(): ?string
+  {
+    return $this->course_completed ?? $this->student?->course ?? null;
+  }
+
+  /**
+   * Get last course year level, falling back to the student's role_account year_level.
+   */
+  public function getResolvedLastCourseYearLevelAttribute(): ?string
+  {
+    return $this->last_course_year_level ?? $this->student?->course ?? null;
+  }
+
+  /**
+   * Get last semester SY, falling back to null if not set.
+   */
+  public function getResolvedLastSemesterSyAttribute(): ?string
+  {
+    return $this->last_semester_sy ?? null;
+  }
+
+  /**
+   * Get graduation date, falling back to the student's role_account graduation_date.
+   */
+  public function getResolvedGraduationDateAttribute(): ?string
+  {
+    $date = $this->graduation_date ?? $this->student?->graduation_date ?? null;
+    return $date ? \Carbon\Carbon::parse($date)->format('Y-m-d') : null;
+  }
+
+  /**
+   * Determine if the applicant is an alumni (has graduation date or course completed set).
+   */
+  public function getIsAlumniAttribute(): bool
+  {
+    if ($this->student) {
+      return $this->student->academic_status === 'Course Completed'
+          || $this->student->account_type === 'alumni';
+    }
+    return !empty($this->graduation_date) || !empty($this->course_completed);
   }
 
   /**

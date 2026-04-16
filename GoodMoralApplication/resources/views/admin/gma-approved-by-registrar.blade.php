@@ -222,26 +222,25 @@
             <strong>Applied On:</strong>
             <span>${application.created_at ? new Date(application.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A'}</span>
           </div>
+          ${application.is_alumni ? `
           <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; padding: 12px; background: #f8f9fa; border-radius: 6px;">
             <strong>Course Completed:</strong>
-            <span>${application.course_completed ?? 'N/A'}</span>
+            <span>${application.resolved_course_completed ?? 'N/A'}</span>
           </div>
           <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; padding: 12px; background: #f8f9fa; border-radius: 6px;">
             <strong>Graduation Date:</strong>
-            <span>${application.graduation_date ?? 'N/A'}</span>
+            <span>${application.resolved_graduation_date ?? 'N/A'}</span>
+          </div>
+          ` : `
+          <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; padding: 12px; background: #f8f9fa; border-radius: 6px;">
+            <strong>Course:</strong>
+            <span>${application.resolved_last_course_year_level ?? 'N/A'}</span>
           </div>
           <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; padding: 12px; background: #f8f9fa; border-radius: 6px;">
-            <strong>Undergraduate:</strong>
-            <span>${(application.is_undergraduate !== null && application.is_undergraduate !== 0) ? 'Yes' : 'No'}</span>
+            <strong>Last Semester / School Year:</strong>
+            <span>${application.resolved_last_semester_sy ?? 'N/A'}</span>
           </div>
-          <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; padding: 12px; background: #f8f9fa; border-radius: 6px;">
-            <strong>Last Course Year Level:</strong>
-            <span>${application.last_course_year_level ?? 'N/A'}</span>
-          </div>
-          <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; padding: 12px; background: #f8f9fa; border-radius: 6px;">
-            <strong>Last Semester SY:</strong>
-            <span>${application.last_semester_sy ?? 'N/A'}</span>
-          </div>
+          `}
         </div>
       `;
 
