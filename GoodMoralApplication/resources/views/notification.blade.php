@@ -87,7 +87,7 @@
             $certName = $latest->certificate_type === 'good_moral' ? 'Good Moral' : 'Residency';
             $purpose  = is_array($latest->reason) ? implode(', ', $latest->reason) : ($latest->reason ?? '—');
             $copies   = (int) ($latest->number_of_copies ?? 1);
-            $total    = $copies * 50;
+            $total    = $copies * 100;
             $rejDetail = $rejectionDetails[$refNum] ?? null;
 
             // Build rejection JSON for the modal
@@ -424,7 +424,7 @@ function openAppModal(ref, certType, status, statusLabel, statusColor, statusBg,
     document.getElementById('payRef').textContent      = ref;
     document.getElementById('payCertType').textContent = certType;
     document.getElementById('payCopies').textContent   = copies;
-    document.getElementById('payTotal').textContent    = '\u20B1' + (copies * 50).toLocaleString();
+    document.getElementById('payTotal').textContent    = '\u20B1' + (copies * 100).toLocaleString();
   }
 
   document.getElementById('appModal').style.display = 'flex';

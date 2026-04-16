@@ -70,7 +70,7 @@ class NotifArchive extends Model
     {
         $reasonCount = count($this->reasons_array);
         $copies = (int)$this->number_of_copies;
-        return $reasonCount * $copies * 50;
+        return $reasonCount * $copies * 100;
     }
 
     /**
@@ -85,7 +85,7 @@ class NotifArchive extends Model
         $reasonText = $reasonCount === 1 ? 'reason' : 'reasons';
         $copyText = $copies === 1 ? 'copy' : 'copies';
 
-        return "₱" . number_format($amount, 2) . " ({$reasonCount} {$reasonText} × {$copies} {$copyText} × ₱50.00)";
+        return "₱" . number_format($amount, 2) . " ({$reasonCount} {$reasonText} × {$copies} {$copyText} × ₱100.00)";
     }
 
     /**

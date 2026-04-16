@@ -115,10 +115,10 @@
                 </svg>
                 Payment Required:
               </span>
-              <span style="font-weight: 700; color: var(--primary-green); font-size: 20px;" id="totalAmount">₱50.00</span>
+              <span style="font-weight: 700; color: var(--primary-green); font-size: 20px;" id="totalAmount">₱100.00</span>
             </div>
             <div style="font-size: 13px; color: #5a6c57; background: white; padding: 8px 12px; border-radius: 6px; margin-bottom: 8px;">
-              <span id="paymentCalculation">1 reason × 1 copy × ₱50.00</span>
+              <span id="paymentCalculation">1 reason × 1 copy × ₱100.00</span>
             </div>
             <div style="font-size: 12px; color: #5a6c57; display: flex; align-items: center; gap: 6px;">
               <span style="font-size: 16px;">💡</span>
@@ -641,7 +641,7 @@
 
       const copies = parseInt(copiesInput.value) || 1;
       const checkedReasons = document.querySelectorAll('.reason-checkbox:checked').length || 1;
-      const ratePerUnit = 50;
+      const ratePerUnit = 100;
       const totalAmount = checkedReasons * copies * ratePerUnit;
 
       totalAmountSpan.textContent = `₱${totalAmount.toFixed(2)}`;
@@ -700,7 +700,7 @@
 
       const accountType = '{{ $accountType }}';
       const copies = parseInt(numCopies) || 1;
-      const ratePerUnit = 50;
+      const ratePerUnit = 100;
       const totalAmount = reasons.length * copies * ratePerUnit;
 
       // Helper to build a summary row

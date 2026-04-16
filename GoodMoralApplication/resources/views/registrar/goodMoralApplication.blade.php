@@ -350,7 +350,7 @@
           </div>
           <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; padding: 12px; background: #e8f5e8; border-radius: 6px;">
             <strong>Payment Amount:</strong>
-            <span style="color: var(--primary-green); font-weight: 600;">₱${((Array.isArray(application.reason) ? application.reason.length : 1) * application.number_of_copies * 50).toFixed(2)} (${Array.isArray(application.reason) ? application.reason.length : 1} ${Array.isArray(application.reason) && application.reason.length === 1 ? 'reason' : 'reasons'} × ${application.number_of_copies} ${application.number_of_copies == 1 ? 'copy' : 'copies'} × ₱50.00)</span>
+            <span style="color: var(--primary-green); font-weight: 600;">₱${((Array.isArray(application.reason) ? application.reason.length : 1) * application.number_of_copies * 100).toFixed(2)} (${Array.isArray(application.reason) ? application.reason.length : 1} ${Array.isArray(application.reason) && application.reason.length === 1 ? 'reason' : 'reasons'} × ${application.number_of_copies} ${application.number_of_copies == 1 ? 'copy' : 'copies'} × ₱100.00)</span>
           </div>
           <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; padding: 12px; background: #f8f9fa; border-radius: 6px;">
             <strong>Status:</strong>

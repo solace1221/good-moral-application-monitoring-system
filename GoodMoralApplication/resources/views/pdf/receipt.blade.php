@@ -317,12 +317,12 @@
             
             <div class="breakdown-row">
                 <span>Rate per Unit:</span>
-                <span>₱50.00</span>
+                <span>₱100.00</span>
             </div>
             
             <div class="breakdown-row" style="border-top: 1px solid #333; padding-top: 10px; margin-top: 10px;">
                 <span><strong>Calculation:</strong></span>
-                <span><strong>{{ $reasons_count }} × {{ $copies_count }} × ₱50.00</strong></span>
+                <span><strong>{{ $reasons_count }} × {{ $copies_count }} × ₱100.00</strong></span>
             </div>
         </div>
         

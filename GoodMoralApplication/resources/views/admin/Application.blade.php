@@ -412,7 +412,7 @@
       // Compute payment totals
       const reasonCount = Array.isArray(application.reason) ? application.reason.length : 1;
       const copies = application.number_of_copies;
-      const amount = (reasonCount * copies * 50).toFixed(2);
+      const amount = (reasonCount * copies * 100).toFixed(2);
       const statusColor = application.application_status === 'Pending'
         ? '#e67e22'
         : application.application_status.includes('Approved') ? '#28a745' : '#dc3545';
@@ -439,7 +439,7 @@
           <div class="ad-card" style="background:linear-gradient(135deg,#d4edda 0%,#e8f5e8 100%); border:2px solid var(--primary-green,#2d7a4f);">
             <div class="ad-label" style="margin-bottom:6px; color:var(--primary-green,#2d7a4f);">Payment Amount</div>
             <div class="ad-amount">&#x20B1;${amount}</div>
-            <div class="ad-amount-sub">${reasonCount} ${reasonCount === 1 ? 'reason' : 'reasons'} &times; ${copies} ${copies == 1 ? 'copy' : 'copies'} &times; &#x20B1;50.00</div>
+            <div class="ad-amount-sub">${reasonCount} ${reasonCount === 1 ? 'reason' : 'reasons'} &times; ${copies} ${copies == 1 ? 'copy' : 'copies'} &times; &#x20B1;100.00</div>
           </div>
 
           <div class="ad-grid">

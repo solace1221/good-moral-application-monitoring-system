@@ -156,7 +156,7 @@
                 }
 
                 $copies = (int) ($application->number_of_copies ?? 1);
-                $rate   = 50;
+                $rate   = 100;
                 $total  = $copies * $rate;
               @endphp
               <span style="display: inline-block; padding: 6px 12px; background: {{ $statusBg }}; color: {{ $statusColor }}; border-radius: 20px; font-size: 12px; font-weight: 500;">
@@ -478,7 +478,7 @@ function openAppModal(ref, certType, appStatus, statusText, statusColor, statusB
     document.getElementById('payRef').textContent       = ref;
     document.getElementById('payCertType').textContent  = certType;
     document.getElementById('payCopies').textContent    = copies;
-    document.getElementById('payTotal').textContent     = '\u20B1' + (copies * 50).toLocaleString();
+    document.getElementById('payTotal').textContent     = '\u20B1' + (copies * 100).toLocaleString();
   }
 
   document.getElementById('appModal').style.display = 'flex';

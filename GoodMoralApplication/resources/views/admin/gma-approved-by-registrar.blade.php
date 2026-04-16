@@ -178,7 +178,7 @@
 
       const reasonCount = Array.isArray(application.reason) ? application.reason.length : 1;
       const copies = application.number_of_copies;
-      const amount = (reasonCount * copies * 50).toFixed(2);
+      const amount = (reasonCount * copies * 100).toFixed(2);
 
       content.innerHTML = `
         <div style="display: grid; gap: 12px;">
@@ -212,7 +212,7 @@
           </div>
           <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; padding: 12px; background: #e8f5e8; border-radius: 6px;">
             <strong>Payment Amount:</strong>
-            <span style="color: var(--primary-green); font-weight: 600;">₱${amount} (${reasonCount} ${reasonCount === 1 ? 'reason' : 'reasons'} × ${copies} ${copies == 1 ? 'copy' : 'copies'} × ₱50.00)</span>
+            <span style="color: var(--primary-green); font-weight: 600;">₱${amount} (${reasonCount} ${reasonCount === 1 ? 'reason' : 'reasons'} × ${copies} ${copies == 1 ? 'copy' : 'copies'} × ₱100.00)</span>
           </div>
           <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; padding: 12px; background: #f8f9fa; border-radius: 6px;">
             <strong>Status:</strong>

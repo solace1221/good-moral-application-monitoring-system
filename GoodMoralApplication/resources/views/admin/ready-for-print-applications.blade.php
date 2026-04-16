@@ -736,10 +736,10 @@
       // Calculate and display payment amount
       const copies = parseInt(app.number_of_copies) || 1;
       const reasonCount = Array.isArray(app.reason) ? app.reason.length : 1;
-      const totalAmount = reasonCount * copies * 50;
+      const totalAmount = reasonCount * copies * 100;
       const reasonText = reasonCount === 1 ? 'reason' : 'reasons';
       const copyText = copies === 1 ? 'copy' : 'copies';
-      document.getElementById('modalPaymentAmount').innerText = `?${totalAmount.toFixed(2)} (${reasonCount} ${reasonText} � ${copies} ${copyText} � ?50.00)`;
+      document.getElementById('modalPaymentAmount').innerText = `?${totalAmount.toFixed(2)} (${reasonCount} ${reasonText} � ${copies} ${copyText} � ?100.00)`;
       document.getElementById('modalCertificateType').innerText = app.certificate_type === 'good_moral' ? 'Good Moral Certificate' : 'Certificate of Residency';
       document.getElementById('modalStatus').innerText = app.application_status ?? 'N/A';
       document.getElementById('modalReason').innerText = Array.isArray(app.reason) ? app.reason.join(', ') : (app.reason ?? 'N/A');
