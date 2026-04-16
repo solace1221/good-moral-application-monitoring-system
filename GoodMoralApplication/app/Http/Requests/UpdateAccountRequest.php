@@ -17,7 +17,10 @@ class UpdateAccountRequest extends FormRequest
         $userId = $this->route('id');
 
         return [
-            'fullname' => ['required', 'string', 'max:255'],
+            'first_name' => ['required', 'string', 'max:255'],
+            'middle_initial' => ['nullable', 'string', 'max:10'],
+            'last_name' => ['required', 'string', 'max:255'],
+            'extension_name' => ['nullable', 'string', 'max:50'],
             'student_id' => [
                 Rule::requiredIf($this->account_type === 'student'),
                 'nullable',

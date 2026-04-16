@@ -605,11 +605,37 @@
         @method('PUT')
 
         <div>
-          <label for="edit_fullname" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Full Name *</label>
-          <input type="text" id="edit_fullname" name="fullname" required
+          <label for="edit_first_name" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">First Name *</label>
+          <input type="text" id="edit_first_name" name="first_name" required
                  style="width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px; transition: border-color 0.3s ease;"
                  onfocus="this.style.borderColor='var(--primary-green)'"
                  onblur="this.style.borderColor='#e1e5e9'">
+        </div>
+
+        <div>
+          <label for="edit_middle_initial" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Middle Initial</label>
+          <input type="text" id="edit_middle_initial" name="middle_initial" maxlength="10"
+                 style="width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px; transition: border-color 0.3s ease;"
+                 onfocus="this.style.borderColor='var(--primary-green)'"
+                 onblur="this.style.borderColor='#e1e5e9'"
+                 placeholder="e.g. M">
+        </div>
+
+        <div>
+          <label for="edit_last_name" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Last Name *</label>
+          <input type="text" id="edit_last_name" name="last_name" required
+                 style="width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px; transition: border-color 0.3s ease;"
+                 onfocus="this.style.borderColor='var(--primary-green)'"
+                 onblur="this.style.borderColor='#e1e5e9'">
+        </div>
+
+        <div>
+          <label for="edit_extension_name" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Extension Name</label>
+          <input type="text" id="edit_extension_name" name="extension_name" maxlength="50"
+                 style="width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px; transition: border-color 0.3s ease;"
+                 onfocus="this.style.borderColor='var(--primary-green)'"
+                 onblur="this.style.borderColor='#e1e5e9'"
+                 placeholder="e.g. Jr., Sr., III">
         </div>
 
         <div id="edit_student_id_field">
@@ -689,6 +715,9 @@
             <option value="student">Student</option>
             <option value="alumni">Alumni</option>
           </select>
+          <p id="edit_imported_notice" style="display: none; margin-top: 8px; font-size: 13px; color: #DC2626; font-style: italic;">
+            This account was created via Import Students. Account type cannot be changed.
+          </p>
         </div>
 
         <div>
@@ -876,13 +905,43 @@
         .then(response => response.json())
         .then(data => {
           if (data.success) {
-            // Populate form fields
-            document.getElementById('edit_fullname').value = data.account.fullname || '';
+            // Populate separate name fields
+            document.getElementById('edit_first_name').value = data.account.first_name || '';
+            document.getElementById('edit_middle_initial').value = data.account.middle_initial || '';
+            document.getElementById('edit_last_name').value = data.account.last_name || '';
+            document.getElementById('edit_extension_name').value = data.account.extension_name || '';
+
             document.getElementById('edit_student_id').value = data.account.student_id || '';
             document.getElementById('edit_email').value = data.account.email || '';
             document.getElementById('edit_department').value = data.account.department || '';
             document.getElementById('edit_year_level').value = data.account.year_level || '';
             document.getElementById('edit_account_type').value = data.account.account_type || '';
+
+            // Handle imported account: disable account type change
+            const accountTypeSelect = document.getElementById('edit_account_type');
+            const importedNotice = document.getElementById('edit_imported_notice');
+            // Remove any previously added hidden input for account_type
+            const existingHidden = document.getElementById('edit_account_type_hidden');
+            if (existingHidden) existingHidden.remove();
+
+            if (data.account.is_imported) {
+              accountTypeSelect.disabled = true;
+              accountTypeSelect.style.backgroundColor = '#f3f4f6';
+              accountTypeSelect.style.cursor = 'not-allowed';
+              importedNotice.style.display = 'block';
+              // Add hidden input so the value is still submitted
+              const hiddenInput = document.createElement('input');
+              hiddenInput.type = 'hidden';
+              hiddenInput.name = 'account_type';
+              hiddenInput.id = 'edit_account_type_hidden';
+              hiddenInput.value = data.account.account_type;
+              accountTypeSelect.parentNode.appendChild(hiddenInput);
+            } else {
+              accountTypeSelect.disabled = false;
+              accountTypeSelect.style.backgroundColor = 'white';
+              accountTypeSelect.style.cursor = '';
+              importedNotice.style.display = 'none';
+            }
 
             // Toggle field visibility based on account type
             const editStudentIdField = document.getElementById('edit_student_id_field');

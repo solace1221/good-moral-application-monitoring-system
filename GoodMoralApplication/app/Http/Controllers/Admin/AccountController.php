@@ -68,9 +68,18 @@ class AccountController extends Controller
     try {
       $account = RoleAccount::findOrFail($id);
 
+      // Look up separate name parts from users table
+      $user = User::where('email', $account->email)->first();
+      $accountData = $account->toArray();
+      $accountData['first_name'] = $user->firstname ?? '';
+      $accountData['last_name'] = $user->lastname ?? '';
+      $accountData['middle_initial'] = $account->mname ?? $user->middlename ?? '';
+      $accountData['extension_name'] = $account->extension ?? $user->suffix_name ?? '';
+      $accountData['is_imported'] = $account->created_via === 'import';
+
       return response()->json([
         'success' => true,
-        'account' => $account
+        'account' => $accountData
       ]);
     } catch (\Exception $e) {
       return response()->json([
@@ -88,7 +97,35 @@ class AccountController extends Controller
     try {
       $account = RoleAccount::findOrFail($id);
 
+      // Prevent account type change for imported students
+      if ($account->created_via === 'import' && $request->account_type !== $account->account_type) {
+        return redirect()->route('admin.AddAccount')
+          ->with('error', 'Account type cannot be changed for students imported via the Import Students feature.');
+      }
+
       $validated = $request->validated();
+
+      // Build fullname from separate name fields: First MI. Last Ext
+      $firstName = trim($validated['first_name']);
+      $lastName = trim($validated['last_name']);
+      $middleInitial = $validated['middle_initial'] ?? null;
+      $extensionName = $validated['extension_name'] ?? null;
+
+      $fullname = $firstName;
+      if (!empty($middleInitial)) {
+        $mi = rtrim($middleInitial, '.');
+        $fullname .= ' ' . $mi . '.';
+      }
+      $fullname .= ' ' . $lastName;
+      if (!empty($extensionName)) {
+        $fullname .= ' ' . trim($extensionName);
+      }
+      $validated['fullname'] = $fullname;
+      $validated['mname'] = $middleInitial;
+      $validated['extension'] = $extensionName;
+
+      // Remove the separate name keys before mass-assignment
+      unset($validated['first_name'], $validated['last_name'], $validated['middle_initial'], $validated['extension_name']);
 
       // Only student accounts have academic fields
       if ($validated['account_type'] === 'student' && !empty($validated['course_id'])) {
@@ -113,9 +150,13 @@ class AccountController extends Controller
       // Update the account
       $account->update($validated);
 
-      // Sync status to users table
+      // Sync status and name to users table
       User::where('email', $account->email)->update([
         'status' => $validated['status'],
+        'firstname' => $firstName,
+        'lastname' => $lastName,
+        'middlename' => $middleInitial,
+        'suffix_name' => $extensionName,
       ]);
 
       return redirect()->route('admin.AddAccount')

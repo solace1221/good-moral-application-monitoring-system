@@ -30,6 +30,7 @@ class RoleAccount extends Authenticatable
     'organization',
     'position',
     'status',
+    'created_via',
     'is_graduating',
     'graduation_date',
     'graduated_at',

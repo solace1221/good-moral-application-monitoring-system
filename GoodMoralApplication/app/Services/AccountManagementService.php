@@ -151,6 +151,7 @@ class AccountManagementService
                         'student_id' => $studentData['student_id'],
                         'status' => 'active',
                         'account_type' => 'student',
+                        'created_via' => 'import',
                         'organization' => null,
                         'position' => null,
                     ]);
