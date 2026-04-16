@@ -383,23 +383,26 @@ class ApplicationController extends Controller
 
   public function deanviolationapprove($id)
   {
-    $userDepartment = Auth::user()->department;
+    $user = Auth::user();
 
     $violation = StudentViolation::findOrFail($id);
 
-    // For minor violations, approve and send to Admin for final approval
+    // For minor violations, approve and send to Admin for finalization
     if ($violation->offense_type === 'minor') {
-      $violation->status = "1"; // Mark as Dean approved, pending Admin approval
+      $violation->status = 'Approved';
+      $violation->reviewed_by = $user->fullname;
+      $violation->reviewed_role = 'dean';
+      $violation->reviewed_at = now();
       $violation->save();
 
       ViolationNotif::create([
-        'ref_num' => 'DEAN-APPROVED',
+        'ref_num' => $violation->ref_num,
         'student_id' => $violation->student_id,
-        'status' => 0,  // pending status
-        'notif' => "Your minor violation has been approved by the Dean ({$userDepartment}). The case is now pending Admin final approval. Please wait for further instructions.",
+        'status' => 0,
+        'notif' => "Your minor violation has been approved by Dean {$user->fullname} ({$user->department}). The case is now forwarded to the Admin for finalization.",
       ]);
 
-      return back()->with('success', "Minor violation approved by Dean! Sent to Admin for final approval.");
+      return back()->with('success', "Minor violation approved! Forwarded to Admin for finalization.");
     } else {
       // For major violations, generate case number
       $caseNumber = ViolationService::generateCaseNumber();
@@ -425,23 +428,45 @@ class ApplicationController extends Controller
     }
   }
 
-  public function deanviolationdecline($id)
+  public function deanviolationdecline(Request $request, $id)
   {
-    $userDepartment = Auth::user()->department;
+    $request->validate([
+      'decline_reason' => 'required|string|max:1000',
+    ]);
+
+    $user = Auth::user();
 
     $violation = StudentViolation::findOrFail($id);
 
-    // Delete the violation record — dean has declined it
-    $studentId = $violation->student_id;
-    $violation->delete();
+    if ($violation->offense_type === 'minor') {
+      $violation->status = 'Declined';
+      $violation->decline_reason = $request->decline_reason;
+      $violation->reviewed_by = $user->fullname;
+      $violation->reviewed_role = 'dean';
+      $violation->reviewed_at = now();
+      $violation->save();
 
-    ViolationNotif::create([
-      'ref_num'    => 'DEAN-DECLINED',
-      'student_id' => $studentId,
-      'status'     => 0,
-      'notif'      => "Your minor violation has been declined by the Dean ({$userDepartment}). The record has been removed.",
-    ]);
+      ViolationNotif::create([
+        'ref_num'    => $violation->ref_num,
+        'student_id' => $violation->student_id,
+        'status'     => 0,
+        'notif'      => "Your minor violation has been declined by Dean {$user->fullname} ({$user->department}). Reason: {$request->decline_reason}",
+      ]);
 
-    return back()->with('success', 'Minor violation has been declined and removed.');
+      return back()->with('success', 'Minor violation has been declined.');
+    } else {
+      // Major violation decline — keep existing behavior
+      $studentId = $violation->student_id;
+      $violation->delete();
+
+      ViolationNotif::create([
+        'ref_num'    => 'DEAN-DECLINED',
+        'student_id' => $studentId,
+        'status'     => 0,
+        'notif'      => "Your major violation has been declined by Dean {$user->fullname} ({$user->department}). The record has been removed.",
+      ]);
+
+      return back()->with('success', 'Violation has been declined and removed.');
+    }
   }
 }

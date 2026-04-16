@@ -1,8 +1,8 @@
-﻿<x-dashboard-layout>
-  <x-slot name="roleTitle">Dean</x-slot>
+<x-dashboard-layout>
+  <x-slot name="roleTitle">Program Coordinator</x-slot>
 
   <x-slot name="navigation">
-    <x-dean-navigation />
+    <x-prog-coor-navigation />
   </x-slot>
 
   <!-- Header Section -->
@@ -22,28 +22,28 @@
 
     <!-- Tab Filters -->
     <div style="display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap;">
-      <a href="{{ route('dean.minor', ['tab' => 'pending']) }}"
+      <a href="{{ route('prog_coor.minor', ['tab' => 'pending']) }}"
          class="tab-filter {{ $tab === 'pending' ? 'active' : '' }}">
         Pending Review
         @if($pendingCount > 0)
           <span style="background: #dc3545; color: white; font-size: 11px; padding: 2px 7px; border-radius: 10px; margin-left: 6px;">{{ $pendingCount }}</span>
         @endif
       </a>
-      <a href="{{ route('dean.minor', ['tab' => 'approved']) }}"
+      <a href="{{ route('prog_coor.minor', ['tab' => 'approved']) }}"
          class="tab-filter {{ $tab === 'approved' ? 'active' : '' }}">
         Approved
         @if($approvedCount > 0)
           <span style="background: #28a745; color: white; font-size: 11px; padding: 2px 7px; border-radius: 10px; margin-left: 6px;">{{ $approvedCount }}</span>
         @endif
       </a>
-      <a href="{{ route('dean.minor', ['tab' => 'completed']) }}"
+      <a href="{{ route('prog_coor.minor', ['tab' => 'completed']) }}"
          class="tab-filter {{ $tab === 'completed' ? 'active' : '' }}">
         Completed
         @if($completedCount > 0)
           <span style="background: #6c757d; color: white; font-size: 11px; padding: 2px 7px; border-radius: 10px; margin-left: 6px;">{{ $completedCount }}</span>
         @endif
       </a>
-      <a href="{{ route('dean.minor', ['tab' => 'declined']) }}"
+      <a href="{{ route('prog_coor.minor', ['tab' => 'declined']) }}"
          class="tab-filter {{ $tab === 'declined' ? 'active' : '' }}">
         Declined
         @if($declinedCount > 0)
@@ -129,7 +129,7 @@
               @if($tab === 'pending')
               <td style="padding: 16px; color: #495057; font-size: 14px;">
                 <div style="display: flex; gap: 8px; align-items: center;">
-                  <form id="approve-form-{{ $student->id }}" action="{{ route('dean.violation.approve', $student->id) }}" method="POST" style="display: inline;">
+                  <form id="approve-form-{{ $student->id }}" action="{{ route('prog_coor.minor.approve', $student->id) }}" method="POST" style="display: inline;">
                     @csrf
                     <button type="button"
                             onclick="showApproveModal({{ $student->id }}, '{{ addslashes($student->first_name . ' ' . $student->last_name) }}')"
@@ -142,7 +142,7 @@
                       Approve
                     </button>
                   </form>
-                  <button type="button" class="dean-btn-danger"
+                  <button type="button" class="pc-btn-danger"
                           onclick="showDeclineModal({{ $student->id }}, '{{ addslashes($student->first_name . ' ' . $student->last_name) }}')"
                           style="color: #ffffff; border: none; padding: 8px 16px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;"
                           onmouseover="this.style.background='#c82333'"
@@ -160,7 +160,7 @@
                 @if($student->reviewed_by)
                   <div style="font-weight: 500; color: #333; font-size: 13px;">{{ ucfirst(str_replace('_', ' ', $student->reviewed_role ?? '')) }} {{ $student->reviewed_by }}</div>
                   @if($student->reviewed_at)
-                    <div style="font-size: 11px; color: #6c757d;">{{ $student->reviewed_at->format('M d, Y â€“ h:i A') }}</div>
+                    <div style="font-size: 11px; color: #6c757d;">{{ $student->reviewed_at->format('M d, Y – h:i A') }}</div>
                   @endif
                   @if($student->status === 'Declined' && $student->decline_reason)
                     <div style="margin-top: 6px; padding: 6px 10px; background: #dc354510; border-left: 3px solid #dc3545; border-radius: 4px; font-size: 12px; color: #dc3545;">
@@ -168,7 +168,7 @@
                     </div>
                   @endif
                 @else
-                  <span style="color: #6c757d; font-size: 12px; font-style: italic;">â€”</span>
+                  <span style="color: #6c757d; font-size: 12px; font-style: italic;">—</span>
                 @endif
               </td>
               @endif
@@ -216,8 +216,8 @@
         </p>
         <div style="background: #f8f9fa; padding: 16px; border-radius: 8px; border-left: 4px solid #28a745;">
           <p style="margin: 0; font-size: 13px; color: #495057; line-height: 1.5;">
-            âœ“ This will mark the violation as <strong>Approved</strong><br>
-            âœ“ It will be forwarded to the Administrator for finalization
+            ✓ This will mark the violation as <strong>Approved</strong><br>
+            ✓ It will be forwarded to the Administrator for finalization
           </p>
         </div>
       </div>
@@ -249,7 +249,7 @@
         </div>
         <div style="padding: 20px 24px; background: #f8f9fa; border-top: 1px solid #e9ecef; display: flex; gap: 12px; justify-content: flex-end; border-radius: 0 0 12px 12px;">
           <button type="button" onclick="closeDeclineModal()" style="padding: 10px 20px; background: white; color: #6c757d; border: 1px solid #dee2e6; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer;">Cancel</button>
-          <button type="submit" class="dean-btn-danger" style="padding: 10px 24px; color: white; border: none; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer;">Decline Violation</button>
+          <button type="submit" class="pc-btn-danger" style="padding: 10px 24px; color: white; border: none; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer;">Decline Violation</button>
         </div>
       </form>
     </div>
@@ -272,10 +272,10 @@
     .main-content table td button:focus,
     .main-content table td button:active,
     .main-content table td button * { color: #ffffff !important; }
-    .dean-btn-danger,
-    .dean-btn-danger:hover,
-    .dean-btn-danger:focus,
-    .dean-btn-danger:active { background: #dc3545 !important; color: #ffffff !important; }
+    .pc-btn-danger,
+    .pc-btn-danger:hover,
+    .pc-btn-danger:focus,
+    .pc-btn-danger:active { background: #dc3545 !important; color: #ffffff !important; }
   </style>
 
   <script>
@@ -298,7 +298,7 @@
 
     function showDeclineModal(violationId, studentName) {
       document.getElementById('declineStudentName').textContent = studentName;
-      document.getElementById('declineForm').action = '/dean/violation/' + violationId + '/decline';
+      document.getElementById('declineForm').action = '/prog_coor/minor/' + violationId + '/decline';
       document.getElementById('declineReasonInput').value = '';
       document.getElementById('declineModal').style.display = 'flex';
       document.body.style.overflow = 'hidden';

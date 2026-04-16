@@ -194,7 +194,17 @@
 
               <!-- Status Column -->
               <td style="padding: 12px; font-size: 14px;">
-                @if($student->status == 2 && $student->offense_type === 'minor')
+                @if($student->status === 'Complied')
+                  <span style="color: #10b981; font-weight: 500; display: inline-flex; align-items: center; gap: 4px;"><svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Complied</span>
+                @elseif($student->status === 'Closed')
+                  <span style="color: #6c757d; font-weight: 500; display: inline-flex; align-items: center; gap: 4px;"><svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Closed</span>
+                @elseif($student->status === 'Approved')
+                  <span style="color: #3b82f6; font-weight: 500; display: inline-flex; align-items: center; gap: 4px;"><svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Approved</span>
+                @elseif($student->status === 'Reported')
+                  <span style="color: #fbbf24; font-weight: 500; display: inline-flex; align-items: center; gap: 4px;"><svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Reported</span>
+                @elseif($student->status === 'Declined')
+                  <span style="color: #ef4444; font-weight: 500; display: inline-flex; align-items: center; gap: 4px;"><svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg> Declined</span>
+                @elseif($student->status == 2 && $student->offense_type === 'minor')
                   <span style="color: #10b981; font-weight: 500; display: inline-flex; align-items: center; gap: 4px;"><svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Complied</span>
                 @elseif($student->status == 2 && $student->offense_type === 'major')
                   <span style="color: #10b981; font-weight: 500; display: inline-flex; align-items: center; gap: 4px;"><svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Case Resolved</span>
@@ -229,7 +239,7 @@
                     View
                   </button>
 
-                  @if($student->status == 1)
+                  @if($student->status == 1 || $student->status === 'Approved')
                     <button onclick="openResolveModal('{{ $student->id }}')"
                             style="background: #f59e0b; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s ease;"
                             onmouseover="this.style.background='#d97706'"
@@ -425,7 +435,17 @@
   }
 
   function getStatusDisplay(status, offenseType, documentPath) {
-    if (status == 2 && offenseType === 'minor') {
+    if (status === 'Complied') {
+      return '<span style="background: #10b981; color: white; display:inline-flex; align-items:center; gap:4px; padding:2px 6px; border-radius:4px;"><svg style="width:11px;height:11px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Complied</span>';
+    } else if (status === 'Closed') {
+      return '<span style="background: #6c757d; color: white; display:inline-flex; align-items:center; gap:4px; padding:2px 6px; border-radius:4px;"><svg style="width:11px;height:11px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Closed</span>';
+    } else if (status === 'Approved') {
+      return '<span style="background: #3b82f6; color: white; display:inline-flex; align-items:center; gap:4px; padding:2px 6px; border-radius:4px;"><svg style="width:11px;height:11px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Approved</span>';
+    } else if (status === 'Reported') {
+      return '<span style="background: #fbbf24; color: #111827; display:inline-flex; align-items:center; gap:4px; padding:2px 6px; border-radius:4px;"><svg style="width:11px;height:11px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Reported</span>';
+    } else if (status === 'Declined') {
+      return '<span style="background: #ef4444; color: white; display:inline-flex; align-items:center; gap:4px; padding:2px 6px; border-radius:4px;"><svg style="width:11px;height:11px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg> Declined</span>';
+    } else if (status == 2 && offenseType === 'minor') {
       return '<span style="background: #10b981; color: white; display:inline-flex; align-items:center; gap:4px; padding:2px 6px; border-radius:4px;"><svg style="width:11px;height:11px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Complied</span>';
     } else if (status == 2 && offenseType === 'major') {
       return '<span style="background: #10b981; color: white; display:inline-flex; align-items:center; gap:4px; padding:2px 6px; border-radius:4px;"><svg style="width:11px;height:11px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Case Resolved</span>';
@@ -537,6 +557,11 @@
 
 
   function getStatusText(status, offenseType) {
+    if (status === 'Complied') return 'Complied';
+    if (status === 'Closed') return 'Closed';
+    if (status === 'Approved') return 'Approved';
+    if (status === 'Reported') return 'Reported';
+    if (status === 'Declined') return 'Declined';
     if (status == 2 && offenseType === 'minor') {
       return 'Complied';
     } else if (status == 2 && offenseType === 'major') {

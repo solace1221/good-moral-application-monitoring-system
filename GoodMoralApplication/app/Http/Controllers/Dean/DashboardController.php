@@ -260,11 +260,31 @@ class DashboardController extends Controller
   {
     $possibleDepartments = DashboardStatsService::getPossibleDepartmentNames(Auth::user()->department);
 
-    $students = StudentViolation::whereIn('department', $possibleDepartments)
-      ->minor()
-      ->orderBy('created_at', 'desc')
-      ->paginate(10);
+    $tab = request('tab', 'pending');
 
-    return view('dean.minor', compact('students'));
+    $query = StudentViolation::whereIn('department', $possibleDepartments)
+      ->minor()
+      ->orderBy('created_at', 'desc');
+
+    if ($tab === 'approved') {
+      $query->where('status', 'Approved');
+    } elseif ($tab === 'completed') {
+      $query->whereIn('status', ['Complied', 'Closed']);
+    } elseif ($tab === 'declined') {
+      $query->where('status', 'Declined');
+    } else {
+      $query->whereIn('status', ['Reported', 'Under Review']);
+    }
+
+    $students = $query->paginate(10)->appends(request()->query());
+
+    // Counts for tab badges
+    $baseQuery = StudentViolation::whereIn('department', $possibleDepartments)->minor();
+    $pendingCount = (clone $baseQuery)->whereIn('status', ['Reported', 'Under Review'])->count();
+    $approvedCount = (clone $baseQuery)->where('status', 'Approved')->count();
+    $completedCount = (clone $baseQuery)->whereIn('status', ['Complied', 'Closed'])->count();
+    $declinedCount = (clone $baseQuery)->where('status', 'Declined')->count();
+
+    return view('dean.minor', compact('students', 'tab', 'pendingCount', 'approvedCount', 'completedCount', 'declinedCount'));
   }
 }

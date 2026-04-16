@@ -8,8 +8,8 @@
   <!-- Header Section -->
   <div class="header-section">
     <div>
-      <h1 class="role-title">Good Moral Application</h1>
-      <p class="welcome-text">Manage and review Good Moral Certificate applications</p>
+      <h1 class="role-title">Certificate Applications</h1>
+      <p class="welcome-text">Manage and review student certificate applications</p>
       <div class="accent-line"></div>
     </div>
     <div style="display: flex; align-items: center; gap: 16px;">
@@ -34,34 +34,44 @@
   @include('shared.alerts.flash')
 
   <!-- Filter Navigation -->
+  <style>
+    .tab-filter {
+      background: #f1f3f5;
+      border: none;
+      color: #333;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      font-size: 14px;
+    }
+    .tab-filter:hover {
+      background: #e8f5ec;
+      color: #1a7f37;
+    }
+    .tab-filter.active {
+      background: #e8f5ec;
+      color: #1a7f37;
+      border-bottom: 2px solid #1a7f37;
+    }
+  </style>
   <div style="background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 24px; padding: 20px;">
     <nav style="display: flex; gap: 8px; flex-wrap: wrap;">
-      <a href="{{ route('registrar.goodMoralApplication', ['status' => 'pending']) }}" 
-         style="padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s ease;
-                {{ request()->get('status', 'pending') == 'pending' ? 'background: #007bff; color: white;' : 'background: #f8f9fa; color: #495057;' }}"
-         onmouseover="if (!this.style.background.includes('#007bff')) { this.style.background='#e9ecef'; }"
-         onmouseout="if (!this.style.background.includes('#007bff')) { this.style.background='#f8f9fa'; }">
+      <a href="{{ route('registrar.goodMoralApplication', ['status' => 'pending']) }}"
+         class="tab-filter {{ request()->get('status', 'pending') == 'pending' ? 'active' : '' }}">
         Pending ({{ \App\Models\GoodMoralApplication::where('status', 'pending')->count() }})
       </a>
-      <a href="{{ route('registrar.goodMoralApplication', ['status' => 'approved']) }}" 
-         style="padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s ease;
-                {{ request()->get('status') == 'approved' ? 'background: #28a745; color: white;' : 'background: #f8f9fa; color: #495057;' }}"
-         onmouseover="if (!this.style.background.includes('#28a745')) { this.style.background='#e9ecef'; }"
-         onmouseout="if (!this.style.background.includes('#28a745')) { this.style.background='#f8f9fa'; }">
+      <a href="{{ route('registrar.goodMoralApplication', ['status' => 'approved']) }}"
+         class="tab-filter {{ request()->get('status') == 'approved' ? 'active' : '' }}">
         Approved ({{ \App\Models\GoodMoralApplication::where('status', 'approved')->count() }})
       </a>
-      <a href="{{ route('registrar.goodMoralApplication', ['status' => 'rejected']) }}" 
-         style="padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s ease;
-                {{ request()->get('status') == 'rejected' ? 'background: #dc3545; color: white;' : 'background: #f8f9fa; color: #495057;' }}"
-         onmouseover="if (!this.style.background.includes('#dc3545')) { this.style.background='#e9ecef'; }"
-         onmouseout="if (!this.style.background.includes('#dc3545')) { this.style.background='#f8f9fa'; }">
+      <a href="{{ route('registrar.goodMoralApplication', ['status' => 'rejected']) }}"
+         class="tab-filter {{ request()->get('status') == 'rejected' ? 'active' : '' }}">
         Rejected ({{ \App\Models\GoodMoralApplication::where('status', 'rejected')->count() }})
       </a>
-      <a href="{{ route('registrar.goodMoralApplication', ['status' => 'all']) }}" 
-         style="padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.2s ease;
-                {{ request()->get('status') == 'all' ? 'background: #6c757d; color: white;' : 'background: #f8f9fa; color: #495057;' }}"
-         onmouseover="if (!this.style.background.includes('#6c757d')) { this.style.background='#e9ecef'; }"
-         onmouseout="if (!this.style.background.includes('#6c757d')) { this.style.background='#f8f9fa'; }">
+      <a href="{{ route('registrar.goodMoralApplication', ['status' => 'all']) }}"
+         class="tab-filter {{ request()->get('status') == 'all' ? 'active' : '' }}">
         All Applications
       </a>
     </nav>
@@ -69,24 +79,10 @@
 
   <!-- Applications Table -->
   <div style="background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow: hidden; margin-bottom: 24px;">
-    <div style="padding: 24px; border-bottom: 1px solid #e9ecef; display: flex; justify-content: space-between; align-items: center;">
+    <div style="padding: 24px; border-bottom: 1px solid #e9ecef;">
       <h2 style="margin: 0; color: var(--primary-green); font-size: 1.25rem; font-weight: 600;">
         {{ ucfirst(request()->get('status', 'pending')) }} Applications
       </h2>
-      <div style="display: flex; align-items: center; gap: 12px;">
-        <form action="{{ url()->current() }}" method="GET" style="display: flex; align-items: center; gap: 8px;">
-          @if(request()->get('status'))
-            <input type="hidden" name="status" value="{{ request()->get('status') }}">
-          @endif
-          <label for="recordsPerPage" style="font-size: 14px; font-weight: 500; color: #495057;">Show</label>
-          <select name="perPage" id="recordsPerPage" style="padding: 8px 12px; border: 2px solid #e1e5e9; border-radius: 6px; font-size: 14px;" onchange="this.form.submit()">
-            <option value="10" {{ request('perPage') == 10 ? 'selected' : '' }}>10</option>
-            <option value="20" {{ request('perPage') == 20 ? 'selected' : '' }}>20</option>
-            <option value="50" {{ request('perPage') == 50 ? 'selected' : '' }}>50</option>
-          </select>
-          <span style="font-size: 14px; color: #6c757d;">entries</span>
-        </form>
-      </div>
     </div>
 
     @if($applications->isEmpty())

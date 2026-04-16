@@ -1,14 +1,20 @@
-<!-- Good Moral Application -->
+<!-- APPLICATIONS -->
+<div class="sidebar-section">APPLICATIONS</div>
+
+<!-- Certificate Applications -->
 <a href="{{ route('registrar.goodMoralApplication') }}" class="nav-link {{ request()->routeIs('registrar.goodMoralApplication') ? 'active' : '' }}">
   <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
   </svg>
-  Good Moral Application
+  Certificate Applications
   <span class="notification-icon" id="registrar-notification-bell" style="display: none;">
     <svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
     <span class="notification-badge" id="registrar-pending-count">0</span>
   </span>
 </a>
+
+<!-- ACCOUNT -->
+<div class="sidebar-section">ACCOUNT</div>
 
 <!-- Profile -->
 <a href="{{ route('profile.edit') }}" class="nav-link {{ request()->routeIs('profile.edit') ? 'active' : '' }}">

@@ -36,6 +36,12 @@ class StudentViolation extends Model
     'forwarded_by',
     'closed_by',
     'closed_at',
+    'decline_reason',
+    'reviewed_by',
+    'reviewed_role',
+    'reviewed_at',
+    'finalized_by',
+    'finalized_at',
   ];
 
   protected $casts = [
@@ -43,6 +49,8 @@ class StudentViolation extends Model
     'proceedings_uploaded_at' => 'datetime',
     'forwarded_to_admin_at' => 'datetime',
     'closed_at' => 'datetime',
+    'reviewed_at' => 'datetime',
+    'finalized_at' => 'datetime',
   ];
 
   /**

@@ -175,12 +175,15 @@ Route::prefix('dean')->name('dean.')->middleware(['auth', 'verified', 'role:dean
     Route::get('/major', [DeanDashboardController::class, 'major'])->name('major');
     Route::get('/minor', [DeanDashboardController::class, 'minor'])->name('minor');
     Route::post('/violation/{id}/approve', [DeanApplicationController::class, 'deanviolationapprove'])->name('violation.approve');
-  Route::delete('/violation/{id}/decline', [DeanApplicationController::class, 'deanviolationdecline'])->name('violation.decline');
+    Route::post('/violation/{id}/decline', [DeanApplicationController::class, 'deanviolationdecline'])->name('violation.decline');
 });
 
 // ─── Program Coordinator ──────────────────────────────────────────────────────
 Route::middleware(['auth', 'verified', 'role:prog_coor'])->group(function () {
     Route::get('/prog_coor/major', [ProgramCoordinatorController::class, 'major'])->name('prog_coor.major');
+    Route::get('/prog_coor/minor', [ProgramCoordinatorController::class, 'minor'])->name('prog_coor.minor');
+    Route::post('/prog_coor/minor/{id}/approve', [ProgramCoordinatorController::class, 'approveMinorViolation'])->name('prog_coor.minor.approve');
+    Route::post('/prog_coor/minor/{id}/decline', [ProgramCoordinatorController::class, 'declineMinorViolation'])->name('prog_coor.minor.decline');
     Route::get('/prog_coor/major/{id}/download-proceedings', [ProgramCoordinatorController::class, 'downloadProceedings'])->name('prog_coor.downloadProceedings');
     Route::get('/prog_coor/major/search', [ProgramCoordinatorController::class, 'CoorMajorSearch'])->name('CoorMajorSearch');
 });

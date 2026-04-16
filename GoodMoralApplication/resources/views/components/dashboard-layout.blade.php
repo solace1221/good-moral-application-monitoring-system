@@ -24,6 +24,13 @@
   @vite(['resources/css/app.css', 'resources/js/app.js'])
 
   <style>
+    /* Fix Bootstrap Icons overridden by Tailwind Preflight reset */
+    .bi::before,
+    [class^="bi-"]::before,
+    [class*=" bi-"]::before {
+      font-family: 'bootstrap-icons' !important;
+    }
+
     :root {
       --primary-yellow: rgba(255, 255, 0, 1);
       --primary-green: rgba(0, 176, 80, 1);

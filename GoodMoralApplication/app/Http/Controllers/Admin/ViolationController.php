@@ -127,9 +127,13 @@ class ViolationController extends Controller
     // Filter by status — use explicit string values since status is a TEXT column
     if ($request->filled('status')) {
       if ($request->status === 'resolved') {
-        $baseQuery->where('status', '2');
+        $baseQuery->where(function ($q) {
+          $q->whereIn('status', ['2', 'Complied', 'Closed']);
+        });
       } elseif ($request->status === 'pending') {
-        $baseQuery->whereIn('status', ['0', '1', '1.5']);
+        $baseQuery->where(function ($q) {
+          $q->whereIn('status', ['0', '1', '1.5', 'Reported', 'Under Review', 'Approved']);
+        });
       }
     }
 
@@ -216,6 +220,12 @@ class ViolationController extends Controller
                       ->whereNotNull('document_path')
                       ->value('document_path')
                   : null),
+          'reviewed_by' => $violation->reviewed_by,
+          'reviewed_role' => $violation->reviewed_role,
+          'reviewed_at' => $violation->reviewed_at,
+          'finalized_by' => $violation->finalized_by,
+          'finalized_at' => $violation->finalized_at,
+          'decline_reason' => $violation->decline_reason,
         ]
       ]);
     } catch (\Exception $e) {
@@ -235,28 +245,33 @@ class ViolationController extends Controller
     return back()->with('success', 'Marked as downloaded.');
   }
 
-  public function closeCase($id)
+  public function closeCase(Request $request, $id)
   {
     $violation = StudentViolation::findOrFail($id);
+    $userName = Auth::user()->fullname ?? 'Admin';
 
-    // For minor violations, check if Dean has approved first
+    // For minor violations, check if reviewer has approved first
     if ($violation->offense_type === 'minor') {
-      // Only allow Admin approval if Dean has already approved (status = 1)
-      if ($violation->status != '1') {
-        return back()->with('error', 'Minor violations must be approved by the Dean first before Admin can approve.');
+      if ($violation->status !== 'Approved') {
+        return back()->with('error', 'Minor violations must be approved by a reviewer (Dean or Program Coordinator) before Admin can finalize.');
       }
 
-      $violation->status = '2'; // Mark as fully resolved/approved
+      $action = $request->input('action', 'complied');
+      $violation->status = $action === 'closed' ? 'Closed' : 'Complied';
+      $violation->finalized_by = $userName;
+      $violation->finalized_at = now();
       $violation->save();
 
+      $statusLabel = $violation->status === 'Closed' ? 'closed' : 'marked as complied';
+
       ViolationNotif::create([
-        'ref_num' => 'ADMIN-APPROVED',
+        'ref_num' => $violation->ref_num,
         'student_id' => $violation->student_id,
-        'status' => 1,  // completed status
-        'notif' => "Your minor violation case has been fully approved by the Administrator. The case is now resolved and closed. No further action is required.",
+        'status' => 1,
+        'notif' => "Your minor violation case has been {$statusLabel} by the Administrator. No further action is required.",
       ]);
 
-      return back()->with('success', 'Minor violation approved by Admin! Case fully resolved.');
+      return back()->with('success', "Minor violation {$statusLabel} successfully.");
     } else {
       // For major violations, ensure it has been forwarded by moderator
       if ($violation->status != '1') {
@@ -306,7 +321,7 @@ class ViolationController extends Controller
 
     $violation = StudentViolation::findOrFail($id);
 
-    if ($violation->status == '2' || $violation->status == '3') {
+    if ($violation->status == '2' || $violation->status == '3' || in_array($violation->status, ['Complied', 'Closed', 'Declined'])) {
       return back()->with('error', 'This case has already been resolved.');
     }
 

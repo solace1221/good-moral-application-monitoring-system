@@ -86,7 +86,7 @@ class ViolatorController extends Controller
       'violation' => $validated['violation'],
       'ref_num' => $referenceNumber,
       'added_by' => $userName,
-      'status' => '0', // Pending status
+      'status' => $validated['offense_type'] === 'minor' ? 'Reported' : '0',
       'unique_id' => $uniqueID,
       'case_type' => 'single',
       'group_size' => 1,
@@ -227,7 +227,7 @@ class ViolatorController extends Controller
           'violation' => $violationData['description'],
           'ref_num' => $referenceNumber,
           'added_by' => $userName,
-          'status' => '0',
+          'status' => $validated['offense_type'] === 'minor' ? 'Reported' : '0',
           'unique_id' => uniqid(),
           'case_type' => $groupSize > 1 ? 'group' : 'single',
           'group_size' => $groupSize,

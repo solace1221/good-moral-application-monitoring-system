@@ -127,7 +127,7 @@ class RegisterViolationController extends Controller
         'violation' => $description,
         'student_id' => $studentId,
         'added_by' => $userName,
-        'status' => '0',
+        'status' => 'Reported',
         'offense_type' => $offenseType,
         'unique_id' => $uniqueID,
         'ref_num' => $uniqueID,
@@ -141,7 +141,7 @@ class RegisterViolationController extends Controller
         'violation' => $request->others,
         'student_id' => $studentId,
         'added_by' => $userName,
-        'status' => '0',
+        'status' => 'Reported',
         'offense_type' => 'minor', // PSG Officers can only issue minor violations
         'unique_id' => $uniqueID,
         'ref_num' => $uniqueID,

@@ -69,7 +69,7 @@ class ViolatorController extends Controller
             'violation' => $validated['violation'],
             'ref_num' => $referenceNumber,
             'added_by' => $userName,
-            'status' => '0',
+            'status' => $validated['offense_type'] === 'minor' ? 'Reported' : '0',
             'unique_id' => $uniqueID,
             'case_type' => 'single',
             'group_size' => 1,

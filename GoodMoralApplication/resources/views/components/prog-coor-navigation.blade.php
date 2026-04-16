@@ -1,25 +1,39 @@
-<!-- Program Coordinator Navigation -->
+<!-- VIOLATIONS -->
+<div class="sidebar-section">VIOLATIONS</div>
+
+<!-- Major Violations -->
 <a href="{{ route('prog_coor.major') }}" class="nav-link {{ request()->routeIs('prog_coor.major') ? 'active' : '' }}">
-  <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" class="nav-icon text-red-500">
-    <path fill-rule="evenodd" d="M11.484 2.17a.75.75 0 011.032 0C14.082 3.45 15.55 4.75 17.75 6.5c2.2 1.75 2.25 2.75 2.25 5.25 0 2.5-.05 3.5-2.25 5.25-2.2 1.75-3.668 3.05-5.234 4.33a.75.75 0 01-1.032 0C9.918 20.05 8.45 18.75 6.25 17c-2.2-1.75-2.25-2.75-2.25-5.25 0-2.5.05-3.5 2.25-5.25 2.2-1.75 3.668-3.05 5.234-4.33zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd" />
+  <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
   </svg>
   Major Violations
 </a>
 
+<!-- Minor Violations -->
+<a href="{{ route('prog_coor.minor') }}" class="nav-link {{ request()->routeIs('prog_coor.minor') ? 'active' : '' }}">
+  <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+  </svg>
+  Minor Violations
+</a>
+
+<!-- ACCOUNT -->
+<div class="sidebar-section">ACCOUNT</div>
+
 <!-- Profile -->
 <a href="{{ route('profile.edit') }}" class="nav-link {{ request()->routeIs('profile.edit') ? 'active' : '' }}">
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="nav-icon">
-    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+  <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
   </svg>
   Profile
 </a>
 
-<!-- Logout Section -->
+<!-- Logout -->
 <form method="POST" action="{{ route('logout') }}" class="nav-logout-form">
   @csrf
   <button type="submit" class="nav-link nav-logout">
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="nav-icon">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
     </svg>
     Logout
   </button>

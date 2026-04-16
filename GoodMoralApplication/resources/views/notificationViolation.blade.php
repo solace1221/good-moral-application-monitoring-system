@@ -73,6 +73,11 @@
               '0' => ['bg' => '#ffc10720', 'text' => '#856404', 'label' => 'Under Review'],
               '1' => ['bg' => '#28a74520', 'text' => '#28a745', 'label' => 'Resolved'],
               '2' => ['bg' => '#28a74520', 'text' => '#28a745', 'label' => 'Approved'],
+              'Reported' => ['bg' => '#ffc10720', 'text' => '#856404', 'label' => 'Reported'],
+              'Approved' => ['bg' => '#3b82f620', 'text' => '#3b82f6', 'label' => 'Approved'],
+              'Declined' => ['bg' => '#ef444420', 'text' => '#ef4444', 'label' => 'Declined'],
+              'Complied' => ['bg' => '#10b98120', 'text' => '#10b981', 'label' => 'Complied'],
+              'Closed' => ['bg' => '#6c757d20', 'text' => '#6c757d', 'label' => 'Closed'],
             ];
             $sc = $statusColors[$notification->status] ?? ['bg' => '#6c757d20', 'text' => '#6c757d', 'label' => ucfirst($notification->status)];
 
@@ -88,6 +93,10 @@
               'status_bg' => $sc['bg'],
               'date' => $notification->created_at->format('M d, Y'),
               'time' => $notification->created_at->format('h:i A'),
+              'decline_reason' => $sv->decline_reason ?? null,
+              'reviewed_by' => $sv->reviewed_by ?? null,
+              'reviewed_role' => $sv->reviewed_role ?? null,
+              'reviewed_at' => $sv->reviewed_at ? $sv->reviewed_at->format('M d, Y – h:i A') : null,
             ]);
           @endphp
           <tr style="border-bottom: 1px solid #e9ecef; transition: background-color 0.15s;"
@@ -196,6 +205,18 @@
             <div id="vModalMessage" style="background:#f8f9fa; padding:12px 16px; border-radius:8px; color:#555; font-size:14px; line-height:1.5;"></div>
           </div>
 
+          <!-- Decline Reason (shown when declined) -->
+          <div id="vModalDeclineSection" style="display:none;">
+            <div style="font-weight:600; color:#ef4444; font-size:14px; margin-bottom:8px;">Decline Reason</div>
+            <div id="vModalDeclineReason" style="background:#fef2f2; padding:12px 16px; border-radius:8px; color:#ef4444; font-size:14px; line-height:1.5; border-left:3px solid #ef4444;"></div>
+          </div>
+
+          <!-- Reviewer Info -->
+          <div id="vModalReviewerSection" style="display:none;">
+            <div style="font-weight:600; color:#333; font-size:14px; margin-bottom:8px;">Reviewed By</div>
+            <div id="vModalReviewer" style="background:#f8f9fa; padding:12px 16px; border-radius:8px; color:#555; font-size:14px; line-height:1.5;"></div>
+          </div>
+
         </div>
       </div>
 
@@ -220,6 +241,28 @@
       badge.textContent = data.status_label || '';
       badge.style.background = data.status_bg || '#6c757d20';
       badge.style.color = data.status_color || '#6c757d';
+
+      // Decline reason
+      var declineSection = document.getElementById('vModalDeclineSection');
+      if (data.decline_reason) {
+        document.getElementById('vModalDeclineReason').textContent = data.decline_reason;
+        declineSection.style.display = 'block';
+      } else {
+        declineSection.style.display = 'none';
+      }
+
+      // Reviewer info
+      var reviewerSection = document.getElementById('vModalReviewerSection');
+      if (data.reviewed_by) {
+        var role = data.reviewed_role ? data.reviewed_role.replace('_', ' ') : '';
+        role = role.charAt(0).toUpperCase() + role.slice(1);
+        var reviewerText = role + ' ' + data.reviewed_by;
+        if (data.reviewed_at) reviewerText += ' — ' + data.reviewed_at;
+        document.getElementById('vModalReviewer').textContent = reviewerText;
+        reviewerSection.style.display = 'block';
+      } else {
+        reviewerSection.style.display = 'none';
+      }
 
       var modal = document.getElementById('violationModal');
       modal.style.display = 'flex';

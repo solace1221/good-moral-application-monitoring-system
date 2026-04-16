@@ -126,71 +126,54 @@
             </td>
             <td style="padding: 16px; color: #495057; font-size: 14px;">
               @if ($student->status == 0)
-                <span style="display: inline-block; padding: 6px 12px; background: #ffc10720; color: #ffc107; border-radius: 20px; font-size: 12px; font-weight: 500;">
-                  Awaiting Moderator
-                </span>
+                <span style="display: inline-block; padding: 5px 10px; background: #ffc10720; color: #856404; border-radius: 4px; font-size: 12px; font-weight: 500;">Awaiting Moderator</span>
               @elseif ($student->status == 1)
-                <span style="display: inline-block; padding: 6px 12px; background: #007bff20; color: #007bff; border-radius: 20px; font-size: 12px; font-weight: 500;">
-                  Under Review
-                </span>
+                <span style="display: inline-block; padding: 5px 10px; background: #007bff20; color: #007bff; border-radius: 4px; font-size: 12px; font-weight: 500;">Under Review</span>
               @elseif ($student->status == 1.5)
-                <span style="display: inline-block; padding: 6px 12px; background: #e1705520; color: #e17055; border-radius: 20px; font-size: 12px; font-weight: 500;">
-                  Forwarded to Admin
-                </span>
+                <span style="display: inline-block; padding: 5px 10px; background: #e1705520; color: #e17055; border-radius: 4px; font-size: 12px; font-weight: 500;">Forwarded to Admin</span>
               @elseif ($student->status == 2)
-                <span style="display: inline-block; padding: 6px 12px; background: #28a74520; color: #28a745; border-radius: 20px; font-size: 12px; font-weight: 500;">
-                  Case Closed
-                </span>
+                <span style="display: inline-block; padding: 5px 10px; background: #28a74520; color: #28a745; border-radius: 4px; font-size: 12px; font-weight: 500;">Closed</span>
               @else
-                <span style="display: inline-block; padding: 6px 12px; background: #6c757d20; color: #6c757d; border-radius: 20px; font-size: 12px; font-weight: 500;">
-                  Unknown Status
-                </span>
+                <span style="display: inline-block; padding: 5px 10px; background: #6c757d20; color: #6c757d; border-radius: 4px; font-size: 12px; font-weight: 500;">Unknown</span>
               @endif
             </td>
             <td style="padding: 16px; color: #495057; font-size: 14px;">
               @if ($student->document_path)
                 <div style="display: flex; flex-direction: column; gap: 4px;">
-                  <a href="{{ route('prog_coor.downloadProceedings', $student->id) }}"
-                     style="background: #28a745; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s ease;"
-                     onmouseover="this.style.background='#218838'"
-                     onmouseout="this.style.background='#28a745'">
-                    <svg style="width: 12px; height: 12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                    </svg>
-                    Download
-                  </a>
                   @if ($student->proceedings_uploaded_at)
-                    <small style="color: #6c757d; font-size: 11px;">
-                      Uploaded: {{ $student->proceedings_uploaded_at->format('M d, Y') }}
-                    </small>
+                    <small style="color: #6c757d; font-size: 11px;">Uploaded {{ $student->proceedings_uploaded_at->format('M d, Y') }}</small>
                   @endif
+                  <a href="{{ route('prog_coor.downloadProceedings', $student->id) }}"
+                     style="background: #f8f9fa; color: #495057; border: 1px solid #dee2e6; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; width: fit-content; transition: all 0.2s ease;"
+                     onmouseover="this.style.background='#e9ecef'"
+                     onmouseout="this.style.background='#f8f9fa'">
+                    <svg style="width: 11px; height: 11px; flex-shrink: 0;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg> Download
+                  </a>
                 </div>
               @else
-                <span style="color: #6c757d; font-size: 12px; font-style: italic; padding: 8px 12px; background: #f8f9fa; border-radius: 6px;">
-                  No Proceedings
-                </span>
+                <span style="color: #6c757d; font-size: 12px; font-style: italic;">No Proceedings</span>
               @endif
             </td>
             <td style="padding: 16px; color: #495057; font-size: 14px;">
               @if ($student->status == 0)
-                <span style="color: #ffc107; font-size: 12px; font-weight: 500; padding: 8px 12px; background: #ffc10720; border-radius: 6px;">
-                  📋 Awaiting Moderator Action
+                <span style="color: #856404; font-size: 12px; font-weight: 500; padding: 5px 10px; background: #ffc10720; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px;">
+                  <svg style="width: 11px; height: 11px; flex-shrink: 0;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg> Awaiting Moderator
                 </span>
               @elseif ($student->status == 1)
-                <span style="color: #007bff; font-size: 12px; font-weight: 500; padding: 8px 12px; background: #007bff20; border-radius: 6px;">
-                  🔍 Under Review
+                <span style="color: #007bff; font-size: 12px; font-weight: 500; padding: 5px 10px; background: #007bff20; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px;">
+                  <svg style="width: 11px; height: 11px; flex-shrink: 0;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg> Under Review
                 </span>
               @elseif ($student->status == 1.5)
-                <span style="color: #e17055; font-size: 12px; font-weight: 500; padding: 8px 12px; background: #e1705520; border-radius: 6px;">
-                  📤 Forwarded to Admin
+                <span style="color: #e17055; font-size: 12px; font-weight: 500; padding: 5px 10px; background: #e1705520; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px;">
+                  <svg style="width: 11px; height: 11px; flex-shrink: 0;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg> Forwarded to Admin
                 </span>
               @elseif ($student->status == 2)
-                <span style="color: #28a745; font-size: 12px; font-weight: 500; padding: 8px 12px; background: #28a74520; border-radius: 6px;">
-                  ✅ Case Resolved
+                <span style="color: #28a745; font-size: 12px; font-weight: 500; padding: 5px 10px; background: #28a74520; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px;">
+                  <svg style="width: 11px; height: 11px; flex-shrink: 0;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Resolved
                 </span>
               @else
-                <span style="color: #6c757d; font-size: 12px; font-style: italic; padding: 8px 12px; background: #f8f9fa; border-radius: 6px;">
-                  ❓ Status Unknown
+                <span style="color: #6c757d; font-size: 12px; font-style: italic; padding: 5px 10px; background: #f8f9fa; border-radius: 4px;">
+                  Unknown
                 </span>
               @endif
             </td>
