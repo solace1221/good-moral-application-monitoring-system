@@ -227,7 +227,8 @@ class ReportController extends Controller
    */
   private function generateGoodMoralApplicantsReport($academicYear, $startDate, $endDate, $timePeriod = 'all')
   {
-    $query = GoodMoralApplication::where('certificate_type', 'good_moral')
+    $query = GoodMoralApplication::with('student')
+      ->where('certificate_type', 'good_moral')
       ->whereIn('application_status', ['Ready for Moderator Print', 'Ready for Pickup', 'Claimed']); // Include all completed applications
 
     // Apply time period filtering if not 'all'
@@ -299,7 +300,8 @@ class ReportController extends Controller
    */
   private function generateResidencyApplicantsReport($academicYear, $startDate, $endDate, $timePeriod = 'all')
   {
-    $query = GoodMoralApplication::where('certificate_type', 'residency')
+    $query = GoodMoralApplication::with('student')
+      ->where('certificate_type', 'residency')
       ->whereIn('application_status', ['Ready for Moderator Print', 'Ready for Pickup', 'Claimed']); // Include all completed applications
 
     // Apply time period filtering if not 'all'

@@ -188,15 +188,21 @@
             <tbody>
                 @foreach($applications as $index => $application)
                 @php
-                    // Get student details for extension
-                    $studentDetails = \App\Models\RoleAccount::where('student_id', $application->student_id)->first();
+                    $studentDetails = $application->student;
                     $formattedName = formatNameForCertificate($application->fullname, $studentDetails->extension ?? null);
+                    if ($studentDetails && $studentDetails->course) {
+                        $courseDisplay = $studentDetails->account_type === 'alumni'
+                            ? $studentDetails->course . ' - Completed'
+                            : ($studentDetails->year_level ? $studentDetails->course . ' - ' . $studentDetails->year_level : $studentDetails->course);
+                    } else {
+                        $courseDisplay = $application->course_completed ?? 'N/A';
+                    }
                 @endphp
                 <tr>
                     <td style="text-align: center;">{{ $application->created_at->format('M j, Y') }}</td>
                     <td>{{ $formattedName }}</td>
                     <td>{{ is_array($application->reason) ? implode(', ', $application->reason) : ($application->reason ?? 'N/A') }}</td>
-                    <td style="text-align: center;">{{ $application->course_completed ?? $application->course ?? 'N/A' }}</td>
+                    <td style="text-align: center;">{{ $courseDisplay }}</td>
                     <td style="text-align: center;">{{ $application->last_semester_sy ?? 'N/A' }}</td>
                 </tr>
                 @endforeach

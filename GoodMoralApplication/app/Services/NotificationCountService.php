@@ -19,7 +19,9 @@ class NotificationCountService
                 ->whereNotIn('application_status', ['Approved by Administrator', 'Rejected by Administrator'])
                 ->count(),
             'psgApplications' => StudentOfficerApplication::where('status', 'pending')->count(),
-            'pendingViolations' => StudentViolation::where('status', 0)->count(),
+            'pendingViolations' => StudentViolation::whereNotNull('forwarded_to_admin_at')
+                ->whereNotIn('status', ['2', 'Closed', 'Complied'])
+                ->count(),
             'escalationNotifications' => $this->getEscalationCount(),
         ];
     }
@@ -77,6 +79,7 @@ class NotificationCountService
     {
         return StudentViolation::select('student_id')
             ->where('offense_type', 'minor')
+            ->whereNotIn('status', ['2', 'Closed', 'Complied'])
             ->groupBy('student_id')
             ->havingRaw('COUNT(*) >= 3')
             ->count();
