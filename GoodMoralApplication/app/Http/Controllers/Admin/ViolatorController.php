@@ -131,6 +131,11 @@ class ViolatorController extends Controller
    */
   public function storeMultipleViolators(StoreMultipleViolatorsRequest $request)
   {
+    // Reject minor violations for multiple violators
+    if ($request->offense_type === 'minor') {
+      return back()->withErrors('Minor violations cannot be assigned to multiple students.')->withInput();
+    }
+
     // Prevent duplicate submissions within 10 seconds
     $cacheKey = 'multiple_violators_' . Auth::id() . '_' . md5(json_encode($request->all()));
     if (Cache::has($cacheKey)) {

@@ -63,9 +63,11 @@
           <select id="offense_type" name="offense_type" required onchange="loadViolations()"
                   style="width: 100%; padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px; background: white;">
             <option value="" disabled selected>Select Offense Type</option>
-            <option value="minor" {{ old('offense_type') == 'minor' ? 'selected' : '' }}>Minor Violation</option>
             <option value="major" {{ old('offense_type') == 'major' ? 'selected' : '' }}>Major Violation</option>
           </select>
+          <p style="margin-top: 8px; font-size: 13px; color: #6B7280; font-style: italic;">
+            Multiple violators are only supported for major violations. To issue a minor violation, use the <a href="{{ route('admin.AddViolator') }}" style="color: #10B981; text-decoration: underline;">Single Violator</a> form.
+          </p>
         </div>
 
         <!-- Step 2: Violation Mode Selection -->

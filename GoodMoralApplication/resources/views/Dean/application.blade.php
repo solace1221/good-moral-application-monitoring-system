@@ -1,4 +1,4 @@
-﻿<x-dashboard-layout>
+<x-dashboard-layout>
   <x-slot name="roleTitle">Dean</x-slot>
 
   <x-slot name="navigation">
@@ -108,7 +108,7 @@
                     View
                   </button>
 
-                  @if(str_contains($application->application_status, 'Approved By Registrar'))
+                  @if(str_contains(strtolower($application->application_status), 'approved by registrar'))
                     <!-- Approve Button -->
                     <form action="{{ route('dean.approveGoodMoral', $application->id) }}" method="POST" style="display: inline;">
                       @csrf
@@ -205,7 +205,7 @@
                     View
                   </button>
 
-                  @if(str_contains($application->application_status, 'Approved By Registrar'))
+                  @if(str_contains(strtolower($application->application_status), 'approved by registrar'))
                     <!-- Approve Button -->
                     <form action="{{ route('dean.approveGoodMoral', $application->id) }}" method="POST" style="display: inline;">
                       @csrf
@@ -302,7 +302,7 @@
                     View
                   </button>
 
-                  @if(str_contains($application->application_status, 'Approved By Registrar'))
+                  @if(str_contains(strtolower($application->application_status), 'approved by registrar'))
                     <!-- Approve Button -->
                     <form action="{{ route('dean.approveGoodMoral', $application->id) }}" method="POST" style="display: inline;">
                       @csrf

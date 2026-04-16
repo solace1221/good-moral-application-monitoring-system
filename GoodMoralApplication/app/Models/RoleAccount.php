@@ -22,6 +22,7 @@ class RoleAccount extends Authenticatable
     'course_id',
     'course',
     'year_level',
+    'academic_status',
     'fullname',
     'mname',
     'extension',

@@ -14,7 +14,7 @@ class StoreMultipleViolatorsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'offense_type' => ['required', 'in:minor,major'],
+            'offense_type' => ['required', 'in:major'],
             'violation' => ['required_without:multiple_violations_data', 'nullable', 'string'],
             'multiple_violations_data' => ['nullable', 'string'],
             'student_ids' => ['required', 'array', 'min:1'],
@@ -25,6 +25,7 @@ class StoreMultipleViolatorsRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'offense_type.in' => 'Minor violations cannot be assigned to multiple students. Only major violations are allowed.',
             'student_ids.*.exists' => 'One or more selected student IDs do not exist in the system.',
         ];
     }

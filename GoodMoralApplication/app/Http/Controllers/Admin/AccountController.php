@@ -247,12 +247,12 @@ class AccountController extends Controller
 
       $accountName = $account->fullname;
 
-      // Update role_account table - clear academic fields since alumni don't have them
+      // Update role_account table - preserve course info for certificate applications
       $account->update([
         'account_type' => 'alumni',
-        'course_id' => null,
-        'course' => null,
         'year_level' => null,
+        'academic_status' => 'Course Completed',
+        'graduated_at' => now(),
       ]);
 
       // Sync the users table role

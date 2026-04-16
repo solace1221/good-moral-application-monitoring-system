@@ -289,9 +289,11 @@ class ProfileController extends Controller
             ], 400);
         }
 
-        // Convert to alumni
+        // Convert to alumni - preserve course info for certificate applications
         $user->update([
             'account_type' => 'alumni',
+            'year_level' => null,
+            'academic_status' => 'Course Completed',
             'graduated_at' => now(),
         ]);
 

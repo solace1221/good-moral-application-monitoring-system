@@ -146,47 +146,127 @@
         </table>
     @endif
   </div>
-  <div id="modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 hidden">
-    <div class="bg-white p-6 rounded-lg max-w-lg w-full">
-      <h3 class="text-xl font-semibold mb-4">Application Details</h3>
-      <p><strong>Full Name:</strong> <span id="modalFullName"></span></p>
-      <p><strong>Reference number:</strong> <span id="modalrefnum"></span></p>
-      <p><strong>Number of copies:</strong> <span id="modalnumcop"></span></p>
-      <p><strong>Status:</strong> <span id="modalStatus"></span></p>
-      <p><strong>Reason:</strong> <span id="modalReason"></span></p>
-      <p><strong>Course Completed:</strong> <span id="modalCourseCompleted"></span></p>
-      <p><strong>Graduation Date:</strong> <span id="modalGraduationDate"></span></p>
-      <p><strong>Undergraduate:</strong> <span id="modalUndergraduate"></span></p>
-      <p><strong>Last Course Year Level:</strong> <span id="modalLastCourseYearLevel"></span></p>
-      <p><strong>Last Semester SY:</strong> <span id="modalLastSemesterSY"></span></p>
+  <!-- Application Details Modal -->
+  <div id="detailsModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 16px;"
+       onclick="if(event.target===this){ closeModal(); }">
+    <div style="background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); width: 100%; max-width: 500px; max-height: 90vh; display: flex; flex-direction: column;">
+      <!-- Header -->
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid #e9ecef; flex-shrink: 0;">
+        <h2 style="margin: 0; color: var(--primary-green); font-size: 1.25rem; font-weight: 600;">Application Details</h2>
+        <button onclick="closeModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #6c757d; line-height: 1;">&times;</button>
+      </div>
 
-      <div class="mt-4 flex justify-end">
-        <button onclick="closeModal()" class="bg-gray-500 text-white p-2 rounded-md">Close</button>
+      <!-- Scrollable Body -->
+      <div id="modalContent" style="display: grid; gap: 16px; padding: 24px; overflow-y: auto;">
+        <!-- Content will be populated by JavaScript -->
+      </div>
+
+      <!-- Footer -->
+      <div style="display: flex; justify-content: flex-end; gap: 12px; padding: 16px 24px; border-top: 1px solid #e9ecef; flex-shrink: 0;">
+        <button onclick="closeModal()" style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 500;">
+          Close
+        </button>
       </div>
     </div>
   </div>
 
   <script>
-    // Open the modal and populate it with data
-    function openModal(button) {
-      const application = JSON.parse(button.getAttribute('data-application'));
-      document.getElementById('modal').classList.remove('hidden');
-      document.getElementById('modalFullName').innerText = application.fullname;
-      document.getElementById('modalrefnum').innerText = application.reference_number;
-      document.getElementById('modalnumcop').innerText = application.number_of_copies;
-      document.getElementById('modalStatus').innerText = application.status;
-      document.getElementById('modalReason').innerText = application.reason;
-      document.getElementById('modalCourseCompleted').innerText = application.course_completed ?? 'N/A';
-      document.getElementById('modalGraduationDate').innerText = application.graduation_date ?? 'N/A';
-      document.getElementById('modalUndergraduate').innerText = (application.is_undergraduate !== null && application.is_undergraduate !== 0) ? 'Yes' : 'N/A';
-      document.getElementById('modalLastCourseYearLevel').innerText = application.last_course_year_level ?? 'N/A';
-      document.getElementById('modalLastSemesterSY').innerText = application.last_semester_sy ?? 'N/A';
-    }
+    // View details modal
+    function viewGoodMoralDetails(application) {
+      const modal = document.getElementById('detailsModal');
+      const content = document.getElementById('modalContent');
 
+      const reasonCount = Array.isArray(application.reason) ? application.reason.length : 1;
+      const copies = application.number_of_copies;
+      const amount = (reasonCount * copies * 50).toFixed(2);
+
+      content.innerHTML = `
+        <div style="display: grid; gap: 12px;">
+          <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; padding: 12px; background: #f8f9fa; border-radius: 6px;">
+            <strong>Student ID:</strong>
+            <span>${application.student_id ?? 'N/A'}</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; padding: 12px; background: #f8f9fa; border-radius: 6px;">
+            <strong>Full Name:</strong>
+            <span>${application.fullname ?? 'N/A'}</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; padding: 12px; background: #f8f9fa; border-radius: 6px;">
+            <strong>Department:</strong>
+            <span>${application.department ?? 'N/A'}</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; padding: 12px; background: #f8f9fa; border-radius: 6px;">
+            <strong>Certificate Type:</strong>
+            <span>${application.certificate_type === 'good_moral' ? 'Good Moral Certificate' : 'Certificate of Residency'}</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; padding: 12px; background: #f8f9fa; border-radius: 6px;">
+            <strong>Reference Number:</strong>
+            <span>${application.reference_number ?? 'N/A'}</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; padding: 12px; background: #f8f9fa; border-radius: 6px;">
+            <strong>Number of Copies:</strong>
+            <span>${copies}</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; padding: 12px; background: #f8f9fa; border-radius: 6px;">
+            <strong>Purpose:</strong>
+            <span>${Array.isArray(application.reason) ? application.reason.join(', ') : (application.reason ?? 'N/A')}</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; padding: 12px; background: #e8f5e8; border-radius: 6px;">
+            <strong>Payment Amount:</strong>
+            <span style="color: var(--primary-green); font-weight: 600;">₱${amount} (${reasonCount} ${reasonCount === 1 ? 'reason' : 'reasons'} × ${copies} ${copies == 1 ? 'copy' : 'copies'} × ₱50.00)</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; padding: 12px; background: #f8f9fa; border-radius: 6px;">
+            <strong>Status:</strong>
+            <span style="font-weight: 600;">${application.application_status ?? 'N/A'}</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; padding: 12px; background: #f8f9fa; border-radius: 6px;">
+            <strong>Applied On:</strong>
+            <span>${application.created_at ? new Date(application.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A'}</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; padding: 12px; background: #f8f9fa; border-radius: 6px;">
+            <strong>Course Completed:</strong>
+            <span>${application.course_completed ?? 'N/A'}</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; padding: 12px; background: #f8f9fa; border-radius: 6px;">
+            <strong>Graduation Date:</strong>
+            <span>${application.graduation_date ?? 'N/A'}</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; padding: 12px; background: #f8f9fa; border-radius: 6px;">
+            <strong>Undergraduate:</strong>
+            <span>${(application.is_undergraduate !== null && application.is_undergraduate !== 0) ? 'Yes' : 'No'}</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; padding: 12px; background: #f8f9fa; border-radius: 6px;">
+            <strong>Last Course Year Level:</strong>
+            <span>${application.last_course_year_level ?? 'N/A'}</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; padding: 12px; background: #f8f9fa; border-radius: 6px;">
+            <strong>Last Semester SY:</strong>
+            <span>${application.last_semester_sy ?? 'N/A'}</span>
+          </div>
+        </div>
+      `;
+
+      modal.style.display = 'flex';
+    }
 
     // Close the modal
     function closeModal() {
-      document.getElementById('modal').classList.add('hidden');
+      document.getElementById('detailsModal').style.display = 'none';
+    }
+
+    // Tab switching
+    function showTab(tab) {
+      document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+      document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.style.color = '#6c757d';
+        btn.style.borderBottomColor = 'transparent';
+      });
+      const content = document.getElementById('content-' + tab);
+      if (content) content.style.display = 'block';
+      const tabBtn = document.getElementById('tab-' + tab);
+      if (tabBtn) {
+        tabBtn.style.color = 'var(--primary-green)';
+        tabBtn.style.borderBottomColor = 'var(--primary-green)';
+      }
     }
   </script>
 
