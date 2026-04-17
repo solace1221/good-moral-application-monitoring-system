@@ -144,6 +144,13 @@
             <input type="color" name="color" value="#6c757d" style="width:48px; height:38px; padding:2px; border:1px solid #d1d5db; border-radius:6px; cursor:pointer;">
           </div>
         </div>
+        <div style="margin-bottom:16px;">
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+            <input type="checkbox" name="is_undergraduate" value="1" checked style="width:18px; height:18px; accent-color:#16a34a; cursor:pointer;">
+            <span style="font-weight:500;">Undergraduate</span>
+          </label>
+          <p style="font-size:12px; color:#6b7280; margin-top:4px; margin-left:26px;">Undergraduate departments are included in violation analytics and trends reports.</p>
+        </div>
         <div style="display:flex; gap:12px; justify-content:flex-end;">
           <button type="button" onclick="closeCreateModal()" class="btn-secondary" style="padding:8px 20px;">Cancel</button>
           <button type="submit" class="btn-primary" style="padding:8px 20px;">Create Department</button>
@@ -184,6 +191,13 @@
             <input type="color" name="color" id="edit_color" value="#6c757d" style="width:48px; height:38px; padding:2px; border:1px solid #d1d5db; border-radius:6px; cursor:pointer;">
           </div>
         </div>
+        <div style="margin-bottom:20px;">
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+            <input type="checkbox" name="is_undergraduate" id="edit_is_undergraduate" value="1" style="width:18px; height:18px; accent-color:#16a34a; cursor:pointer;">
+            <span style="font-weight:500;">Undergraduate Department</span>
+          </label>
+          <p style="font-size:12px; color:#6b7280; margin-top:4px; margin-left:26px;">Undergraduate departments are included in violation analytics and trends reports.</p>
+        </div>
         <div style="display:flex; gap:12px; justify-content:flex-end;">
           <button type="button" onclick="closeEditModal()" style="padding:8px 20px; background:#f3f4f6; color:#374151; border:none; border-radius:6px; font-size:14px; cursor:pointer;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">Cancel</button>
           <button type="submit" class="btn-primary" style="padding:8px 20px;">Update Department</button>
@@ -223,6 +237,7 @@
       document.getElementById('edit_department_name').value = dept.department_name;
       document.getElementById('edit_label').value = dept.label || '';
       document.getElementById('edit_color').value = dept.color || '#6c757d';
+      document.getElementById('edit_is_undergraduate').checked = dept.is_undergraduate == 1;
       document.getElementById('editForm').action = '/admin/departments/' + dept.id;
 
       // Show current logo preview

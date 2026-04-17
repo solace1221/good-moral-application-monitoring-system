@@ -40,6 +40,8 @@ class DepartmentController extends Controller
             'label' => 'nullable|string|max:255',
         ]);
 
+        $validated['is_undergraduate'] = $request->has('is_undergraduate');
+
         if ($request->hasFile('logo')) {
             $file = $request->file('logo');
             $filename = 'logo' . $validated['department_code'] . '.' . $file->getClientOriginalExtension();
@@ -65,6 +67,8 @@ class DepartmentController extends Controller
             'color' => 'nullable|string|max:20',
             'label' => 'nullable|string|max:255',
         ]);
+
+        $validated['is_undergraduate'] = $request->has('is_undergraduate');
 
         if ($request->hasFile('logo')) {
             // Delete old logo file if it exists

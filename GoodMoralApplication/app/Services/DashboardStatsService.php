@@ -20,7 +20,7 @@ class DashboardStatsService
     public const DEPARTMENTS = ['SITE', 'SASTE', 'SBAHM', 'SNAHS', 'SOM', 'GRADSCH'];
 
     /**
-     * Departments that participate in violation tracking (excludes SOM/GRADSCH).
+     * Departments that participate in violation tracking.
      * Kept as a constant fallback; prefer Department::violationCodes() for live data.
      */
     public const VIOLATION_DEPARTMENTS = ['SITE', 'SASTE', 'SBAHM', 'SNAHS'];

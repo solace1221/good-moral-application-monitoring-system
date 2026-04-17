@@ -10,16 +10,11 @@ use Illuminate\Support\Facades\DB;
 class TrendsAnalysisService
 {
     /**
-     * Departments included in trends analysis (constant fallback).
-     */
-    private const TREND_DEPARTMENTS = ['SITE', 'SBAHM', 'SNAHS', 'SASTE'];
-
-    /**
-     * Get trend department codes from the database (with constant fallback).
+     * Get trend department codes from the database.
      */
     private function getTrendDepartments(): array
     {
-        return Department::violationCodes() ?: self::TREND_DEPARTMENTS;
+        return Department::violationCodes();
     }
 
     /**
@@ -130,10 +125,11 @@ class TrendsAnalysisService
             $comparisonViolators = $compData['major_count'] ?? 0;
             $currentViolators   = $currentYearViolations[$dept] ?? 0;
 
-            $rawDifference = $comparisonViolators - $previousViolators;
-            $variancePercentage = $previousViolators > 0
-                ? round((($previousViolators - $comparisonViolators) / $previousViolators) * 100, 2)
-                : ($comparisonViolators > 0 ? -100.00 : 0.00);
+            // Compare most recent historical year vs current live year
+            $rawDifference = $currentViolators - $comparisonViolators;
+            $variancePercentage = $comparisonViolators > 0
+                ? round((($currentViolators - $comparisonViolators) / $comparisonViolators) * 100, 2)
+                : ($currentViolators > 0 ? 100.00 : 0.00);
 
             $trendsData[$dept] = [
                 'department'              => $dept,
@@ -190,16 +186,17 @@ class TrendsAnalysisService
             $comparisonViolators = $compData['minor_count'] ?? 0;
             $currentViolators    = $currentYearViolations[$dept] ?? 0;
 
-            $rawDifference = $comparisonViolators - $previousViolators;
-            $variancePercentage = $previousViolators > 0
-                ? round((($previousViolators - $comparisonViolators) / $previousViolators) * 100, 2)
-                : ($comparisonViolators > 0 ? -100.00 : 0.00);
+            // Compare most recent historical year vs current live year
+            $rawDifference = $currentViolators - $comparisonViolators;
+            $variancePercentage = $comparisonViolators > 0
+                ? round((($currentViolators - $comparisonViolators) / $comparisonViolators) * 100, 2)
+                : ($currentViolators > 0 ? 100.00 : 0.00);
 
             $currentPopulationPercentage = $totalPopulation > 0
-                ? round(($comparisonViolators / $totalPopulation) * 100, 2)
+                ? round(($currentViolators / $totalPopulation) * 100, 2)
                 : 0;
             $previousPopulationPercentage = $totalPopulation > 0
-                ? round(($previousViolators / $totalPopulation) * 100, 2)
+                ? round(($comparisonViolators / $totalPopulation) * 100, 2)
                 : 0;
 
             $minorOffensesData[$dept] = [

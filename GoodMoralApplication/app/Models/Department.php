@@ -18,6 +18,11 @@ class Department extends Model
         'logo',
         'color',
         'label',
+        'is_undergraduate',
+    ];
+
+    protected $casts = [
+        'is_undergraduate' => 'boolean',
     ];
 
     /**
@@ -34,14 +39,14 @@ class Department extends Model
 
     /**
      * Get department codes that participate in violation tracking.
-     * Excludes SOM and GRADSCH by convention.
+     * Only includes departments marked as undergraduate.
      *
      * @return array<string>
      */
     public static function violationCodes(): array
     {
         return Cache::remember('violation_department_codes', 3600, function () {
-            return static::whereNotIn('department_code', ['SOM', 'GRADSCH'])
+            return static::where('is_undergraduate', true)
                 ->orderBy('department_code')
                 ->pluck('department_code')
                 ->toArray();
