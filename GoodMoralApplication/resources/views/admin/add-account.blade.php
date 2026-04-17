@@ -396,7 +396,7 @@
             <select name="search_department"
                     style="flex: 1; min-width: 160px; padding: 10px 12px; border: 2px solid #e1e5e9; border-radius: 6px; font-size: 14px; background: white; color: #495057;">
               <option value="">All Departments</option>
-              @foreach(['SASTE', 'SBAHM', 'SITE', 'SNAHS', 'Administration', 'Gradschool'] as $dept)
+              @foreach(\App\Models\Department::allCodes() as $dept)
               <option value="{{ $dept }}" {{ request('subtab') === 'admin' && request('search_department') === $dept ? 'selected' : '' }}>{{ $dept }}</option>
               @endforeach
             </select>

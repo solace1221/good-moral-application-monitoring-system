@@ -39,12 +39,6 @@ class DashboardController extends Controller
 
         // Use DashboardStatsService for stats
         $deptCounts = $this->statsService->getApplicationCountsByDepartment($frequency);
-        $site = $deptCounts['SITE'];
-        $saste = $deptCounts['SASTE'];
-        $sbahm = $deptCounts['SBAHM'];
-        $snahs = $deptCounts['SNAHS'];
-        $som = $deptCounts['SOM'];
-        $gradsch = $deptCounts['GRADSCH'];
 
         $vStats = $this->statsService->getViolationStats($frequency);
         $minorPending = $vStats['minorPending'];
@@ -79,7 +73,7 @@ class DashboardController extends Controller
         $minorOffensesData = $this->trendsService->getMinorOffenseTrendsData(false);
 
         return view('sec_osa.dashboard', compact(
-            'applications', 'printApplications', 'site', 'sbahm', 'saste', 'snahs', 'som', 'gradsch',
+            'applications', 'printApplications', 'deptCounts',
             'minorPending', 'minorResolved', 'minorTotal', 'minorResolvedPercentage',
             'majorPending', 'majorResolved', 'majorTotal', 'majorResolvedPercentage',
             'majorViolationsByDept', 'minorViolationsByDept', 'escalationNotifications',

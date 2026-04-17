@@ -40,12 +40,6 @@ class DashboardController extends Controller
 
     // Use DashboardStatsService for stats
     $deptCounts = $this->statsService->getApplicationCountsByDepartment($frequency);
-    $site = $deptCounts['SITE'];
-    $saste = $deptCounts['SASTE'];
-    $sbahm = $deptCounts['SBAHM'];
-    $snahs = $deptCounts['SNAHS'];
-    $som = $deptCounts['SOM'];
-    $gradsch = $deptCounts['GRADSCH'];
 
     $vStats = $this->statsService->getViolationStats($frequency);
     $minorpending = $vStats['minorPending'];
@@ -66,7 +60,7 @@ class DashboardController extends Controller
     $majorDashArray = $majorPendingPercent . ' ' . $majorCompliedPercent;
 
     // Departments array for looping
-    $departments = DashboardStatsService::DEPARTMENTS;
+    $departments = DashboardStatsService::getDepartments();
 
     // Violation counts by department
     $deptViolations = $this->statsService->getViolationsByDepartment($frequency);
@@ -109,12 +103,7 @@ class DashboardController extends Controller
     // Pass all to view
     return view('admin.dashboard', compact(
       'admin',
-      'site',
-      'sbahm',
-      'saste',
-      'snahs',
-      'som',
-      'gradsch',
+      'deptCounts',
       'minorpending',
       'minorcomplied',
       'majorpending',

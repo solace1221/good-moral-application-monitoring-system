@@ -2,10 +2,12 @@
 
 namespace App\Services;
 
+use App\Models\Department;
 use App\Models\GoodMoralApplication;
 use App\Models\StudentViolation;
 use App\Models\ViolationNotif;
 use App\Traits\DateFilterTrait;
+use Illuminate\Support\Facades\Cache;
 
 class DashboardStatsService
 {
@@ -13,32 +15,56 @@ class DashboardStatsService
 
     /**
      * Departments used across the system.
+     * Kept as a constant fallback; prefer Department::allCodes() for live data.
      */
     public const DEPARTMENTS = ['SITE', 'SASTE', 'SBAHM', 'SNAHS', 'SOM', 'GRADSCH'];
 
     /**
      * Departments that participate in violation tracking (excludes SOM/GRADSCH).
+     * Kept as a constant fallback; prefer Department::violationCodes() for live data.
      */
     public const VIOLATION_DEPARTMENTS = ['SITE', 'SASTE', 'SBAHM', 'SNAHS'];
 
     /**
-     * Department abbreviation → possible full names used in violation records.
+     * Get display metadata for a department code from the database (cached).
+     * Returns ['color', 'logo', 'label'] with sensible fallback defaults.
      */
-    public const DEPARTMENT_MAP = [
-        'SITE' => ['SITE', 'SCHOOL OF INFORMATION TECHNOLOGY AND ENGINEERING'],
-        'SNAHS' => ['SNAHS', 'SCHOOL OF NURSING AND ALLIED HEALTH SCIENCES'],
-        'SBAHM' => ['SBAHM', 'SCHOOL OF BUSINESS ADMINISTRATION AND HOSPITALITY MANAGEMENT'],
-        'SASTE' => ['SASTE', 'SCHOOL OF ARTS, SCIENCES, TEACHER EDUCATION'],
-        'SOM' => ['SOM', 'SCHOOL OF MEDICINE'],
-        'GRADSCH' => ['GRADSCH', 'GRADUATE SCHOOL'],
-    ];
+    public static function getDepartmentDisplay(string $code): array
+    {
+        return Cache::remember("dept_display_{$code}", 3600, function () use ($code) {
+            $dept = Department::where('department_code', $code)->first(['logo', 'color', 'label']);
+
+            return [
+                'color' => $dept->color ?? '#6c757d',
+                'logo'  => $dept->logo ?? null,
+                'label' => $dept->label ?? $code . ' Applications',
+            ];
+        });
+    }
+
+    /**
+     * Get all department codes from the database (with constant fallback).
+     */
+    public static function getDepartments(): array
+    {
+        return Department::allCodes() ?: self::DEPARTMENTS;
+    }
+
+    /**
+     * Get violation-tracking department codes from the database (with constant fallback).
+     */
+    public static function getViolationDepartments(): array
+    {
+        return Department::violationCodes() ?: self::VIOLATION_DEPARTMENTS;
+    }
 
     /**
      * Get possible department name variants for a given abbreviation.
+     * Now queries the departments table instead of using hardcoded map.
      */
     public static function getPossibleDepartmentNames(string $abbreviation): array
     {
-        return self::DEPARTMENT_MAP[$abbreviation] ?? [$abbreviation];
+        return Department::possibleNames($abbreviation);
     }
 
     /**
@@ -124,7 +150,7 @@ class DashboardStatsService
     public function getApplicationCountsByDepartment(string $frequency = 'all'): array
     {
         $counts = [];
-        foreach (self::DEPARTMENTS as $dept) {
+        foreach (self::getDepartments() as $dept) {
             $counts[$dept] = $this->applyDateFilter(
                 GoodMoralApplication::where('department', $dept),
                 $frequency
@@ -182,7 +208,7 @@ class DashboardStatsService
      */
     public function getViolationsByDepartment(string $frequency = 'all', ?array $departments = null): array
     {
-        $departments = $departments ?? self::DEPARTMENTS;
+        $departments = $departments ?? self::getDepartments();
         $major = [];
         $minor = [];
 

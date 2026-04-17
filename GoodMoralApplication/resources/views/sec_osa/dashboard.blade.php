@@ -72,84 +72,20 @@
 
   <!-- Statistics Grid -->
   <div class="stats-grid">
-    <!-- SITE -->
-    <div class="stat-card" style="border-top-color: #7B2CBF;">
-      <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
-        <div style="flex-shrink: 0;">
-          <img src="{{ asset('images/deptLogos/logoSITE.png') }}" alt="SITE Logo" style="height: 60px; width: auto; object-fit: contain; display: block;">
-        </div>
-        <div style="flex: 1; min-width: 120px;">
-          <div class="stat-number">{{ $site }}</div>
-          <div class="stat-label">SITE Applications</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- SASTE -->
-    <div class="stat-card" style="border-top-color: #0066CC;">
-      <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
-        <div style="flex-shrink: 0;">
-          <img src="{{ asset('images/deptLogos/logoSASTE.png') }}" alt="SASTE Logo" style="height: 60px; width: auto; object-fit: contain; display: block;">
-        </div>
-        <div style="flex: 1; min-width: 120px;">
-          <div class="stat-number">{{ $saste }}</div>
-          <div class="stat-label">SASTE Applications</div>
+    @foreach($deptCounts as $code => $count)
+      @php $display = \App\Services\DashboardStatsService::getDepartmentDisplay($code); @endphp
+      <div class="stat-card" style="border-top-color: {{ $display['color'] }};">
+        <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+          <div style="flex-shrink: 0;">
+            <img src="{{ asset('images/departments/' . ($display['logo'] ?? 'default-logo.svg')) }}" alt="{{ $code }} Logo" style="height: 60px; width: auto; object-fit: contain; display: block;">
+          </div>
+          <div style="flex: 1; min-width: 120px;">
+            <div class="stat-number">{{ $count }}</div>
+            <div class="stat-label">{{ $display['label'] }}</div>
+          </div>
         </div>
       </div>
-    </div>
-
-    <!-- SBAHM -->
-    <div class="stat-card" style="border-top-color: #28A745;">
-      <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
-        <div style="flex-shrink: 0;">
-          <img src="{{ asset('images/deptLogos/logoSBAHM.png') }}" alt="SBAHM Logo" style="height: 60px; width: auto; object-fit: contain; display: block;">
-        </div>
-        <div style="flex: 1; min-width: 120px;">
-          <div class="stat-number">{{ $sbahm }}</div>
-          <div class="stat-label">SBAHM Applications</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- SNAHS -->
-    <div class="stat-card" style="border-top-color: #DC3545;">
-      <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
-        <div style="flex-shrink: 0;">
-          <img src="{{ asset('images/deptLogos/logoSNAHS.png') }}" alt="SNAHS Logo" style="height: 60px; width: auto; object-fit: contain; display: block;">
-        </div>
-        <div style="flex: 1; min-width: 120px;">
-          <div class="stat-number">{{ $snahs }}</div>
-          <div class="stat-label">SNAHS Applications</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- SOM -->
-    <div class="stat-card" style="border-top-color: #FFC107;">
-      <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
-        <div style="flex-shrink: 0;">
-          <img src="{{ asset('images/deptLogos/logoSOM.png') }}" alt="SOM Logo" style="height: 60px; width: auto; object-fit: contain; display: block;">
-        </div>
-        <div style="flex: 1; min-width: 120px;">
-          <div class="stat-number">{{ $som }}</div>
-          <div class="stat-label">SOM Applications</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Graduate School -->
-    <div class="stat-card" style="border-top-color: #6F42C1;">
-      <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
-        <div style="flex-shrink: 0;">
-          <img src="{{ asset('images/deptLogos/logoGRADSCH.jpg') }}" alt="Graduate School Logo" style="height: 60px; width: auto; object-fit: contain; display: block;">
-        </div>
-        <div style="flex: 1; min-width: 120px;">
-          <div class="stat-number">{{ $gradsch }}</div>
-          <div class="stat-label">Graduate School Applications</div>
-        </div>
-      </div>
-    </div>
-
+    @endforeach
   </div>
 
   <!-- Violations Overview -->

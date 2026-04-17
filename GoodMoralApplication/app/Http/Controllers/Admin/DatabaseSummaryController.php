@@ -43,7 +43,7 @@ class DatabaseSummaryController extends Controller
 
     // 2. STUDENT REGISTRATIONS
     $totalStudents = StudentRegistration::count();
-    $departments = DashboardStatsService::DEPARTMENTS;
+    $departments = DashboardStatsService::getDepartments();
 
     // Aggregate student registrations by department and gender in a single query
     $studentAggregates = StudentRegistration::select(

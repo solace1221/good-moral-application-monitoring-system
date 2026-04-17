@@ -58,7 +58,7 @@ class RegisterViolationController extends Controller
     $minorResolvedPercentage = $minorTotal > 0 ? round(($minorResolved / $minorTotal) * 100, 1) : 0;
 
     // Get violations by department for PSG Officer view (only their violations)
-    $departments = DashboardStatsService::VIOLATION_DEPARTMENTS;
+    $departments = DashboardStatsService::getViolationDepartments();
     $violationsByDept = [];
     foreach ($departments as $dept) {
       $violationsByDept[$dept] = $this->applyDateFilter(StudentViolation::where('offense_type', 'minor')->where('added_by', $currentUser)->where('department', $dept), $frequency)->count();

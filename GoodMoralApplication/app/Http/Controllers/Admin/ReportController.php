@@ -30,7 +30,7 @@ class ReportController extends Controller
     }
 
     // Define departments
-    $departments = DashboardStatsService::VIOLATION_DEPARTMENTS;
+    $departments = DashboardStatsService::getViolationDepartments();
     $departmentsData = [];
     $totals = [
       'total_cases' => 0,
@@ -505,7 +505,7 @@ class ReportController extends Controller
     $timePeriodInfo = $this->getSpecificTimePeriodDescription($timePeriod);
 
     // Get real population data per department from the database
-    $departments = DashboardStatsService::DEPARTMENTS;
+    $departments = DashboardStatsService::getDepartments();
     $populationAggregates = RoleAccount::select(
         'department',
         DB::raw('COUNT(*) as total_population')
@@ -672,7 +672,7 @@ class ReportController extends Controller
   private function generateOverallReport($academicYear, $startDate, $endDate, $timePeriod = 'all')
   {
     // Define departments
-    $departments = DashboardStatsService::DEPARTMENTS;
+    $departments = DashboardStatsService::getDepartments();
     $departmentsData = [];
     $totals = [
       'total_cases' => 0,

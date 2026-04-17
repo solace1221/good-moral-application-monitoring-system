@@ -39,6 +39,7 @@
             <thead>
               <tr style="background: #f9fafb; border-bottom: 1px solid #e5e7eb;">
                 <th style="padding: 11px 16px; text-align: left; font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em;">Code</th>
+                <th style="padding: 11px 16px; text-align: left; font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em;">Logo</th>
                 <th style="padding: 11px 16px; text-align: left; font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em;">Department Name</th>
                 <th style="padding: 11px 16px; text-align: left; font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em;">Courses</th>
                 <th style="padding: 11px 16px; text-align: center; font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em;">Actions</th>
@@ -49,6 +50,13 @@
                 <tr style="border-bottom: 1px solid #f3f4f6;" onmouseover="this.style.background='#fafafa'" onmouseout="this.style.background='white'">
                   <td style="padding: 14px 16px;">
                     <span style="display: inline-block; padding: 3px 10px; background: #f3f4f6; color: #374151; border-radius: 999px; font-size: 12px; font-weight: 600; letter-spacing: 0.03em;">{{ $department->department_code }}</span>
+                  </td>
+                  <td style="padding: 14px 16px;">
+                    @if($department->logo)
+                      <img src="{{ asset('images/departments/' . $department->logo) }}" alt="{{ $department->department_code }}" style="height: 36px; width: auto; object-fit: contain;">
+                    @else
+                      <img src="{{ asset('images/departments/default-logo.svg') }}" alt="No logo" style="height: 36px; width: auto; object-fit: contain; opacity: 0.5;">
+                    @endif
                   </td>
                   <td style="padding: 14px 16px; font-size: 14px; color: #374151;">{{ $department->department_name }}</td>
                   <td style="padding: 14px 16px;">
@@ -110,15 +118,31 @@
   <div id="createModal" style="display:none; position:fixed; inset:0; z-index:50; background:rgba(0,0,0,0.5); align-items:center; justify-content:center;">
     <div style="background:#fff; border-radius:12px; padding:32px; max-width:500px; width:90%; max-height:90vh; overflow-y:auto;">
       <h2 style="font-size:20px; font-weight:600; margin-bottom:20px;">Add New Department</h2>
-      <form action="{{ route('admin.departments.store') }}" method="POST">
+      <form action="{{ route('admin.departments.store') }}" method="POST" enctype="multipart/form-data">
         @csrf
         <div style="margin-bottom:16px;">
           <label style="display:block; font-weight:500; margin-bottom:4px;">Department Code</label>
           <input type="text" name="department_code" required maxlength="20" placeholder="e.g. SITE" style="width:100%; padding:8px 12px; border:1px solid #d1d5db; border-radius:6px;">
         </div>
-        <div style="margin-bottom:20px;">
+        <div style="margin-bottom:16px;">
           <label style="display:block; font-weight:500; margin-bottom:4px;">Department Name</label>
           <input type="text" name="department_name" required maxlength="255" placeholder="e.g. School of Information Technology and Engineering" style="width:100%; padding:8px 12px; border:1px solid #d1d5db; border-radius:6px;">
+        </div>
+        <div style="margin-bottom:16px;">
+          <label style="display:block; font-weight:500; margin-bottom:4px;">Department Logo</label>
+          <input type="file" name="logo" accept="image/*" style="width:100%; padding:8px 12px; border:1px solid #d1d5db; border-radius:6px; font-size:14px;">
+          <p style="font-size:12px; color:#6b7280; margin-top:4px;">Accepted formats: JPG, PNG, SVG, WebP. Max 2MB.</p>
+        </div>
+        <div style="margin-bottom:16px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="flex:1;">
+            <label style="display:block; font-weight:500; margin-bottom:4px;">Card Label</label>
+            <input type="text" name="label" maxlength="255" placeholder="e.g. SITE Applications" style="width:100%; padding:8px 12px; border:1px solid #d1d5db; border-radius:6px;">
+            <p style="font-size:12px; color:#6b7280; margin-top:4px;">Dashboard card label. Defaults to CODE + Applications.</p>
+          </div>
+          <div style="flex-shrink:0;">
+            <label style="display:block; font-weight:500; margin-bottom:4px;">Card Color</label>
+            <input type="color" name="color" value="#6c757d" style="width:48px; height:38px; padding:2px; border:1px solid #d1d5db; border-radius:6px; cursor:pointer;">
+          </div>
         </div>
         <div style="display:flex; gap:12px; justify-content:flex-end;">
           <button type="button" onclick="closeCreateModal()" class="btn-secondary" style="padding:8px 20px;">Cancel</button>
@@ -132,16 +156,33 @@
   <div id="editModal" style="display:none; position:fixed; inset:0; z-index:50; background:rgba(0,0,0,0.5); align-items:center; justify-content:center;">
     <div style="background:#fff; border-radius:12px; padding:32px; max-width:500px; width:90%; max-height:90vh; overflow-y:auto;">
       <h2 style="font-size:20px; font-weight:600; margin-bottom:20px;">Edit Department</h2>
-      <form id="editForm" method="POST">
+      <form id="editForm" method="POST" enctype="multipart/form-data">
         @csrf
         @method('PUT')
         <div style="margin-bottom:16px;">
           <label style="display:block; font-weight:500; margin-bottom:4px;">Department Code</label>
           <input type="text" name="department_code" id="edit_department_code" required maxlength="20" style="width:100%; padding:8px 12px; border:1px solid #d1d5db; border-radius:6px;">
         </div>
-        <div style="margin-bottom:20px;">
+        <div style="margin-bottom:16px;">
           <label style="display:block; font-weight:500; margin-bottom:4px;">Department Name</label>
           <input type="text" name="department_name" id="edit_department_name" required maxlength="255" style="width:100%; padding:8px 12px; border:1px solid #d1d5db; border-radius:6px;">
+        </div>
+        <div style="margin-bottom:16px;">
+          <label style="display:block; font-weight:500; margin-bottom:4px;">Department Logo</label>
+          <div id="edit_current_logo" style="margin-bottom:8px;"></div>
+          <input type="file" name="logo" accept="image/*" style="width:100%; padding:8px 12px; border:1px solid #d1d5db; border-radius:6px; font-size:14px;">
+          <p style="font-size:12px; color:#6b7280; margin-top:4px;">Leave empty to keep the current logo.</p>
+        </div>
+        <div style="margin-bottom:20px; display:flex; gap:16px; align-items:flex-start;">
+          <div style="flex:1;">
+            <label style="display:block; font-weight:500; margin-bottom:4px;">Card Label</label>
+            <input type="text" name="label" id="edit_label" maxlength="255" style="width:100%; padding:8px 12px; border:1px solid #d1d5db; border-radius:6px;">
+            <p style="font-size:12px; color:#6b7280; margin-top:4px;">Dashboard card label. Defaults to CODE + Applications.</p>
+          </div>
+          <div style="flex-shrink:0;">
+            <label style="display:block; font-weight:500; margin-bottom:4px;">Card Color</label>
+            <input type="color" name="color" id="edit_color" value="#6c757d" style="width:48px; height:38px; padding:2px; border:1px solid #d1d5db; border-radius:6px; cursor:pointer;">
+          </div>
         </div>
         <div style="display:flex; gap:12px; justify-content:flex-end;">
           <button type="button" onclick="closeEditModal()" style="padding:8px 20px; background:#f3f4f6; color:#374151; border:none; border-radius:6px; font-size:14px; cursor:pointer;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">Cancel</button>
@@ -180,7 +221,18 @@
     function openEditModal(dept) {
       document.getElementById('edit_department_code').value = dept.department_code;
       document.getElementById('edit_department_name').value = dept.department_name;
+      document.getElementById('edit_label').value = dept.label || '';
+      document.getElementById('edit_color').value = dept.color || '#6c757d';
       document.getElementById('editForm').action = '/admin/departments/' + dept.id;
+
+      // Show current logo preview
+      const logoContainer = document.getElementById('edit_current_logo');
+      if (dept.logo) {
+        logoContainer.innerHTML = '<img src="/images/departments/' + dept.logo + '" alt="Current Logo" style="height:50px; width:auto; object-fit:contain; border:1px solid #e5e7eb; border-radius:6px; padding:4px;">';
+      } else {
+        logoContainer.innerHTML = '<span style="font-size:13px; color:#9ca3af;">No logo uploaded yet.</span>';
+      }
+
       document.getElementById('editModal').style.display = 'flex';
     }
     function closeEditModal() {

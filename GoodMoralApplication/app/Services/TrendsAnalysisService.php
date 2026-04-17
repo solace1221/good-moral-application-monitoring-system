@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Department;
 use App\Models\HistoricalViolationTrend;
 use App\Models\StudentViolation;
 use Illuminate\Support\Facades\DB;
@@ -9,9 +10,17 @@ use Illuminate\Support\Facades\DB;
 class TrendsAnalysisService
 {
     /**
-     * Departments included in trends analysis.
+     * Departments included in trends analysis (constant fallback).
      */
     private const TREND_DEPARTMENTS = ['SITE', 'SBAHM', 'SNAHS', 'SASTE'];
+
+    /**
+     * Get trend department codes from the database (with constant fallback).
+     */
+    private function getTrendDepartments(): array
+    {
+        return Department::violationCodes() ?: self::TREND_DEPARTMENTS;
+    }
 
     /**
      * Load historical data from the database, keyed by department code.
@@ -21,7 +30,7 @@ class TrendsAnalysisService
     private function getHistoricalData(): array
     {
         $rows = HistoricalViolationTrend::join('departments', 'departments.id', '=', 'historical_violation_trends.department_id')
-            ->whereIn('departments.department_code', self::TREND_DEPARTMENTS)
+            ->whereIn('departments.department_code', $this->getTrendDepartments())
             ->select(
                 'departments.department_code',
                 'historical_violation_trends.academic_year',
@@ -112,7 +121,7 @@ class TrendsAnalysisService
         $currentYearViolations = $this->getCurrentYearViolations('major');
 
         $trendsData = [];
-        foreach (self::TREND_DEPARTMENTS as $dept) {
+        foreach ($this->getTrendDepartments() as $dept) {
             $prevData = $historical[$dept][$previousAY] ?? null;
             $compData = $historical[$dept][$comparisonAY] ?? null;
 
@@ -140,7 +149,7 @@ class TrendsAnalysisService
 
         $chartLabels = ["A.Y. {$previousAY}", "As of " . date('F Y')];
         $chartDatasets = [];
-        foreach (self::TREND_DEPARTMENTS as $dept) {
+        foreach ($this->getTrendDepartments() as $dept) {
             $chartDatasets[$dept] = [
                 $historical[$dept][$previousAY]['major_count'] ?? 0,
                 $currentYearViolations[$dept] ?? 0,
@@ -172,7 +181,7 @@ class TrendsAnalysisService
         $currentYearViolations = $this->getCurrentYearViolations('minor');
 
         $minorOffensesData = [];
-        foreach (self::TREND_DEPARTMENTS as $dept) {
+        foreach ($this->getTrendDepartments() as $dept) {
             $prevData = $historical[$dept][$previousAY] ?? null;
             $compData = $historical[$dept][$comparisonAY] ?? null;
 
