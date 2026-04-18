@@ -13,7 +13,7 @@
             <label for="fname" class="form-label">First Name <span style="color: #dc3545; font-weight: bold;">*</span></label>
             <input id="fname" class="form-input" type="text" name="fname" value="{{ old('fname') }}"
                    required autofocus autocomplete="fname" placeholder="Enter First Name"
-                   style="text-transform: uppercase;" pattern="[A-Za-z\s]+" title="Only letters and spaces are allowed">
+                   pattern="[A-Za-z\s]+" title="Only letters and spaces are allowed">
             <x-input-error :messages="$errors->get('fname')" class="mt-2" style="color: #e74c3c; font-size: 12px;" />
           </div>
 
@@ -22,7 +22,7 @@
             <label for="mname" class="form-label">Middle Initial</label>
             <input id="mname" class="form-input" type="text" name="mname" value="{{ old('mname') }}"
                    autocomplete="mname" placeholder="Enter Middle Initial"
-                   style="text-transform: uppercase;" pattern="[A-Za-z\s]*" title="Only letters and spaces are allowed">
+                   pattern="[A-Za-z\s]*" title="Only letters and spaces are allowed">
             <x-input-error :messages="$errors->get('mname')" class="mt-2" style="color: #e74c3c; font-size: 12px;" />
           </div>
 
@@ -132,7 +132,7 @@
             <label for="lname" class="form-label">Last Name <span style="color: #dc3545; font-weight: bold;">*</span></label>
             <input id="lname" class="form-input" type="text" name="lname" value="{{ old('lname') }}"
                    required autocomplete="lname" placeholder="Enter Last Name"
-                   style="text-transform: uppercase;" pattern="[A-Za-z\s]+" title="Only letters and spaces are allowed">
+                   pattern="[A-Za-z\s]+" title="Only letters and spaces are allowed">
             <x-input-error :messages="$errors->get('lname')" class="mt-2" style="color: #e74c3c; font-size: 12px;" />
           </div>
 
@@ -141,7 +141,7 @@
             <label for="extension" class="form-label">Extension</label>
             <input id="extension" class="form-input" type="text" name="extension" value="{{ old('extension') }}"
                    autocomplete="extension" placeholder="Jr., Sr., III, etc."
-                   style="text-transform: uppercase;" pattern="[A-Za-z\s]*" title="Only letters and spaces are allowed">
+                   pattern="[A-Za-z\s]*" title="Only letters and spaces are allowed">
             <x-input-error :messages="$errors->get('extension')" class="mt-2" style="color: #e74c3c; font-size: 12px;" />
           </div>
 

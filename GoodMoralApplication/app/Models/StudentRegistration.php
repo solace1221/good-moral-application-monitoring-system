@@ -38,32 +38,32 @@ class StudentRegistration extends Authenticatable
 
   public function setFnameAttribute($value)
   {
-    $this->attributes['fname'] = strtoupper($value);
+    $this->attributes['fname'] = $value;
   }
 
   public function setMnameAttribute($value)
   {
-    $this->attributes['mname'] = $value ? strtoupper($value) : null;
+    $this->attributes['mname'] = $value ?: null;
   }
 
   public function setLnameAttribute($value)
   {
-    $this->attributes['lname'] = strtoupper($value);
+    $this->attributes['lname'] = $value;
   }
 
   public function setExtensionAttribute($value)
   {
-    $this->attributes['extension'] = $value ? strtoupper($value) : null;
+    $this->attributes['extension'] = $value ?: null;
   }
 
   public function setOrganizationAttribute($value)
   {
-    $this->attributes['organization'] = $value ? strtoupper($value) : null;
+    $this->attributes['organization'] = $value ?: null;
   }
 
   public function setPositionAttribute($value)
   {
-    $this->attributes['position'] = $value ? strtoupper($value) : null;
+    $this->attributes['position'] = $value ?: null;
   }
 
   // =========================================================

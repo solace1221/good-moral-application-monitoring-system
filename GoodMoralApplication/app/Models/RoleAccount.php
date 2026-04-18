@@ -53,27 +53,27 @@ class RoleAccount extends Authenticatable
 
   public function setfullnameAttribute($value)
   {
-    $this->attributes['fullname'] = strtoupper($value);
+    $this->attributes['fullname'] = $value;
   }
 
   public function setMnameAttribute($value)
   {
-    $this->attributes['mname'] = $value ? strtoupper($value) : null;
+    $this->attributes['mname'] = $value ?: null;
   }
 
   public function setExtensionAttribute($value)
   {
-    $this->attributes['extension'] = $value ? strtoupper($value) : null;
+    $this->attributes['extension'] = $value ?: null;
   }
 
   public function setOrganizationAttribute($value)
   {
-    $this->attributes['organization'] = $value ? strtoupper($value) : null;
+    $this->attributes['organization'] = $value ?: null;
   }
 
   public function setPositionAttribute($value)
   {
-    $this->attributes['position'] = $value ? strtoupper($value) : null;
+    $this->attributes['position'] = $value ?: null;
   }
   public function studentInfo()
   {

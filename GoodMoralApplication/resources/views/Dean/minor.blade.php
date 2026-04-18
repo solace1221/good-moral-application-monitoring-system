@@ -222,10 +222,18 @@
           Are you sure you want to approve this minor violation for <strong id="studentName" style="color: #28a745;"></strong>?
         </p>
         <div style="background: #f8f9fa; padding: 16px; border-radius: 8px; border-left: 4px solid #28a745;">
-          <p style="margin: 0; font-size: 13px; color: #495057; line-height: 1.5;">
-            âœ“ This will mark the violation as <strong>Approved</strong><br>
-            âœ“ It will be forwarded to the Administrator for finalization
-          </p>
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 13px; color: #495057;">
+            <svg style="width: 14px; height: 14px; flex-shrink: 0; color: #28a745;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+            </svg>
+            This will mark the violation as <strong style="margin-left: 3px;">Approved</strong>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #495057;">
+            <svg style="width: 14px; height: 14px; flex-shrink: 0; color: #28a745;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+            </svg>
+            It will be forwarded to the Administrator for finalization
+          </div>
         </div>
       </div>
       <div style="padding: 20px 24px; background: #f8f9fa; border-top: 1px solid #e9ecef; display: flex; gap: 12px; justify-content: flex-end; border-radius: 0 0 12px 12px;">

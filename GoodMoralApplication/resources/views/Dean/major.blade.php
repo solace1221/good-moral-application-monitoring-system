@@ -77,27 +77,32 @@
               </td>
               <td style="padding: 16px; color: #495057; font-size: 14px;">
                 @if($student->status == 0)
-                  <span style="display: inline-block; padding: 6px 12px; background: #ffc107; color: #333; border-radius: 20px; font-size: 12px; font-weight: 500;">
-                    ⏳ Pending
+                  <span class="status-badge-pending" style="display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; background: #d8a306; border-radius: 20px; font-size: 12px; font-weight: 500;">
+                    <svg style="width: 13px; height: 13px; flex-shrink: 0;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Pending
                   </span>
                 @elseif($student->status == 2)
-                  <span style="display: inline-block; padding: 6px 12px; background: #28a745; color: white; border-radius: 20px; font-size: 12px; font-weight: 500;">
-                    ✅ Resolved
+                  <span class="status-badge-resolved" style="display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; background: #28a745; border-radius: 20px; font-size: 12px; font-weight: 500;">
+                    <svg style="width: 13px; height: 13px; flex-shrink: 0;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                    Resolved
                   </span>
                 @else
-                  <span style="display: inline-block; padding: 6px 12px; background: #17a2b8; color: white; border-radius: 20px; font-size: 12px; font-weight: 500;">
-                    🔄 In Progress
+                  <span class="status-badge-progress" style="display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; background: #17a2b8; border-radius: 20px; font-size: 12px; font-weight: 500;">
+                    <svg style="width: 13px; height: 13px; flex-shrink: 0;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    In Progress
                   </span>
                 @endif
               </td>
               <td style="padding: 16px; color: #495057; font-size: 14px;">
                 @if($student->status == 0 || !$student->document_path)
-                  <span style="color: #6c757d; font-size: 12px; font-style: italic; padding: 8px 12px; background: #f8f9fa; border-radius: 6px;">
-                    📄 No Document
+                  <span style="display: inline-flex; align-items: center; gap: 5px; color: #6c757d; font-size: 12px; font-style: italic; padding: 8px 12px; background: #f8f9fa; border-radius: 6px;">
+                    <svg style="width: 14px; height: 14px; flex-shrink: 0;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                    No Document
                   </span>
                 @else
                   <a href="{{ route('files.serve', $student->document_path) }}" target="_blank"
-                     style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s ease; text-decoration: none; justify-content: center; max-width: 100px;"
+                     class="download-link"
+                     style="background: #28a745; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s ease; text-decoration: none; justify-content: center; max-width: 100px;"
                      onmouseover="this.style.background='#218838'"
                      onmouseout="this.style.background='#28a745'">
                     <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -139,4 +144,17 @@
     </div>
     @endif
   </div>
+
+  <style>
+    .main-content .status-badge-pending,
+    .main-content .status-badge-pending *,
+    .main-content .status-badge-resolved,
+    .main-content .status-badge-resolved *,
+    .main-content .status-badge-progress,
+    .main-content .status-badge-progress *,
+    .main-content .download-link,
+    .main-content .download-link * {
+      color: #ffffff !important;
+    }
+  </style>
 </x-dashboard-layout>
