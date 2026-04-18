@@ -236,10 +236,20 @@ class ProgramCoordinatorController extends Controller
       // Combine all applications for total count
       $allApplications = $goodMoralApplications->merge($residencyApplications);
 
+      // Fetch applications already reviewed by a Program Coordinator in this department
+      $reviewedApplications = GoodMoralApplication::where('department', $progCoor->department)
+        ->where(function ($q) {
+          $q->where('application_status', 'LIKE', 'Approved by Program Coordinator:%')
+            ->orWhere('application_status', 'LIKE', 'Rejected by Program Coordinator:%');
+        })
+        ->orderBy('updated_at', 'desc')
+        ->get();
+
       $applications = [
         'good_moral' => $goodMoralApplications,
         'residency' => $residencyApplications,
         'all_new' => $allApplications,
+        'reviewed' => $reviewedApplications,
       ];
 
       return view('prog_coor.application', [
@@ -301,7 +311,7 @@ class ProgramCoordinatorController extends Controller
   /**
    * Reject a Good Moral Application.
    */
-  public function rejectGoodMoral($id)
+  public function rejectGoodMoral(Request $request, $id)
   {
     $progCoor = Auth::user();
     $application = GoodMoralApplication::findOrFail($id);
@@ -315,7 +325,12 @@ class ProgramCoordinatorController extends Controller
       return redirect()->route('prog_coor.application')->with('error', 'Application is not ready for action.');
     }
 
-    $this->workflowService->rejectByProgCoor($application, $progCoor->fullname);
+    $this->workflowService->rejectByProgCoor(
+      $application,
+      $progCoor->fullname,
+      $request->input('rejection_reason'),
+      $request->input('rejection_details')
+    );
 
     return redirect()->route('prog_coor.application')->with('status', 'Good Moral application rejected successfully!');
   }

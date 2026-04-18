@@ -38,6 +38,9 @@
         <button onclick="showTab('residency')" id="tab-residency" class="tab-button" style="flex: 1; padding: 16px; border: none; background: none; cursor: pointer; font-weight: 600; color: #6c757d; border-bottom: 3px solid transparent;">
           Residency ({{ $applications['residency']->count() }})
         </button>
+        <button onclick="showTab('history')" id="tab-history" class="tab-button" style="flex: 1; padding: 16px; border: none; background: none; cursor: pointer; font-weight: 600; color: #6c757d; border-bottom: 3px solid transparent;">
+          History ({{ $applications['reviewed']->count() }})
+        </button>
       </div>
     </div>
 
@@ -110,19 +113,16 @@
 
                   @if(str_contains(strtolower($application->application_status), 'approved by registrar'))
                     <!-- Approve Button -->
-                    <form action="{{ route('prog_coor.approveGoodMoral', $application->id) }}" method="POST" style="display: inline;">
-                      @csrf
-                      @method('PATCH')
-                      <button type="submit"
-                              style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s ease;"
-                              onmouseover="this.style.background='#218838'"
-                              onmouseout="this.style.background='#28a745'">
-                        <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                        </svg>
-                        Approve
-                      </button>
-                    </form>
+                    <button type="button"
+                            onclick="openApproveModal({{ $application->id }}, '{{ addslashes($application->fullname) }}', '{{ $application->reference_number }}', '{{ $application->certificate_type === 'good_moral' ? 'Good Moral' : 'Residency' }}')"
+                            style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s ease;"
+                            onmouseover="this.style.background='#218838'"
+                            onmouseout="this.style.background='#28a745'">
+                      <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                      Approve
+                    </button>
 
                     <!-- Reject Button -->
                     <button type="button"
@@ -205,19 +205,16 @@
                   </button>
 
                   @if(str_contains(strtolower($application->application_status), 'approved by registrar'))
-                    <form action="{{ route('prog_coor.approveGoodMoral', $application->id) }}" method="POST" style="display: inline;">
-                      @csrf
-                      @method('PATCH')
-                      <button type="submit"
-                              style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s ease;"
-                              onmouseover="this.style.background='#218838'"
-                              onmouseout="this.style.background='#28a745'">
-                        <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                        </svg>
-                        Approve
-                      </button>
-                    </form>
+                    <button type="button"
+                            onclick="openApproveModal({{ $application->id }}, '{{ addslashes($application->fullname) }}', '{{ $application->reference_number }}', 'Good Moral')"
+                            style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s ease;"
+                            onmouseover="this.style.background='#218838'"
+                            onmouseout="this.style.background='#28a745'">
+                      <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                      Approve
+                    </button>
 
                     <button type="button"
                             onclick="openRejectModal({{ $application->id }})"
@@ -299,19 +296,16 @@
                   </button>
 
                   @if(str_contains(strtolower($application->application_status), 'approved by registrar'))
-                    <form action="{{ route('prog_coor.approveGoodMoral', $application->id) }}" method="POST" style="display: inline;">
-                      @csrf
-                      @method('PATCH')
-                      <button type="submit"
-                              style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s ease;"
-                              onmouseover="this.style.background='#218838'"
-                              onmouseout="this.style.background='#28a745'">
-                        <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                        </svg>
-                        Approve
-                      </button>
-                    </form>
+                    <button type="button"
+                            onclick="openApproveModal({{ $application->id }}, '{{ addslashes($application->fullname) }}', '{{ $application->reference_number }}', 'Residency')"
+                            style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s ease;"
+                            onmouseover="this.style.background='#218838'"
+                            onmouseout="this.style.background='#28a745'">
+                      <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                      Approve
+                    </button>
 
                     <button type="button"
                             onclick="openRejectModal({{ $application->id }})"
@@ -337,6 +331,137 @@
       </div>
     </div>
     @endif
+  </div>
+
+  <!-- History Tab -->
+  <div id="content-history" class="tab-content" style="display: none; background: white; border-radius: 0 0 12px 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow: hidden;">
+    @if($applications['reviewed']->isEmpty())
+    <div style="text-align: center; padding: 48px;">
+      <svg style="width: 64px; height: 64px; margin: 0 auto 16px; color: #9ca3af;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+      <h3 style="margin: 0 0 8px; color: #374151; font-size: 1.25rem;">No Review History</h3>
+      <p style="margin: 0; color: #6b7280;">You haven't reviewed any applications yet.</p>
+    </div>
+    @else
+    <div style="background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow: hidden;">
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr style="background: #f8f9fa; border-bottom: 2px solid #e9ecef;">
+              <th style="padding: 16px; text-align: left; font-weight: 600; color: #495057; font-size: 14px;">Student ID</th>
+              <th style="padding: 16px; text-align: left; font-weight: 600; color: #495057; font-size: 14px;">Full Name</th>
+              <th style="padding: 16px; text-align: left; font-weight: 600; color: #495057; font-size: 14px;">Certificate Type</th>
+              <th style="padding: 16px; text-align: left; font-weight: 600; color: #495057; font-size: 14px;">Decision</th>
+              <th style="padding: 16px; text-align: left; font-weight: 600; color: #495057; font-size: 14px;">Reviewed By</th>
+              <th style="padding: 16px; text-align: left; font-weight: 600; color: #495057; font-size: 14px;">Date Reviewed</th>
+              <th style="padding: 16px; text-align: left; font-weight: 600; color: #495057; font-size: 14px;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @foreach($applications['reviewed'] as $application)
+            @php
+              $isApproved = str_contains($application->application_status, 'Approved by Program Coordinator');
+              $isRejected = str_contains($application->application_status, 'Rejected by Program Coordinator');
+              // Extract reviewer name from status: "Approved by Program Coordinator: John Doe - ..."
+              $reviewerName = 'Unknown';
+              if (preg_match('/(Approved|Rejected) by Program Coordinator:\s*([^-]+)/', $application->application_status, $matches)) {
+                $reviewerName = trim($matches[2]);
+              }
+            @endphp
+            <tr style="border-bottom: 1px solid #e9ecef; transition: background-color 0.2s ease;"
+                onmouseover="this.style.backgroundColor='#f8f9fa'"
+                onmouseout="this.style.backgroundColor='transparent'">
+              <td style="padding: 16px; color: #495057; font-size: 14px; font-weight: 500;">{{ $application->student_id }}</td>
+              <td style="padding: 16px; color: #495057; font-size: 14px; font-weight: 500;">{{ $application->fullname }}</td>
+              <td style="padding: 16px; color: #495057; font-size: 14px;">
+                <span style="display: inline-block; padding: 4px 8px;
+                      background: {{ $application->certificate_type === 'good_moral' ? '#e8f5e8' : '#fff3cd' }};
+                      color: {{ $application->certificate_type === 'good_moral' ? 'var(--primary-green)' : '#856404' }};
+                      border-radius: 4px; font-size: 12px; font-weight: 500;">
+                  {{ $application->certificate_type === 'good_moral' ? 'Good Moral' : 'Residency' }}
+                </span>
+              </td>
+              <td style="padding: 16px; color: #495057; font-size: 14px;">
+                @if($isApproved)
+                  <span style="display: inline-block; padding: 6px 12px; background: #d4edda; color: #155724; border-radius: 20px; font-size: 12px; font-weight: 500;">
+                    Approved
+                  </span>
+                @elseif($isRejected)
+                  <span style="display: inline-block; padding: 6px 12px; background: #f8d7da; color: #721c24; border-radius: 20px; font-size: 12px; font-weight: 500;">
+                    Rejected
+                  </span>
+                @endif
+              </td>
+              <td style="padding: 16px; color: #495057; font-size: 14px;">
+                <span style="display: inline-block; padding: 4px 8px; background: #e2e3e5; color: #383d41; border-radius: 4px; font-size: 12px; font-weight: 500;">
+                  {{ $reviewerName }}
+                </span>
+              </td>
+              <td style="padding: 16px; color: #495057; font-size: 14px;">
+                {{ $application->updated_at->format('M d, Y h:i A') }}
+              </td>
+              <td style="padding: 16px; color: #495057; font-size: 14px;">
+                <button onclick="viewGoodMoralDetails({{ json_encode($application) }})"
+                        style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s ease;"
+                        onmouseover="this.style.background='#0056b3'"
+                        onmouseout="this.style.background='#007bff'">
+                  <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                  </svg>
+                  View
+                </button>
+              </td>
+            </tr>
+            @endforeach
+          </tbody>
+        </table>
+      </div>
+    </div>
+    @endif
+  </div>
+
+  <!-- Approve Confirmation Modal -->
+  <div id="progCoorApproveModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
+    <div style="background: white; padding: 24px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 500px; margin: 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="margin: 0; color: #28a745; font-size: 1.25rem; font-weight: 600;">Approve Application</h2>
+        <button onclick="closeApproveModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #6c757d;">&times;</button>
+      </div>
+
+      <div style="background: #d4edda; color: #155724; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+          <svg style="width: 24px; height: 24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <span style="font-weight: 600;">Confirm Approval</span>
+        </div>
+        <p style="margin: 0 0 8px 0;">You are about to approve the following application:</p>
+        <div style="margin-left: 10px;">
+          <p style="margin: 4px 0;"><strong>Student Name:</strong> <span id="pcApproveStudentName"></span></p>
+          <p style="margin: 4px 0;"><strong>Reference Number:</strong> <span id="pcApproveRefNumber"></span></p>
+          <p style="margin: 4px 0;"><strong>Certificate Type:</strong> <span id="pcApproveCertType"></span></p>
+        </div>
+        <p style="margin: 8px 0 0 0; font-style: italic;">This action will move the application to the payment stage. The student will be notified to pay at Business Affairs.</p>
+      </div>
+
+      <form id="progCoorApproveForm" method="POST" action="" style="display: flex; justify-content: flex-end; gap: 12px;">
+        @csrf
+        @method('PATCH')
+        <button type="button" onclick="closeApproveModal()"
+                style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500;">
+          Cancel
+        </button>
+        <button type="submit"
+                style="background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 8px;">
+          <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+          Approve Application
+        </button>
+      </form>
+    </div>
   </div>
 
   <!-- Shared Reject Modal -->
@@ -500,6 +625,18 @@
       document.getElementById('progCoorRejectModal').style.display = 'none';
     }
 
+    function openApproveModal(applicationId, studentName, refNumber, certType) {
+      document.getElementById('pcApproveStudentName').textContent = studentName;
+      document.getElementById('pcApproveRefNumber').textContent = refNumber || 'N/A';
+      document.getElementById('pcApproveCertType').textContent = certType;
+      document.getElementById('progCoorApproveForm').action = `/prog_coor/good-moral/${applicationId}/approve`;
+      document.getElementById('progCoorApproveModal').style.display = 'flex';
+    }
+
+    function closeApproveModal() {
+      document.getElementById('progCoorApproveModal').style.display = 'none';
+    }
+
     // Close modals when clicking outside
     document.getElementById('detailsModal').addEventListener('click', function(e) {
       if (e.target === this) closeModal();
@@ -507,6 +644,10 @@
 
     document.getElementById('progCoorRejectModal').addEventListener('click', function(e) {
       if (e.target === this) closeRejectModal();
+    });
+
+    document.getElementById('progCoorApproveModal').addEventListener('click', function(e) {
+      if (e.target === this) closeApproveModal();
     });
   </script>
 </x-dashboard-layout>
