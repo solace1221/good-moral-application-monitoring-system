@@ -9,16 +9,20 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use App\Traits\RoleCheck;
 use App\Models\StudentViolation;
+use App\Models\GoodMoralApplication;
 use App\Services\ViolationService;
+use App\Services\GoodMoralWorkflowService;
 
 use App\Models\ViolationNotif;
+use Illuminate\Support\Facades\Log;
 
 class ProgramCoordinatorController extends Controller
 {
   use RoleCheck;
 
   public function __construct(
-    private ViolationService $violationService
+    private ViolationService $violationService,
+    private GoodMoralWorkflowService $workflowService
   ) {
     $this->checkRole(['prog_coor']);
   }
@@ -199,5 +203,136 @@ class ProgramCoordinatorController extends Controller
     ]);
 
     return back()->with('success', 'Minor violation has been declined.');
+  }
+
+  /**
+   * Display certificate applications for the program coordinator's department.
+   */
+  public function application()
+  {
+    try {
+      $progCoor = Auth::user();
+
+      if (!$progCoor) {
+        return redirect()->route('login')->with('error', 'Please login to access applications.');
+      }
+
+      // Fetch Good Moral Applications that need approval (approved by registrar)
+      $goodMoralApplications = GoodMoralApplication::approvedByRegistrar()
+        ->where('department', $progCoor->department)
+        ->where('certificate_type', 'good_moral')
+        ->whereNotNull('application_status')
+        ->orderBy('updated_at', 'desc')
+        ->get();
+
+      // Fetch Residency Applications that need approval
+      $residencyApplications = GoodMoralApplication::approvedByRegistrar()
+        ->where('department', $progCoor->department)
+        ->where('certificate_type', 'residency')
+        ->whereNotNull('application_status')
+        ->orderBy('updated_at', 'desc')
+        ->get();
+
+      // Combine all applications for total count
+      $allApplications = $goodMoralApplications->merge($residencyApplications);
+
+      $applications = [
+        'good_moral' => $goodMoralApplications,
+        'residency' => $residencyApplications,
+        'all_new' => $allApplications,
+      ];
+
+      return view('prog_coor.application', [
+        'applications' => $applications,
+        'department' => $progCoor->department,
+      ]);
+
+    } catch (\Exception $e) {
+      Log::error('Program Coordinator Application Error', [
+        'error' => $e->getMessage(),
+        'trace' => $e->getTraceAsString(),
+        'user_id' => Auth::id(),
+      ]);
+
+      return redirect()->route('prog_coor.major')->with('error', 'Unable to load applications. Please try again.');
+    }
+  }
+
+  /**
+   * Approve a Good Moral Application.
+   */
+  public function approveGoodMoral($id)
+  {
+    $progCoor = Auth::user();
+    if (!$progCoor) {
+      return redirect()->route('login')->with('error', 'Authentication error');
+    }
+
+    try {
+      $application = GoodMoralApplication::findOrFail($id);
+
+      if ($application->department !== $progCoor->department) {
+        return redirect()->route('prog_coor.application')->with('error', 'Unauthorized access to application.');
+      }
+
+      if (!str_contains($application->application_status, 'Approved By Registrar') &&
+          !str_contains($application->application_status, 'Approved by Registrar')) {
+        return redirect()->route('prog_coor.application')->with('error', 'Application is not ready for approval.');
+      }
+
+      $result = $this->workflowService->approveByProgCoor($application, $progCoor->fullname);
+
+      $successMessage = "Good Moral application approved! Payment notice generated. Student has been notified to pay at Business Affairs and upload their receipt.";
+
+      if (request()->ajax() || request()->wantsJson()) {
+        return response()->json(['success' => true, 'message' => $successMessage]);
+      }
+
+      return redirect()->route('prog_coor.application')->with('status', $successMessage);
+    } catch (\Exception $e) {
+      if (request()->ajax() || request()->wantsJson()) {
+        return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+      }
+
+      return redirect()->route('prog_coor.application')->with('error', 'Error approving application: ' . $e->getMessage());
+    }
+  }
+
+  /**
+   * Reject a Good Moral Application.
+   */
+  public function rejectGoodMoral($id)
+  {
+    $progCoor = Auth::user();
+    $application = GoodMoralApplication::findOrFail($id);
+
+    if ($application->department !== $progCoor->department) {
+      return redirect()->route('prog_coor.application')->with('error', 'Unauthorized access to application.');
+    }
+
+    if (!str_contains($application->application_status, 'Approved By Registrar') &&
+        !str_contains($application->application_status, 'Approved by Registrar')) {
+      return redirect()->route('prog_coor.application')->with('error', 'Application is not ready for action.');
+    }
+
+    $this->workflowService->rejectByProgCoor($application, $progCoor->fullname);
+
+    return redirect()->route('prog_coor.application')->with('status', 'Good Moral application rejected successfully!');
+  }
+
+  /**
+   * Get application details for AJAX requests.
+   */
+  public function getApplicationDetails($id)
+  {
+    $application = GoodMoralApplication::findOrFail($id);
+
+    return response()->json([
+      'rejection_reason' => $application->rejection_reason,
+      'rejection_details' => $application->rejection_details,
+      'rejected_by' => $application->rejected_by,
+      'rejected_at' => $application->rejected_at,
+      'action_history' => $application->action_history,
+    ]);
   }
 }

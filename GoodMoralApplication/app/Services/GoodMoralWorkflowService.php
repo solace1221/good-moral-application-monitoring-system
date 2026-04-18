@@ -209,4 +209,48 @@ class GoodMoralWorkflowService
         $applicationStatus = $reason ? "Rejected by Dean: {$reason}" : null;
         $this->notifService->createFromApplication($application, '-3', $applicationStatus);
     }
+
+    /**
+     * Program Coordinator approves a GoodMoralApplication.
+     * Sets status to waiting_for_payment and generates payment notice.
+     */
+    public function approveByProgCoor(GoodMoralApplication $application, string $progCoorFullname): array
+    {
+        $application->status = 'waiting_for_payment';
+        $application->application_status = "Approved by Program Coordinator: {$progCoorFullname} - Waiting for Payment";
+        $application->save();
+
+        // Generate payment notice so student can pay at Business Affairs
+        $receiptService = new ReceiptService();
+        $receiptData = $receiptService->generatePaymentNotice($application);
+
+        $this->notifService->createFromApplication($application, '3');
+
+        return [
+            'receipt_number' => $receiptData['receipt_number'] ?? null,
+            'formatted_payment' => $application->formatted_payment,
+        ];
+    }
+
+    /**
+     * Program Coordinator rejects a GoodMoralApplication.
+     */
+    public function rejectByProgCoor(GoodMoralApplication $application, string $progCoorFullname, ?string $reason = null, ?string $details = null): void
+    {
+        $application->application_status = "Rejected by Program Coordinator: {$progCoorFullname}";
+
+        if ($reason) {
+            $application->status = 'rejected';
+            $application->rejection_reason = $reason;
+            $application->rejection_details = $details;
+            $application->rejected_by = "Program Coordinator: {$progCoorFullname}";
+            $application->rejected_at = now();
+            $application->action_history = ($application->action_history ?? '') . "\n" . now()->format('Y-m-d H:i:s') . " - Rejected by Program Coordinator: {$progCoorFullname} (Reason: {$reason})";
+        }
+
+        $application->save();
+
+        $applicationStatus = $reason ? "Rejected by Program Coordinator: {$reason}" : null;
+        $this->notifService->createFromApplication($application, '-3', $applicationStatus);
+    }
 }

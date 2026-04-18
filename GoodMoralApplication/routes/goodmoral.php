@@ -180,6 +180,10 @@ Route::prefix('dean')->name('dean.')->middleware(['auth', 'verified', 'role:dean
 
 // ─── Program Coordinator ──────────────────────────────────────────────────────
 Route::middleware(['auth', 'verified', 'role:prog_coor'])->group(function () {
+    Route::get('/prog_coor/application', [ProgramCoordinatorController::class, 'application'])->name('prog_coor.application');
+    Route::patch('/prog_coor/good-moral/{id}/approve', [ProgramCoordinatorController::class, 'approveGoodMoral'])->name('prog_coor.approveGoodMoral');
+    Route::patch('/prog_coor/good-moral/{id}/reject', [ProgramCoordinatorController::class, 'rejectGoodMoral'])->name('prog_coor.rejectGoodMoral');
+    Route::get('/prog_coor/application/{id}/details', [ProgramCoordinatorController::class, 'getApplicationDetails'])->name('prog_coor.application.details');
     Route::get('/prog_coor/major', [ProgramCoordinatorController::class, 'major'])->name('prog_coor.major');
     Route::get('/prog_coor/minor', [ProgramCoordinatorController::class, 'minor'])->name('prog_coor.minor');
     Route::post('/prog_coor/minor/{id}/approve', [ProgramCoordinatorController::class, 'approveMinorViolation'])->name('prog_coor.minor.approve');
