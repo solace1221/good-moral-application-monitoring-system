@@ -50,6 +50,13 @@
           <span style="background: #f59e0b; color: white; font-size: 11px; padding: 2px 7px; border-radius: 10px; margin-left: 6px;">{{ $declinedCount }}</span>
         @endif
       </a>
+      <a href="{{ route('dean.minor', ['tab' => 'history']) }}"
+         class="tab-filter {{ $tab === 'history' ? 'active' : '' }}">
+        History
+        @if($historyCount > 0)
+          <span style="background: #6f42c1; color: white; font-size: 11px; padding: 2px 7px; border-radius: 10px; margin-left: 6px;">{{ $historyCount }}</span>
+        @endif
+      </a>
     </div>
 
     @if($students->isEmpty())
@@ -75,7 +82,7 @@
               @if($tab === 'pending')
               <th style="padding: 16px; text-align: left; font-weight: 600; color: #495057; font-size: 14px;">Actions</th>
               @endif
-              @if(in_array($tab, ['approved', 'completed', 'declined']))
+              @if(in_array($tab, ['approved', 'completed', 'declined', 'history']))
               <th style="padding: 16px; text-align: left; font-weight: 600; color: #495057; font-size: 14px;">Reviewer</th>
               @endif
             </tr>
@@ -155,7 +162,7 @@
                 </div>
               </td>
               @endif
-              @if(in_array($tab, ['approved', 'completed', 'declined']))
+              @if(in_array($tab, ['approved', 'completed', 'declined', 'history']))
               <td style="padding: 16px; color: #495057; font-size: 14px;">
                 @if($student->reviewed_by)
                   <div style="font-weight: 500; color: #333; font-size: 13px;">{{ ucfirst(str_replace('_', ' ', $student->reviewed_role ?? '')) }} {{ $student->reviewed_by }}</div>

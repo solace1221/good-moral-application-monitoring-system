@@ -272,6 +272,8 @@ class DashboardController extends Controller
       $query->whereIn('status', ['Complied', 'Closed']);
     } elseif ($tab === 'declined') {
       $query->where('status', 'Declined');
+    } elseif ($tab === 'history') {
+      $query->whereIn('status', ['Approved', 'Declined', 'Complied', 'Closed']);
     } else {
       $query->whereIn('status', ['Reported', 'Under Review']);
     }
@@ -284,7 +286,8 @@ class DashboardController extends Controller
     $approvedCount = (clone $baseQuery)->where('status', 'Approved')->count();
     $completedCount = (clone $baseQuery)->whereIn('status', ['Complied', 'Closed'])->count();
     $declinedCount = (clone $baseQuery)->where('status', 'Declined')->count();
+    $historyCount = $approvedCount + $completedCount + $declinedCount;
 
-    return view('dean.minor', compact('students', 'tab', 'pendingCount', 'approvedCount', 'completedCount', 'declinedCount'));
+    return view('dean.minor', compact('students', 'tab', 'pendingCount', 'approvedCount', 'completedCount', 'declinedCount', 'historyCount'));
   }
 }

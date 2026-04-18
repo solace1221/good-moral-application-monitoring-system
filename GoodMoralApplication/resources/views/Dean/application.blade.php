@@ -38,6 +38,9 @@
         <button onclick="showTab('residency')" id="tab-residency" class="tab-button" style="flex: 1; padding: 16px; border: none; background: none; cursor: pointer; font-weight: 600; color: #6c757d; border-bottom: 3px solid transparent;">
           Residency ({{ $applications['residency']->count() }})
         </button>
+        <button onclick="showTab('history')" id="tab-history" class="tab-button" style="flex: 1; padding: 16px; border: none; background: none; cursor: pointer; font-weight: 600; color: #6c757d; border-bottom: 3px solid transparent;">
+          History ({{ $applications['reviewed']->count() }})
+        </button>
       </div>
     </div>
 
@@ -345,6 +348,100 @@
     @endif
   </div>
 
+  <!-- History Tab -->
+  <div id="content-history" class="tab-content" style="display: none; background: white; border-radius: 0 0 12px 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow: hidden;">
+    @if($applications['reviewed']->isEmpty())
+    <div style="text-align: center; padding: 48px;">
+      <svg style="width: 64px; height: 64px; margin: 0 auto 16px; color: #9ca3af;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+      <h3 style="margin: 0 0 8px; color: #374151; font-size: 1.25rem;">No Review History</h3>
+      <p style="margin: 0; color: #6b7280;">No certificate applications have been reviewed yet.</p>
+    </div>
+    @else
+    <div style="background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow: hidden;">
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr style="background: #f8f9fa; border-bottom: 2px solid #e9ecef;">
+              <th style="padding: 16px; text-align: left; font-weight: 600; color: #495057; font-size: 14px;">Student ID</th>
+              <th style="padding: 16px; text-align: left; font-weight: 600; color: #495057; font-size: 14px;">Full Name</th>
+              <th style="padding: 16px; text-align: left; font-weight: 600; color: #495057; font-size: 14px;">Certificate Type</th>
+              <th style="padding: 16px; text-align: left; font-weight: 600; color: #495057; font-size: 14px;">Decision</th>
+              <th style="padding: 16px; text-align: left; font-weight: 600; color: #495057; font-size: 14px;">Reviewed By</th>
+              <th style="padding: 16px; text-align: left; font-weight: 600; color: #495057; font-size: 14px;">Date Reviewed</th>
+              <th style="padding: 16px; text-align: left; font-weight: 600; color: #495057; font-size: 14px;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @foreach($applications['reviewed'] as $application)
+            @php
+              $isApproved = str_contains($application->application_status, 'Approved by');
+              $isRejected = str_contains($application->application_status, 'Rejected by');
+              // Parse reviewer role and name from status: "Approved by Dean: John Doe - ..." or "Approved by Program Coordinator: Maria Santos - ..."
+              $reviewerRole = 'Unknown';
+              $reviewerName = 'Unknown';
+              if (preg_match('/(Approved|Rejected) by (Dean|Program Coordinator):\s*([^-]+)/', $application->application_status, $matches)) {
+                $reviewerRole = trim($matches[2]);
+                $reviewerName = trim($matches[3]);
+              }
+            @endphp
+            <tr style="border-bottom: 1px solid #e9ecef; transition: background-color 0.2s ease;"
+                onmouseover="this.style.backgroundColor='#f8f9fa'"
+                onmouseout="this.style.backgroundColor='transparent'">
+              <td style="padding: 16px; color: #495057; font-size: 14px; font-weight: 500;">{{ $application->student_id }}</td>
+              <td style="padding: 16px; color: #495057; font-size: 14px; font-weight: 500;">{{ $application->fullname }}</td>
+              <td style="padding: 16px; color: #495057; font-size: 14px;">
+                <span style="display: inline-block; padding: 4px 8px;
+                      background: {{ $application->certificate_type === 'good_moral' ? '#e8f5e8' : '#fff3cd' }};
+                      color: {{ $application->certificate_type === 'good_moral' ? 'var(--primary-green)' : '#856404' }};
+                      border-radius: 4px; font-size: 12px; font-weight: 500;">
+                  {{ $application->certificate_type === 'good_moral' ? 'Good Moral' : 'Residency' }}
+                </span>
+              </td>
+              <td style="padding: 16px; color: #495057; font-size: 14px;">
+                @if($isApproved)
+                  <span style="display: inline-block; padding: 6px 12px; background: #d4edda; color: #155724; border-radius: 20px; font-size: 12px; font-weight: 500;">
+                    Approved
+                  </span>
+                @elseif($isRejected)
+                  <span style="display: inline-block; padding: 6px 12px; background: #f8d7da; color: #721c24; border-radius: 20px; font-size: 12px; font-weight: 500;">
+                    Rejected
+                  </span>
+                @endif
+              </td>
+              <td style="padding: 16px; color: #495057; font-size: 14px;">
+                <div style="font-weight: 500; color: #333; font-size: 13px;">{{ $reviewerName }}</div>
+                <div style="font-size: 11px; color: #6c757d;">
+                  <span style="display: inline-block; padding: 2px 6px; background: {{ $reviewerRole === 'Dean' ? '#e3f2fd' : '#f3e5f5' }}; color: {{ $reviewerRole === 'Dean' ? '#1565c0' : '#7b1fa2' }}; border-radius: 3px; font-size: 10px; font-weight: 600; text-transform: uppercase;">
+                    {{ $reviewerRole }}
+                  </span>
+                </div>
+              </td>
+              <td style="padding: 16px; color: #495057; font-size: 14px;">
+                {{ $application->updated_at->format('M d, Y h:i A') }}
+              </td>
+              <td style="padding: 16px; color: #495057; font-size: 14px;">
+                <button onclick="viewGoodMoralDetails({{ json_encode($application) }})"
+                        style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s ease;"
+                        onmouseover="this.style.background='#0056b3'"
+                        onmouseout="this.style.background='#007bff'">
+                  <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                  </svg>
+                  View
+                </button>
+              </td>
+            </tr>
+            @endforeach
+          </tbody>
+        </table>
+      </div>
+    </div>
+    @endif
+  </div>
+
   <!-- Shared Reject Modal -->
   <div id="deanRejectModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; padding: 16px;">
     <div style="background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); width: 100%; max-width: 500px; max-height: 90vh; display: flex; flex-direction: column;">
@@ -586,7 +683,10 @@
           </div>
           <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; padding: 12px; background: #f8f9fa; border-radius: 6px;">
             <strong>Application Status:</strong>
-            <span style="color: #ffc107; font-weight: 600;">Pending Dean Approval</span>
+            <span style="font-weight: 600; color: ${
+              application.application_status && application.application_status.toLowerCase().includes('approved by') ? '#28a745' :
+              application.application_status && application.application_status.toLowerCase().includes('rejected by') ? '#dc3545' : '#ffc107'
+            };">${application.application_status || 'Pending'}</span>
           </div>
           <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; padding: 12px; background: #f8f9fa; border-radius: 6px;">
             <strong>Applied On:</strong>

@@ -79,12 +79,24 @@ class ApplicationController extends Controller
       // Combine all applications for total count
       $allApplications = $goodMoralApplications->merge($residencyApplications);
 
+      // Fetch applications already reviewed by Dean or Program Coordinator in this department
+      $reviewedApplications = GoodMoralApplication::where('department', $dean->department)
+        ->where(function ($q) {
+          $q->where('application_status', 'LIKE', 'Approved by Dean:%')
+            ->orWhere('application_status', 'LIKE', 'Rejected by Dean:%')
+            ->orWhere('application_status', 'LIKE', 'Approved by Program Coordinator:%')
+            ->orWhere('application_status', 'LIKE', 'Rejected by Program Coordinator:%');
+        })
+        ->orderBy('updated_at', 'desc')
+        ->get();
+
       // Organize applications by type
       $applications = [
         'legacy' => $legacyApplications,
         'good_moral' => $goodMoralApplications,
         'residency' => $residencyApplications,
-        'all_new' => $allApplications
+        'all_new' => $allApplications,
+        'reviewed' => $reviewedApplications,
       ];
 
       return view('dean.application', [
@@ -267,7 +279,7 @@ class ApplicationController extends Controller
   /**
    * Reject a Good Moral Application.
    */
-  public function rejectGoodMoral($id)
+  public function rejectGoodMoral(Request $request, $id)
   {
     $dean = Auth::user();
     $application = GoodMoralApplication::findOrFail($id);
@@ -284,7 +296,12 @@ class ApplicationController extends Controller
     }
 
     // Update application status and create notification via service
-    $this->workflowService->rejectByDean($application, $dean->fullname);
+    $this->workflowService->rejectByDean(
+      $application,
+      $dean->fullname,
+      $request->input('rejection_reason'),
+      $request->input('rejection_details')
+    );
 
     return redirect()->route('dean.application')->with('status', 'Good Moral application rejected successfully!');
   }
