@@ -21,7 +21,7 @@
     @elseif($accountType === 'dean')
       <x-dean-navigation />
     @elseif($accountType === 'sec_osa')
-      <x-sec-osa-navigation />
+      <x-moderator-navigation />
     @elseif($accountType === 'registrar')
       <x-registrar-navigation />
     @elseif($accountType === 'prog_coor')

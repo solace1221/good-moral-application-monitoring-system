@@ -19,7 +19,6 @@ use Illuminate\Validation\Rules;
 use Illuminate\View\View;
 use App\Http\Requests\StoreViolationReportRequest;
 use App\Helpers\CourseHelper;
-use App\Services\DashboardStatsService;
 use App\Services\ViolationService;
 use Illuminate\Support\Facades\Log;
 
@@ -35,46 +34,6 @@ class RegisterViolationController extends Controller
     private ViolationService $violationService
   ) {
     // Role check will be done in middleware or individual methods
-  }
-
-  public function dashboard(Request $request): View
-  {
-    // Check if user is PSG officer
-    if (Auth::user()->account_type !== 'psg_officer') {
-      abort(403, 'Unauthorized access.');
-    }
-
-    // Get frequency filter from request
-    $frequency = $request->get('frequency', 'all');
-
-    // Get current PSG Officer from RoleAccount (consistent with store method)
-    $roleAccount = RoleAccount::where('email', Auth::user()->email)->first();
-    $currentUser = $roleAccount->fullname;
-
-    // Get statistics for minor violations (PSG Officers only see violations they added)
-    $minorPending = $this->applyDateFilter(StudentViolation::where('status', '!=', 2)->where('offense_type', 'minor')->where('added_by', $currentUser), $frequency)->count();
-    $minorResolved = $this->applyDateFilter(StudentViolation::where('status', '=', 2)->where('offense_type', 'minor')->where('added_by', $currentUser), $frequency)->count();
-    $minorTotal = $minorPending + $minorResolved;
-    $minorResolvedPercentage = $minorTotal > 0 ? round(($minorResolved / $minorTotal) * 100, 1) : 0;
-
-    // Get violations by department for PSG Officer view (only their violations)
-    $departments = DashboardStatsService::getViolationDepartments();
-    $violationsByDept = [];
-    foreach ($departments as $dept) {
-      $violationsByDept[$dept] = $this->applyDateFilter(StudentViolation::where('offense_type', 'minor')->where('added_by', $currentUser)->where('department', $dept), $frequency)->count();
-    }
-
-    return view('PsgOfficer.dashboard', compact(
-      'minorPending',
-      'minorResolved',
-      'minorTotal',
-      'minorResolvedPercentage',
-      'violationsByDept',
-      'frequency'
-    ) + [
-      'frequencyOptions' => $this->getFrequencyOptions(),
-      'frequencyLabel' => $this->getFrequencyLabel($frequency)
-    ]);
   }
 
   public function create(): View

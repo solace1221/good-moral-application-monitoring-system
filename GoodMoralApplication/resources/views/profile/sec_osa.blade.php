@@ -2,7 +2,7 @@
     <x-slot name="roleTitle">Secretary OSA</x-slot>
 
     <x-slot name="navigation">
-        <x-sec-osa-navigation />
+        <x-moderator-navigation />
     </x-slot>
 
     <!-- Header Section -->
