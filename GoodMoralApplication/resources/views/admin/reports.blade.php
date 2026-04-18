@@ -243,31 +243,7 @@
 
       <!-- Hidden inputs for form submission -->
       <input type="hidden" name="time_period" id="selected_time_period" value="all">
-      <input type="hidden" name="export_format" id="selected_export_format" value="pdf">
 
-      <!-- Export Format Selection (shown only for Major Violations) -->
-      <div id="export_format_section" style="display: none; margin-bottom: 24px;">
-        <h3 style="font-size: 18px; font-weight: 600; color: #333; margin-bottom: 16px;">
-          <span style="background: #e74c3c; color: white; border-radius: 50%; width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; margin-right: 8px; font-size: 14px;">⬇</span>
-          Export Format
-        </h3>
-        <div style="display: flex; gap: 16px;">
-          <label style="display: flex; align-items: center; gap: 12px; padding: 16px 24px; border: 2px solid #e1e5e9; border-radius: 12px; cursor: pointer; transition: all 0.3s ease; flex: 1;" class="export-format-option" data-format="pdf">
-            <input type="radio" name="export_format_radio" value="pdf" checked style="width: 18px; height: 18px;">
-            <div>
-              <div style="font-weight: 600; color: #333;">PDF</div>
-              <div style="font-size: 13px; color: #666;">Download as PDF document</div>
-            </div>
-          </label>
-          <label style="display: flex; align-items: center; gap: 12px; padding: 16px 24px; border: 2px solid #e1e5e9; border-radius: 12px; cursor: pointer; transition: all 0.3s ease; flex: 1;" class="export-format-option" data-format="docx">
-            <input type="radio" name="export_format_radio" value="docx" style="width: 18px; height: 18px;">
-            <div>
-              <div style="font-weight: 600; color: #333;">DOCX</div>
-              <div style="font-size: 13px; color: #666;">Download as Word document</div>
-            </div>
-          </label>
-        </div>
-      </div>
 
       <!-- Generate Button -->
       <div style="display: flex; justify-content: center; gap: 16px;">
@@ -349,26 +325,11 @@
           reportTypeOptions.forEach(opt => opt.style.borderColor = '#e1e5e9');
           this.style.borderColor = 'var(--primary-green)';
 
-          // Show/hide export format section for major_violators
-          const selectedType = this.dataset.type || this.querySelector('input[name="report_type"]').value;
-          const formatSection = document.getElementById('export_format_section');
-          if (selectedType === 'major_violators') {
-            formatSection.style.display = 'block';
-          } else {
-            formatSection.style.display = 'none';
-            document.getElementById('selected_export_format').value = 'pdf';
-          }
+
         });
       });
 
-      // Export format radio buttons
-      document.querySelectorAll('.export-format-option').forEach(option => {
-        option.addEventListener('click', function() {
-          document.querySelectorAll('.export-format-option').forEach(opt => opt.style.borderColor = '#e1e5e9');
-          this.style.borderColor = 'var(--primary-green)';
-          document.getElementById('selected_export_format').value = this.dataset.format;
-        });
-      });
+
 
       timePeriodOptions.forEach(option => {
         option.addEventListener('click', function() {

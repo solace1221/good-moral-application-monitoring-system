@@ -17,7 +17,6 @@ class GenerateReportRequest extends FormRequest
             'academic_year' => ['required', 'string'],
             'report_type' => ['required', 'string', 'in:good_moral_applicants,residency_applicants,minor_violators,major_violators,overall_report,minor_offenses_overall'],
             'time_period' => ['nullable', 'string'],
-            'export_format' => ['nullable', 'string', 'in:pdf,docx'],
         ];
     }
 }

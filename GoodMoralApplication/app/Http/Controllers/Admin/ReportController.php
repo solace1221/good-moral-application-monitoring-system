@@ -187,7 +187,6 @@ class ReportController extends Controller
     $academicYear = $request->academic_year;
     $reportType = $request->report_type;
     $timePeriod = $request->time_period ?? 'all';
-    $exportFormat = $request->export_format ?? 'pdf';
 
     // Parse academic year (e.g., "2024-2025" -> start: 2024, end: 2025)
     $yearParts = explode('-', $academicYear);
@@ -209,7 +208,7 @@ class ReportController extends Controller
         return $this->generateMinorViolatorsReport($academicYear, $startDate, $endDate, $timePeriod);
 
       case 'major_violators':
-        return $this->generateMajorViolatorsReport($academicYear, $startDate, $endDate, $timePeriod, $exportFormat);
+        return $this->generateMajorViolatorsReport($academicYear, $startDate, $endDate, $timePeriod);
 
       case 'overall_report':
         return $this->generateOverallReport($academicYear, $startDate, $endDate, $timePeriod);
@@ -442,7 +441,7 @@ class ReportController extends Controller
   /**
    * Generate Major Violators Report (DOCX or PDF via PHPWord)
    */
-  private function generateMajorViolatorsReport($academicYear, $startDate, $endDate, $timePeriod = 'all', $format = 'pdf')
+  private function generateMajorViolatorsReport($academicYear, $startDate, $endDate, $timePeriod = 'all')
   {
     // Include student relationship for year level information
     $query = StudentViolation::with('studentAccount')->where('offense_type', 'major');
@@ -544,16 +543,7 @@ class ReportController extends Controller
 
     $service = new MajorViolationReportService();
 
-    if ($format === 'docx') {
-      $tempFile = $service->generateDocx($reportData);
-      $filename = 'major_violators_' . $filenameSuffix . '_' . now()->format('Y-m-d_H-i-s') . '.docx';
-
-      return response()->download($tempFile, $filename, [
-        'Content-Type' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      ])->deleteFileAfterSend(true);
-    }
-
-    // Default: generate DOCX then convert to PDF
+    // Generate PDF
     try {
       $tempFile = $service->generatePdf($reportData);
       $filename = 'major_violators_' . $filenameSuffix . '_' . now()->format('Y-m-d_H-i-s') . '.pdf';
