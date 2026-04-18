@@ -92,14 +92,15 @@ class DashboardStatsService
     public function getApplicationCountsByCourse(string $department, string $frequency = 'all'): array
     {
         $courses = self::getDepartmentCoursesWithNames($department);
+        $deptId = Department::where('department_code', $department)->value('id');
         $counts = [];
 
         foreach ($courses as $code => $fullName) {
-            $counts[$code] = $this->applyDateFilter(
-                GoodMoralApplication::where('department', $department)
-                    ->whereIn('course_completed', [$code, $fullName]),
-                $frequency
-            )->count();
+            $query = GoodMoralApplication::whereIn('course_completed', [$code, $fullName]);
+            if ($deptId) {
+                $query->where('department_id', $deptId);
+            }
+            $counts[$code] = $this->applyDateFilter($query, $frequency)->count();
         }
 
         return $counts;
@@ -150,9 +151,13 @@ class DashboardStatsService
     public function getApplicationCountsByDepartment(string $frequency = 'all'): array
     {
         $counts = [];
-        foreach (self::getDepartments() as $dept) {
-            $counts[$dept] = $this->applyDateFilter(
-                GoodMoralApplication::where('department', $dept),
+        $departments = Department::orderBy('department_code')
+            ->pluck('id', 'department_code')
+            ->toArray();
+
+        foreach ($departments as $code => $id) {
+            $counts[$code] = $this->applyDateFilter(
+                GoodMoralApplication::where('department_id', $id),
                 $frequency
             )->count();
         }

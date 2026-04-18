@@ -7,6 +7,7 @@ use App\Models\HeadOSAApplication;
 use App\Models\Receipt;
 use App\Models\SecOSAApplication;
 use App\Models\DeanApplication;
+use App\Models\Department;
 use App\Services\ReceiptService;
 use Illuminate\Support\Facades\Log;
 
@@ -37,6 +38,7 @@ class GoodMoralWorkflowService
             'reference_number' => $application->reference_number,
             'student_id' => $application->student_id,
             'department' => $application->department,
+            'department_id' => $application->department_id ?? Department::findIdByCode($application->department),
             'reason' => $application->formatted_reasons,
             'fullname' => $application->fullname,
             'course_completed' => $application->course_completed,
@@ -131,6 +133,7 @@ class GoodMoralWorkflowService
                     'student_id' => $student->student_id,
                     'fullname' => $student->fullname,
                     'department' => $student->department,
+                    'department_id' => $student->department_id ?? Department::findIdByCode($student->department),
                     'reason' => $headOsaApp->reason,
                     'course_completed' => $headOsaApp->course_completed,
                     'graduation_date' => $headOsaApp->graduation_date,

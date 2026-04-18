@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\GoodMoralApplication;
 use App\Models\NotifArchive;
 use App\Models\DeanApplication;
+use App\Models\Department;
 use App\Traits\RoleCheck;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -112,6 +113,7 @@ class RegistrarController extends Controller
         'student_id' => $student->student_id,
         'fullname' => $student->fullname,
         'department' => $student->department,
+        'department_id' => $student->department_id ?? Department::findIdByCode($student->department),
         'reason' => $application->formatted_reasons, // Convert array to string
         'course_completed' => $application->course_completed, // New field
         'graduation_date' => $application->graduation_date,   // New field

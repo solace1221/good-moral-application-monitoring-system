@@ -22,6 +22,7 @@ class StudentViolation extends Model
     'violation_id',
     'unique_id',
     'department',
+    'department_id',
     'course',
     'ref_num',
     'case_type',
@@ -59,6 +60,24 @@ class StudentViolation extends Model
   public function student()
   {
     return $this->belongsTo(StudentRegistration::class, 'student_id', 'student_id');
+  }
+
+  /**
+   * Get the department via FK.
+   */
+  public function departmentRecord()
+  {
+    return $this->belongsTo(Department::class, 'department_id');
+  }
+
+  /**
+   * Resolve department code from FK, falling back to string column.
+   */
+  public function getDepartmentAttribute()
+  {
+    return $this->departmentRecord?->department_code
+      ?? $this->attributes['department']
+      ?? null;
   }
 
   /**

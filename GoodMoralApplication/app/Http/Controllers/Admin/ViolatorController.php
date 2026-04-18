@@ -12,6 +12,7 @@ use App\Models\Violation;
 use App\Models\StudentViolation;
 use App\Models\RoleAccount;
 use App\Models\StudentRegistration;
+use App\Models\Department;
 use App\Helpers\CourseHelper;
 use App\Services\ViolationService;
 
@@ -81,6 +82,7 @@ class ViolatorController extends Controller
       'last_name' => $validated['last_name'],
       'student_id' => $validated['student_id'],
       'department' => $validated['department'],
+      'department_id' => Department::findIdByCode($validated['department']),
       'course' => $validated['course'],
       'offense_type' => $validated['offense_type'],
       'violation' => $validated['violation'],

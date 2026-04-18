@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Department;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Password;
 
@@ -22,7 +23,7 @@ class RegisterUserRequest extends FormRequest
             'gender' => ['required', 'string', 'in:male,female'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:student_registrations,email'],
             'password' => ['required', 'confirmed', Password::defaults()],
-            'department' => ['required', 'string', 'in:SITE,SBAHM,SASTE,SNAHS,SOM,GRADSCH'],
+            'department' => ['required', 'string', 'exists:departments,department_code'],
             'student_id' => ['nullable', 'string', 'max:20', 'unique:student_registrations'],
             'account_type' => ['required', 'string', 'in:student,alumni,psg_officer'],
             'course_id' => ['nullable', 'integer', 'exists:courses,id'],

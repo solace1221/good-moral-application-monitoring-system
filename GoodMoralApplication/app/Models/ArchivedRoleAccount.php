@@ -20,6 +20,7 @@ class ArchivedRoleAccount extends Model
         'student_id',
         'fullname',
         'department',
+        'department_id',
         'status',
         'account_type',
         'created_at',

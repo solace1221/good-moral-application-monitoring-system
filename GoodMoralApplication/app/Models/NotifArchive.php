@@ -19,6 +19,7 @@ class NotifArchive extends Model
         'fullname',
         'gender',
         'department',
+        'department_id',
         'reason',
         'application_status',
         'course_completed',

@@ -17,6 +17,7 @@ class GoodMoralApplication extends Model
     'number_of_copies',
     'status',
     'department',
+    'department_id',
     'reason',
     'course_completed',  // New field
     'graduation_date',    // New field
@@ -54,6 +55,24 @@ class GoodMoralApplication extends Model
   public function student()
   {
     return $this->belongsTo(RoleAccount::class, 'student_id', 'student_id'); // Make sure 'role_account' is used
+  }
+
+  /**
+   * Get the department via FK.
+   */
+  public function departmentRecord()
+  {
+    return $this->belongsTo(Department::class, 'department_id');
+  }
+
+  /**
+   * Resolve department code from FK, falling back to string column.
+   */
+  public function getDepartmentAttribute()
+  {
+    return $this->departmentRecord?->department_code
+      ?? $this->attributes['department']
+      ?? null;
   }
 
   /**

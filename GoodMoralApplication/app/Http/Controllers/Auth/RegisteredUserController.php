@@ -21,6 +21,7 @@ use Illuminate\Validation\Rules;
 use Illuminate\View\View;
 use App\Models\Violation;
 use App\Http\Requests\RegisterUserRequest;
+use App\Models\Department;
 
 class RegisteredUserController extends Controller
 {
@@ -113,6 +114,7 @@ class RegisteredUserController extends Controller
           'gender' => $request->gender,
           'email' => $request->email,
           'department' => $request->department,
+          'department_id' => Department::findIdByCode($request->department),
           'course_id' => $courseId,
           'course' => $course,
           'password' => $hashedPassword,
@@ -130,6 +132,7 @@ class RegisteredUserController extends Controller
           'extension' => $request->extension,
           'gender' => $request->gender,
           'department' => $request->department,
+          'department_id' => Department::findIdByCode($request->department),
           'course_id' => $courseId,
           'course' => $course,
           'email' => $request->email,
@@ -167,6 +170,7 @@ class RegisteredUserController extends Controller
           'gender' => $request->gender,
           'email' => $request->email,
           'department' => $request->department,
+          'department_id' => Department::findIdByCode($request->department),
           'course_id' => $courseId,
           'course' => $course,
           'password' => $hashedPassword,
@@ -184,6 +188,7 @@ class RegisteredUserController extends Controller
           'extension' => $request->extension,
           'gender' => $request->gender,
           'department' => $request->department,
+          'department_id' => Department::findIdByCode($request->department),
           'course_id' => $courseId,
           'course' => $course,
           'email' => $request->email,

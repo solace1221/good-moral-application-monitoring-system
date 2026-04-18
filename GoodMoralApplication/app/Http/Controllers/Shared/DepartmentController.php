@@ -85,6 +85,11 @@ class DepartmentController extends Controller
         $newCode = $validated['department_code'];
         $codeChanged = $oldCode !== $newCode;
 
+        // Auto-update label when code changes (e.g. "SIE Applications" → "SITE Applications")
+        if ($codeChanged && isset($validated['label']) && str_contains($validated['label'], $oldCode)) {
+            $validated['label'] = str_replace($oldCode, $newCode, $validated['label']);
+        }
+
         DB::transaction(function () use ($department, $validated, $oldCode, $newCode, $codeChanged) {
             if ($codeChanged) {
                 // Cascade department_code change to all tables with denormalized department strings

@@ -12,6 +12,7 @@ use App\Models\GoodMoralApplication;
 use App\Models\StudentViolation;
 use App\Models\RoleAccount;
 use App\Models\StudentRegistration;
+use App\Models\Department;
 use App\Helpers\CourseHelper;
 use App\Http\Requests\ApplyGoodMoralRequest;
 
@@ -121,6 +122,7 @@ class PsgOfficerController extends Controller
             'reason' => $selectedReason,
             'student_id' => $studentId,
             'department' => $studentDepartment,
+            'department_id' => Department::findIdByCode($studentDepartment),
             'course_completed' => $request->course_completed ?? null,
             'graduation_date' => $request->graduation_date ?? null,
             'application_status' => null,

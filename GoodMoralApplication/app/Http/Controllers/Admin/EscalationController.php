@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Services\ViolationService;
 use App\Models\ViolationNotif;
 use App\Models\StudentViolation;
+use App\Models\Department;
 use Illuminate\Support\Facades\Auth;
 
 class EscalationController extends Controller
@@ -79,6 +80,7 @@ class EscalationController extends Controller
         'first_name' => $studentInfo->first_name,
         'last_name' => $studentInfo->last_name,
         'department' => $studentInfo->department,
+        'department_id' => $studentInfo->department_id ?? Department::findIdByCode($studentInfo->department),
         'course' => $studentInfo->course,
         'violation' => 'Automatic escalation: Accumulated 3 minor violations (Manual trigger by Admin)',
         'offense_type' => 'major',

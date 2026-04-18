@@ -19,6 +19,7 @@ class StudentRegistration extends Authenticatable
     'gender',
     'email',
     'department',
+    'department_id',
     'course_id',
     'course',
     'password',
@@ -68,6 +69,24 @@ class StudentRegistration extends Authenticatable
   // =========================================================
   // Relationships
   // =========================================================
+
+  /**
+   * Get the department via FK.
+   */
+  public function departmentRecord()
+  {
+    return $this->belongsTo(Department::class, 'department_id');
+  }
+
+  /**
+   * Resolve department code from FK, falling back to string column.
+   */
+  public function getDepartmentAttribute()
+  {
+    return $this->departmentRecord?->department_code
+      ?? $this->attributes['department']
+      ?? null;
+  }
 
   public function courseRecord()
   {

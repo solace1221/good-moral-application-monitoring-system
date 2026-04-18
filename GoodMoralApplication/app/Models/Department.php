@@ -89,6 +89,18 @@ class Department extends Model
     }
 
     /**
+     * Find a department ID by its code. Returns null if not found.
+     */
+    public static function findIdByCode(?string $code): ?int
+    {
+        if (!$code) {
+            return null;
+        }
+
+        return static::where('department_code', $code)->value('id');
+    }
+
+    /**
      * Get role accounts in this department
      */
     public function roleAccounts()
@@ -105,10 +117,10 @@ class Department extends Model
     }
 
     /**
-     * Get courses in this department (matched via department_code string)
+     * Get courses in this department
      */
     public function courses()
     {
-        return $this->hasMany(Course::class, 'department', 'department_code');
+        return $this->hasMany(Course::class, 'department_id');
     }
 }

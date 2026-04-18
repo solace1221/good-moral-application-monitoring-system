@@ -155,9 +155,9 @@
                   $statusBg = '#ffc10720';
                 }
 
-                $copies = (int) ($application->number_of_copies ?? 1);
-                $rate   = 100;
-                $total  = $copies * $rate;
+                $copies      = (int) ($application->number_of_copies ?? 1);
+                $reasonCount = count($application->reasons_array);
+                $total       = $application->payment_amount;
               @endphp
               <span style="display: inline-block; padding: 6px 12px; background: {{ $statusBg }}; color: {{ $statusColor }}; border-radius: 20px; font-size: 12px; font-weight: 500;">
                 {{ $statusText }}
@@ -175,6 +175,7 @@
                   '{{ addslashes($progressMsg) }}',
                   {{ $copies }},
                   {{ $total }},
+                  {{ $reasonCount }},
                   '{{ addslashes($application->rejection_reason ?? '') }}',
                   '{{ addslashes($application->rejection_details ?? '') }}'
                 )"
@@ -332,12 +333,16 @@
             <div style="font-size:11px; font-weight:700; color:#1565c0; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:8px;">Payment Breakdown</div>
             <div style="background:white; border-radius:6px; padding:12px 14px; font-size:13px; color:#333; line-height:1.8;">
               <div style="display:flex; gap:8px;">
+                <span style="color:#6c757d; min-width:130px; flex-shrink:0;">Reasons:</span>
+                <span id="payReasons" style="font-weight:500;"></span>
+              </div>
+              <div style="display:flex; gap:8px;">
                 <span style="color:#6c757d; min-width:130px; flex-shrink:0;">Copies Requested:</span>
                 <span id="payCopies" style="font-weight:500;"></span>
               </div>
               <div style="display:flex; gap:8px;">
                 <span style="color:#6c757d; min-width:130px; flex-shrink:0;">Rate per Copy:</span>
-                <span style="font-weight:500;">&#8369;50</span>
+                <span style="font-weight:500;">&#8369;100</span>
               </div>
               <div style="display:flex; gap:8px; border-top:1px solid #e9ecef; margin-top:6px; padding-top:6px;">
                 <span style="color:#6c757d; min-width:130px; flex-shrink:0; font-weight:600;">Total Amount:</span>
@@ -424,7 +429,7 @@ function _wfSetIcon(i, bg, borderColor, color, symbol) {
   }
 }
 
-function openAppModal(ref, certType, appStatus, statusText, statusColor, statusBg, progressMsg, copies, total, rejectionReason, rejectionDetails) {
+function openAppModal(ref, certType, appStatus, statusText, statusColor, statusBg, progressMsg, copies, total, reasonCount, rejectionReason, rejectionDetails) {
   document.getElementById('modalRef').textContent = ref;
   document.getElementById('modalCertType').textContent = certType;
 
@@ -477,8 +482,9 @@ function openAppModal(ref, certType, appStatus, statusText, statusColor, statusB
     document.getElementById('modalReceiptRef').value    = ref;
     document.getElementById('payRef').textContent       = ref;
     document.getElementById('payCertType').textContent  = certType;
+    document.getElementById('payReasons').textContent   = reasonCount;
     document.getElementById('payCopies').textContent    = copies;
-    document.getElementById('payTotal').textContent     = '\u20B1' + (copies * 100).toLocaleString();
+    document.getElementById('payTotal').textContent     = '\u20B1' + (reasonCount * copies * 100).toLocaleString();
   }
 
   document.getElementById('appModal').style.display = 'flex';

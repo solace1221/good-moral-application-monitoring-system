@@ -6,6 +6,7 @@ use App\Models\StudentViolation;
 use App\Models\Violation;
 use App\Models\ViolationNotif;
 use App\Models\RoleAccount;
+use App\Models\Department;
 use Illuminate\Support\Str;
 
 class ViolationService
@@ -68,6 +69,7 @@ class ViolationService
             'last_name' => $data['last_name'],
             'student_id' => $data['student_id'],
             'department' => $data['department'],
+            'department_id' => Department::findIdByCode($data['department']),
             'course' => $data['course'],
             'offense_type' => $data['offense_type'],
             'violation' => $data['violation'],

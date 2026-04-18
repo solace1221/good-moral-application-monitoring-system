@@ -111,12 +111,9 @@
             x-on:change="showOther = $event.target.value === 'Others'"
             required>
             <option value="" disabled selected>Select Department</option>
-            <option value="SITE" {{ old('department') == 'SITE' ? 'selected' : '' }}>SITE</option>
-            <option value="SASTE" {{ old('department') == 'SASTE' ? 'selected' : '' }}>SASTE</option>
-            <option value="SBAHM" {{ old('department') == 'SBAHM' ? 'selected' : '' }}>SBAHM</option>
-            <option value="SNAHS" {{ old('department') == 'SNAHS' ? 'selected' : '' }}>SNAHS</option>
-            <option value="SOM" {{ old('department') == 'SOM' ? 'selected' : '' }}>SOM</option>
-            <option value="GRADSCH" {{ old('department') == 'GRADSCH' ? 'selected' : '' }}>GRADSCH</option>
+            @foreach($departments as $dept)
+              <option value="{{ $dept->department_code }}" {{ old('department') == $dept->department_code ? 'selected' : '' }}>{{ $dept->department_code }}</option>
+            @endforeach
             <option value="Others" {{ old('department') == 'Others' ? 'selected' : '' }}>Others</option>
           </select>
           <div x-show="showOther" style="margin-top: 12px;">
@@ -673,12 +670,9 @@
                   onfocus="this.style.borderColor='var(--primary-green)'"
                   onblur="this.style.borderColor='#e1e5e9'">
             <option value="">Select Department</option>
-            <option value="SITE">SITE</option>
-            <option value="SASTE">SASTE</option>
-            <option value="SBAHM">SBAHM</option>
-            <option value="SNAHS">SNAHS</option>
-            <option value="SOM">SOM</option>
-            <option value="GRADSCH">GRADSCH</option>
+            @foreach($departments as $dept)
+              <option value="{{ $dept->department_code }}">{{ $dept->department_code }}</option>
+            @endforeach
           </select>
         </div>
 

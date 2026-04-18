@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\NotifArchive;
 use App\Models\GoodMoralApplication;
+use App\Models\Department;
 
 class NotificationArchiveService
 {
@@ -20,6 +21,7 @@ class NotificationArchiveService
             'reason' => $application->reason,
             'student_id' => $application->student_id,
             'department' => $application->department,
+            'department_id' => $application->department_id ?? Department::findIdByCode($application->department),
             'course_completed' => $application->course_completed,
             'graduation_date' => $application->graduation_date,
             'application_status' => $applicationStatus,
@@ -45,6 +47,7 @@ class NotificationArchiveService
             'reason' => $application->reason,
             'student_id' => $goodMoralApp->student_id ?? $application->student_id,
             'department' => $goodMoralApp->department ?? $application->department,
+            'department_id' => $goodMoralApp->department_id ?? $application->department_id ?? Department::findIdByCode($goodMoralApp->department ?? $application->department),
             'course_completed' => $application->course_completed,
             'graduation_date' => $application->graduation_date,
             'application_status' => $applicationStatus,

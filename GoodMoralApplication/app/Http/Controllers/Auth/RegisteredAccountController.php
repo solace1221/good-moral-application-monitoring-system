@@ -8,6 +8,7 @@ use App\Models\StudentRegistration;
 use App\Models\RoleAccount;
 use App\Models\Organization;
 use App\Models\Course;
+use App\Models\Department;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -48,7 +49,9 @@ class RegisteredAccountController extends Controller
 
     $courses = Course::ordered()->get();
 
-    return view('admin.add-account', compact('students', 'adminAccounts', 'organizations', 'courses'));
+    $departments = Department::orderBy('department_code')->get();
+
+    return view('admin.add-account', compact('students', 'adminAccounts', 'organizations', 'courses', 'departments'));
   }
 
   /**
@@ -110,6 +113,7 @@ class RegisteredAccountController extends Controller
         'fullname' => $request->fullname,
         'email' => $request->email,
         'department' => $request->department,
+        'department_id' => Department::findIdByCode($request->department),
         'password' => $hashedPassword,
         'student_id' => $isStaff ? null : $request->student_id,
         'course_id' => $isStudent ? $courseId : null,
@@ -129,6 +133,7 @@ class RegisteredAccountController extends Controller
           'extension' => $nameParts['extension'],
           'email' => $request->email,
           'department' => $request->department,
+          'department_id' => Department::findIdByCode($request->department),
           'course_id' => $courseId,
           'course' => $courseCode,
           'password' => $hashedPassword,

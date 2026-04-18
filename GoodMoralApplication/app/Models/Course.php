@@ -13,12 +13,36 @@ class Course extends Model
         'course_code',
         'course_name',
         'department',
+        'department_id',
         'department_name',
         'sort_order',
     ];
 
     /**
-     * Get the department model via department code string
+     * Auto-eager-load the department relationship.
+     */
+    protected $with = ['departmentRecord'];
+
+    /**
+     * Resolve department code from FK, falling back to string column.
+     */
+    public function getDepartmentAttribute()
+    {
+        return $this->departmentRecord?->department_code
+            ?? $this->attributes['department']
+            ?? null;
+    }
+
+    /**
+     * Get the department model via FK
+     */
+    public function departmentRecord()
+    {
+        return $this->belongsTo(Department::class, 'department_id');
+    }
+
+    /**
+     * Legacy: get the department model via department code string
      */
     public function departmentModel()
     {

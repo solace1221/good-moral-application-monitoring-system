@@ -19,6 +19,7 @@ use Illuminate\View\View;
 use App\Models\RoleAccount;
 use App\Models\StudentRegistration;
 use App\Models\User;
+use App\Models\Department;
 use App\Services\NotificationCountService;
 use Illuminate\Support\Facades\Log;
 
@@ -195,6 +196,7 @@ class ProfileController extends Controller
             $roleAccount->update([
                 'fullname' => $request->fullname,
                 'department' => $request->department,
+                'department_id' => Department::findIdByCode($request->department),
                 'gender' => $request->gender,
                 'position' => $request->position,
             ]);

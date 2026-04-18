@@ -19,6 +19,7 @@ class RoleAccount extends Authenticatable
     'account_type',
     'student_id',
     'department',
+    'department_id',
     'course_id',
     'course',
     'year_level',
@@ -110,9 +111,22 @@ class RoleAccount extends Authenticatable
   // Relationships
   // =========================================================
 
-  public function department()
+  /**
+   * Get the department via FK.
+   */
+  public function departmentRecord()
   {
     return $this->belongsTo(Department::class, 'department_id');
+  }
+
+  /**
+   * Resolve department code from FK, falling back to string column.
+   */
+  public function getDepartmentAttribute()
+  {
+    return $this->departmentRecord?->department_code
+      ?? $this->attributes['department']
+      ?? null;
   }
 
   public function courseRecord()

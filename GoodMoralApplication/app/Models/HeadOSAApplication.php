@@ -16,6 +16,7 @@ class HeadOSAApplication extends Model
     'number_of_copies',
     'student_id',
     'department',
+    'department_id',
     'reason',
     'fullname',
     'course_completed',  // New field
@@ -35,5 +36,17 @@ class HeadOSAApplication extends Model
   public function student()
   {
     return $this->belongsTo(RoleAccount::class, 'student_id', 'student_id');
+  }
+
+  public function departmentRecord()
+  {
+    return $this->belongsTo(Department::class, 'department_id');
+  }
+
+  public function getDepartmentAttribute()
+  {
+    return $this->departmentRecord?->department_code
+      ?? $this->attributes['department']
+      ?? null;
   }
 }

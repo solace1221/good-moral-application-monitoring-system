@@ -11,6 +11,7 @@ use App\Models\GoodMoralApplication;
 use App\Models\RoleAccount;
 use App\Models\NotifArchive;
 use App\Models\StudentViolation;
+use App\Models\Department;
 use App\Services\ReceiptValidationService;
 use App\Services\NotificationArchiveService;
 use App\Helpers\CourseHelper;
@@ -199,6 +200,7 @@ class ApplicationController extends Controller
       'reason' => $selectedReason,
       'student_id' => $studentId,
       'department' => $studentDepartment,
+      'department_id' => Department::findIdByCode($studentDepartment),
       'course_completed' => $request->course_completed ?? null, // Allowing this to be null
       'graduation_date' => $request->graduation_date ?? null,
       'application_status' => null,

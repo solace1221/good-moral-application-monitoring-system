@@ -86,8 +86,9 @@
 
             $certName = $latest->certificate_type === 'good_moral' ? 'Good Moral' : 'Residency';
             $purpose  = is_array($latest->reason) ? implode(', ', $latest->reason) : ($latest->reason ?? '—');
-            $copies   = (int) ($latest->number_of_copies ?? 1);
-            $total    = $copies * 100;
+            $copies      = (int) ($latest->number_of_copies ?? 1);
+            $reasonCount = is_array($latest->reason) ? count($latest->reason) : ($latest->reason ? 1 : 0);
+            $total       = $reasonCount * $copies * 100;
             $rejDetail = $rejectionDetails[$refNum] ?? null;
 
             // Build rejection JSON for the modal
@@ -149,6 +150,7 @@
                   '{{ $sc['bg'] }}',
                   {{ $copies }},
                   {{ $total }},
+                  {{ $reasonCount }},
                   {{ $needsReceipt && !$alreadyUploaded ? 'true' : 'false' }},
                   {{ $rejJson }}
                 )"
@@ -283,12 +285,16 @@
               <span id="payCertType" style="font-weight:500;"></span>
             </div>
             <div style="display:flex; gap:8px; border-top:1px solid #e9ecef; margin-top:6px; padding-top:6px;">
+              <span style="color:#6c757d; min-width:130px; flex-shrink:0;">Reasons:</span>
+              <span id="payReasons" style="font-weight:500;"></span>
+            </div>
+            <div style="display:flex; gap:8px;">
               <span style="color:#6c757d; min-width:130px; flex-shrink:0;">Copies:</span>
               <span id="payCopies" style="font-weight:500;"></span>
             </div>
             <div style="display:flex; gap:8px;">
               <span style="color:#6c757d; min-width:130px; flex-shrink:0;">Rate per Copy:</span>
-              <span style="font-weight:500;">&#8369;50</span>
+              <span style="font-weight:500;">&#8369;100</span>
             </div>
             <div style="display:flex; gap:8px; border-top:1px solid #e9ecef; margin-top:6px; padding-top:6px; font-weight:700;">
               <span style="color:#6c757d; min-width:130px; flex-shrink:0;">Total Amount:</span>
@@ -375,7 +381,7 @@ function _wfSetIcon(i, bg, borderColor, color, symbol) {
   }
 }
 
-function openAppModal(ref, certType, status, statusLabel, statusColor, statusBg, copies, total, needsReceipt, rejDetail) {
+function openAppModal(ref, certType, status, statusLabel, statusColor, statusBg, copies, total, reasonCount, needsReceipt, rejDetail) {
   document.getElementById('modalRef').textContent = ref;
   document.getElementById('modalCertType').textContent = certType;
 
@@ -423,8 +429,9 @@ function openAppModal(ref, certType, status, statusLabel, statusColor, statusBg,
     document.getElementById('modalReceiptRef').value   = ref;
     document.getElementById('payRef').textContent      = ref;
     document.getElementById('payCertType').textContent = certType;
+    document.getElementById('payReasons').textContent  = reasonCount;
     document.getElementById('payCopies').textContent   = copies;
-    document.getElementById('payTotal').textContent    = '\u20B1' + (copies * 100).toLocaleString();
+    document.getElementById('payTotal').textContent    = '\u20B1' + (reasonCount * copies * 100).toLocaleString();
   }
 
   document.getElementById('appModal').style.display = 'flex';
